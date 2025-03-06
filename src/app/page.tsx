@@ -1,3 +1,6 @@
-export default function Home() {
-  return <main>Olá</main>;
+
+import DashboardContent from "@/components/dashboard/Content";
+
+export default function DashboardPage() {
+  return <DashboardContent />;
 }
