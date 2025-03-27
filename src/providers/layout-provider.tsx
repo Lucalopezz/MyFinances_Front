@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider, useSession } from "next-auth/react";
 import { queryClient } from "@/hooks/useQueryClient";
 import { ToastProvider } from "@/providers/toast-provider";
-import { Header } from "@/components/Header";
+import { Header } from "@/components/header/Header";
 import { Footer } from "@/components/Footer";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeProvider } from "next-themes";

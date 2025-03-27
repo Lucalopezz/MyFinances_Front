@@ -20,6 +20,7 @@ export const useAuth = () => {
 
       if (result?.error) {
         setError("Email ou senha inválidos");
+        toast.error("Email ou senha inválidos");
       } else {
         await router.push("/");
         router.refresh();
