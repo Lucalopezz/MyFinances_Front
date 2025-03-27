@@ -1,19 +1,31 @@
+"use client";
+
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Transaction, TransactionDialog } from "./TransactionDialog";
 
 const DashboardActions = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleAddTransaction = (transaction: Transaction) => {
+
+    console.log('New Transaction:', transaction);
+    setIsDialogOpen(false);
+  };
+
   return (
     <>
-      {/* Botão de Ação */}
       <div className="mt-6 flex justify-center sm:justify-start">
-        <Button className="bg-[#10B981] hover:bg-[#059669] text-white">
-          Adicionar Transação
-        </Button>
+        <TransactionDialog 
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          onSubmit={handleAddTransaction}
+        />
       </div>
 
-      {/* Badge de Status */}
       <div className="mt-4 flex justify-center sm:justify-start">
-        <Badge variant="outline" className="text-[#10B981] border-[#10B981]">
+        <Badge variant="outline" className="text-emerald-600 border-emerald-600">
           Status: Ativo
         </Badge>
       </div>
