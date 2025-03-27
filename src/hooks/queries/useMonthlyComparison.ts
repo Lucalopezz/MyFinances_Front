@@ -49,7 +49,7 @@ function getCurrentAndPreviousMonthDates(): {
 }
 
 async function fetchMonthlyComparison(
-  userId: string
+
 ): Promise<{
   currentMonth: MonthlyComparisonDto;
   previousMonth: MonthlyComparisonDto;
@@ -64,7 +64,7 @@ async function fetchMonthlyComparison(
         params: {
           startDate: currentMonth.startDate,
           endDate: currentMonth.endDate,
-          userId,
+
         },
       }
     );
@@ -76,7 +76,7 @@ async function fetchMonthlyComparison(
         params: {
           startDate: previousMonth.startDate,
           endDate: previousMonth.endDate,
-          userId,
+
         },
       }
     );
@@ -108,10 +108,10 @@ async function fetchMonthlyComparison(
 }
 
 
-export function useMonthlyComparison(userId: string) {
+export function useMonthlyComparison() {
   return useQuery({
-    queryKey: ["monthlyComparison", userId], 
-    queryFn: () => fetchMonthlyComparison(userId), 
+    queryKey: ["monthlyComparison"], 
+    queryFn: () => fetchMonthlyComparison(), 
     placeholderData: (previousData) => previousData, 
   });
 }

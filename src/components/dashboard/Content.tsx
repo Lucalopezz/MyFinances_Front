@@ -8,8 +8,7 @@ import SummaryCards from "./SummaryCards";
 import MonthlyComparisonChart from "./MonthlyComparisonChart";
 import DashboardActions from "./DashboardActions";
 
-const DashboardContent = ({ userId }: { userId: string }) => {
-  // Hooks para buscar dados
+const DashboardContent = () => {
   const {
     data: dashboardData,
     isLoading: isDashboardLoading,
@@ -20,7 +19,7 @@ const DashboardContent = ({ userId }: { userId: string }) => {
     data: monthlyData,
     isLoading: isMonthlyLoading,
     error: monthlyError,
-  } = useMonthlyComparison(userId);
+  } = useMonthlyComparison();
 
   // Exibir mensagem de erro caso ocorra
   if (dashboardError || monthlyError) {
