@@ -4,13 +4,16 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Transaction, TransactionDialog } from "./TransactionDialog";
+import { useCreateTransaction } from '@/hooks/queries/useCreateTransaction';
 
 const DashboardActions = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const {createTransaction, isLoading} = useCreateTransaction()
 
   const handleAddTransaction = (transaction: Transaction) => {
 
-    console.log('New Transaction:', transaction);
+    createTransaction(transaction)
+    
     setIsDialogOpen(false);
   };
 
@@ -20,6 +23,7 @@ const DashboardActions = () => {
         <TransactionDialog 
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
+          loading={isLoading}
           onSubmit={handleAddTransaction}
         />
       </div>

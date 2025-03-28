@@ -50,14 +50,15 @@ type TransactionDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (transaction: Transaction) => void;
+  loading: boolean;
 };
 
 export const TransactionDialog = ({
   open,
   onOpenChange,
   onSubmit,
+  loading,
 }: TransactionDialogProps) => {
-    
   const {
     control,
     register,
@@ -83,8 +84,8 @@ export const TransactionDialog = ({
     };
 
     onSubmit(transaction);
-    reset(); 
-    onOpenChange(false); 
+    reset();
+    onOpenChange(false);
   };
 
   return (
@@ -108,7 +109,10 @@ export const TransactionDialog = ({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="grid gap-4 py-4">
+        <form
+          onSubmit={handleSubmit(handleFormSubmit)}
+          className="grid gap-4 py-4"
+        >
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="type" className="text-right text-white">
               Tipo
@@ -117,10 +121,7 @@ export const TransactionDialog = ({
               name="type"
               control={control}
               render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
+                <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className="col-span-3 bg-[#364152] border-none text-white">
                     <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
@@ -152,8 +153,8 @@ export const TransactionDialog = ({
                 id="value"
                 type="number"
                 step="0.01"
-                {...register("value", { 
-                  setValueAs: (v) => parseFloat(v) 
+                {...register("value", {
+                  setValueAs: (v) => parseFloat(v),
                 })}
                 placeholder="150.00"
                 className={cn(
@@ -262,7 +263,7 @@ export const TransactionDialog = ({
               type="submit"
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
-              Salvar
+              {loading ? "Carrgando" : "Salvar"}
             </Button>
           </div>
         </form>
