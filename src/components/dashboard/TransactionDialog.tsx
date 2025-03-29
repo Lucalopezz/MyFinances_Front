@@ -31,6 +31,7 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type Transaction = {
+  id?: string;
   value: number;
   date: string;
   category: string;
