@@ -35,7 +35,7 @@ async function fetchDashboard(
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(
-        error.response.data.message || "Erro ao buscar dados do dashboard"
+        error.response.data.message
       );
     }
     throw new Error("Erro ao buscar dados do dashboard");

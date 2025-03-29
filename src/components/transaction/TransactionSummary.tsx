@@ -16,7 +16,7 @@ export function TransactionSummary({ transactions }: TransactionSummaryProps) {
   const balance = totalIncome - totalExpense;
 
   return (
-    <div className="grid grid-cols-3 gap-4 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
       {/* Card de Saldo */}
       <div className="bg-green-50 dark:bg-green-800/50 p-4 rounded-lg border border-green-100 dark:border-green-800/50">
         <p className="text-gray-500 dark:text-gray-400">Saldo</p>
