@@ -1,9 +1,6 @@
 "use client";
-
-import { useState } from 'react';
-import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
-import { Menu, Bell, LogOut, User, Sun, Moon } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ThemeToggleButton } from "./ThemeToggleButton";
@@ -43,7 +40,11 @@ const LogoSection = () => (
   </div>
 );
 
-const NavigationActions = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
+const NavigationActions = ({
+  isAuthenticated,
+}: {
+  isAuthenticated: boolean;
+}) => {
   const handleLogout = () => {
     signOut({ callbackUrl: "/login" });
   };
@@ -52,7 +53,7 @@ const NavigationActions = ({ isAuthenticated }: { isAuthenticated: boolean }) =>
     <div className="flex items-center space-x-4">
       <NotificationButton />
       <ThemeToggleButton />
-      
+
       {isAuthenticated ? (
         <AuthenticatedActions onLogout={handleLogout} />
       ) : (
