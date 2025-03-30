@@ -10,15 +10,63 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getTransaction } from "../../_services";
+import { getTransaction, updateTransaction } from "../../_services";
 import { Textarea } from "@/components/ui/textarea";
+import { redirect } from "next/navigation";
+import { revalidateTag } from "next/cache";
+
+async function updateTransactionAction(formData: FormData) {
+  "use server";
+
+  const id = formData.get("id") as string;
+
+  if (!id) {
+    console.error("Transaction ID is missing");
+    throw new Error("ID da transação não fornecido");
+  }
+
+  try {
+    const transactionData = {
+      value: parseFloat(formData.get("value") as string),
+      date: formData.get("date") as string,
+      description: formData.get("description") as string,
+      category: formData.get("category") as string,
+      type: formData.get("type") as "EXPENSE" | "INCOME",
+    };
+
+    const updated = await updateTransaction(id, transactionData);
+
+    if (!updated) {
+      throw new Error("Falha ao atualizar transação");
+    }
+    revalidateTag("transactions");
+    redirect("/transactions");
+  } catch (error) {
+    console.error("Error in updateTransactionAction:", error);
+    throw error;
+  }
+}
 
 export default async function EditTransactionPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const transaction = await getTransaction(params.id);
+  const id = params.id;
+
+  let transaction;
+  try {
+    transaction = await getTransaction(id);
+  } catch (error) {
+    return (
+      <div className="p-4">
+        <p>Erro ao carregar transação</p>
+        <Link href="/transactions">
+          <Button className="mt-4">Voltar</Button>
+        </Link>
+      </div>
+    );
+  }
 
   if (!transaction) {
     return (
@@ -36,7 +84,7 @@ export default async function EditTransactionPage({
     : "";
 
   return (
-    <div className=" min-h-screen p-4">
+    <div className="min-h-screen p-4">
       <div className="max-w-md mx-auto rounded-lg shadow-md p-6 bg-gray-800/60">
         <div className="flex items-center mb-6">
           <Link href="/transactions">
@@ -47,73 +95,59 @@ export default async function EditTransactionPage({
           <h1 className="text-xl font-semibold ml-2">Editar Transação</h1>
         </div>
 
-        <form className="space-y-4 ">
+        <form action={updateTransactionAction} className="space-y-4">
           <input type="hidden" name="id" value={transaction.id} />
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="date" className="text-sm font-medium">
-                Data
-              </Label>
+              <Label htmlFor="date">Data</Label>
               <Input
                 id="date"
                 name="date"
                 type="date"
                 defaultValue={formattedDate}
-                className="w-full p-2 border rounded"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="value" className="text-sm font-medium">
-                Valor
-              </Label>
+              <Label htmlFor="value">Valor</Label>
               <Input
                 id="value"
                 name="value"
                 type="number"
                 step="0.01"
                 defaultValue={transaction.value}
-                className="w-full p-2 border rounded"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="description" className="text-sm font-medium">
-              Descrição
-            </Label>
+            <Label htmlFor="description">Descrição</Label>
             <Textarea
               id="description"
               name="description"
               defaultValue={transaction.description}
-              className="w-full p-2 border rounded"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="category" className="text-sm font-medium">
-                Categoria
-              </Label>
+              <Label htmlFor="category">Categoria</Label>
               <Input
                 id="category"
                 name="category"
                 defaultValue={transaction.category}
-                className="w-full p-2 border rounded"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="type" className="text-sm font-medium">
-                Tipo
-              </Label>
+              <Label htmlFor="type">Tipo</Label>
               <Select name="type" defaultValue={transaction.type} required>
-                <SelectTrigger className="w-full p-2 border rounded">
+                <SelectTrigger>
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
@@ -126,17 +160,13 @@ export default async function EditTransactionPage({
 
           <div className="flex justify-end space-x-3 pt-6">
             <Link href="/transactions">
-              <Button
-                variant="outline"
-                type="button"
-                className="px-4 py-2 border rounded bg-[#364152] border-none text-white hover:bg-[#4A5567]"
-              >
+              <Button variant="outline" type="button">
                 Cancelar
               </Button>
             </Link>
             <Button
               type="submit"
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="bg-emerald-600 hover:bg-emerald-700"
             >
               Salvar
             </Button>
