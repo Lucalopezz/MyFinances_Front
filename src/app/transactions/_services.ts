@@ -106,3 +106,39 @@ export async function updateTransaction(
     return null;
   }
 }
+
+export async function deleteTransaction(id: string | undefined): Promise<boolean> {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.jwt) {
+    console.error("Não autorizado - sessão não encontrada");
+    return false;
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.BACKEND_URL}/transactions/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session.jwt}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        console.error("Não autorizado - token inválido ou expirado");
+      } else if (response.status === 404) {
+        console.error("Transação não encontrada");
+      }
+      throw new Error(`Falha ao deletar transação: ${response.statusText}`);
+    }
+
+    return true; 
+  } catch (error) {
+    console.error("Erro ao deletar transação:", error);
+    return false;
+  }
+}

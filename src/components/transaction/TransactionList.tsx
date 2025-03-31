@@ -4,24 +4,34 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+import { revalidatePath } from "next/cache";
+import { deleteTransaction } from "@/app/transactions/_services";
+import { DeleteButton } from "./DeleteButton";
+
 interface TransactionListProps {
   transactions: Transaction[];
   editUrlPrefix?: string;
-  deleteUrlPrefix?: string;
 }
 
 export function TransactionList({
   transactions,
   editUrlPrefix = "/transactions/edit",
-  deleteUrlPrefix = "/transactions/delete",
 }: TransactionListProps) {
+  async function handleDelete(id: string) {
+    "use server";
+
+    const success = await deleteTransaction(id);
+    if (success) {
+      revalidatePath("/transactions"); 
+    }
+  }
+
   return (
     <>
-      {/* Versão Desktop (tabela) - mostrada em md para cima */}
+      {/* Versão Desktop (tabela) */}
       <div className="hidden md:block border rounded-lg shadow-sm border-gray-300 dark:border-gray-700">
         <div className="max-h-[calc(100vh-300px)] overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <Table>
-            {/* Cabeçalho da tabela (mesmo que antes) */}
             <TableBody>
               {transactions.map((transaction) => (
                 <DesktopTransactionRow
@@ -31,7 +41,7 @@ export function TransactionList({
                   }
                   transaction={transaction}
                   editUrlPrefix={editUrlPrefix}
-                  deleteUrlPrefix={deleteUrlPrefix}
+                  handleDelete={handleDelete} // Passamos a ação como prop
                 />
               ))}
             </TableBody>
@@ -39,7 +49,7 @@ export function TransactionList({
         </div>
       </div>
 
-      {/* Versão Mobile (cards) - mostrada em md para baixo */}
+      {/* Versão Mobile (cards) */}
       <div className="md:hidden space-y-3">
         {transactions.map((transaction) => (
           <MobileTransactionCard
@@ -49,7 +59,7 @@ export function TransactionList({
             }
             transaction={transaction}
             editUrlPrefix={editUrlPrefix}
-            deleteUrlPrefix={deleteUrlPrefix}
+            handleDelete={handleDelete} // Passamos a ação como prop
           />
         ))}
       </div>
@@ -61,19 +71,17 @@ export function TransactionList({
 function DesktopTransactionRow({
   transaction,
   editUrlPrefix,
-  deleteUrlPrefix,
+  handleDelete,
 }: {
   transaction: Transaction;
   editUrlPrefix: string;
-  deleteUrlPrefix: string;
+  handleDelete: (id: string) => Promise<void>;
 }) {
   const transactionId =
     transaction.id ||
     encodeURIComponent(
       `${transaction.date}-${transaction.description}-${transaction.value}`
     );
-  const editUrl = `${editUrlPrefix}/${transactionId}`;
-  const deleteUrl = `${deleteUrlPrefix}/${transactionId}`;
 
   return (
     <TableRow className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -107,21 +115,12 @@ function DesktopTransactionRow({
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
         <div className="flex space-x-2">
-          <a href={editUrl}>
+          <a href={`${editUrlPrefix}/${transactionId}`}>
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Pencil className="h-4 w-4" />
             </Button>
           </a>
-          <form action={deleteUrl} method="POST">
-            <Button
-              type="submit"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </form>
+          <DeleteButton id={transaction.id} deleteAction={handleDelete} />
         </div>
       </TableCell>
     </TableRow>
@@ -132,19 +131,17 @@ function DesktopTransactionRow({
 function MobileTransactionCard({
   transaction,
   editUrlPrefix,
-  deleteUrlPrefix,
+  handleDelete,
 }: {
   transaction: Transaction;
   editUrlPrefix: string;
-  deleteUrlPrefix: string;
+  handleDelete: (id: string) => Promise<void>;
 }) {
   const transactionId =
     transaction.id ||
     encodeURIComponent(
       `${transaction.date}-${transaction.description}-${transaction.value}`
     );
-  const editUrl = `${editUrlPrefix}/${transactionId}`;
-  const deleteUrl = `${deleteUrlPrefix}/${transactionId}`;
 
   return (
     <div className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700">
@@ -186,21 +183,13 @@ function MobileTransactionCard({
         </div>
 
         <div className="flex space-x-2">
-          <a href={editUrl}>
+          <a href={`${editUrlPrefix}/${transactionId}`}>
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Pencil className="h-4 w-4" />
             </Button>
           </a>
-          <form action={deleteUrl} method="POST">
-            <Button
-              type="submit"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </form>
+
+          <DeleteButton id={transaction.id} deleteAction={handleDelete} />
         </div>
       </div>
     </div>
