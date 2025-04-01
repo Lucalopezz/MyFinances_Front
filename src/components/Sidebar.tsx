@@ -11,7 +11,7 @@ export const Sidebar = () => {
     { name: "Transações", path: "/transactions" },
     { name: "Wishlist", path: "/wishlist" },
     { name: "Despesas Fixas", path: "/fixed-expenses" },
-    { name: "Comparativo", path: "/comparatuve" },
+    { name: "Comparativo", path: "/comparative" },
     { name: "Configurações", path: "/config" },
   ];
 
