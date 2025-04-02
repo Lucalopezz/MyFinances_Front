@@ -3,7 +3,11 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -24,18 +28,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createFixedExpense } from "@/app/fixed-expenses/_actions";
+import { cn } from "@/lib/utils";
 
 interface FixedExpenseDialogProps {
   setOpen: (open: boolean) => void;
 }
 
 const formSchema = z.object({
-  name: z
-    .string()
-    .min(3, { message: "Nome deve ter pelo menos 3 caracteres" }),
-  amount: z
-    .number()
-    .min(0.01, { message: "Valor deve ser maior que zero" }),
+  name: z.string().min(3, { message: "Nome deve ter pelo menos 3 caracteres" }),
+  amount: z.number().min(0.01, { message: "Valor deve ser maior que zero" }),
   dueDate: z.string().min(1, { message: "Selecione uma data de vencimento" }),
   recurrence: z.string().min(1, { message: "Selecione a recorrência" }),
 });
@@ -44,7 +45,7 @@ type FormData = z.infer<typeof formSchema>;
 
 export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
   const router = useRouter();
-  
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -66,7 +67,14 @@ export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
   }
 
   return (
-    <DialogContent className="sm:max-w-[425px]">
+    <DialogContent
+      className={cn(
+        "sm:max-w-[425px]",
+        "bg-[#2C3344] border-none",
+        "text-white",
+        "rounded-lg"
+      )}
+    >
       <DialogHeader>
         <DialogTitle>Nova despesa fixa</DialogTitle>
       </DialogHeader>
@@ -85,7 +93,7 @@ export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="amount"
@@ -105,7 +113,7 @@ export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="dueDate"
@@ -119,7 +127,7 @@ export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="recurrence"
@@ -137,9 +145,6 @@ export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="MONTHLY">Mensal</SelectItem>
-                    <SelectItem value="WEEKLY">Semanal</SelectItem>
-                    <SelectItem value="BIWEEKLY">Quinzenal</SelectItem>
-                    <SelectItem value="QUARTERLY">Trimestral</SelectItem>
                     <SelectItem value="YEARLY">Anual</SelectItem>
                   </SelectContent>
                 </Select>
