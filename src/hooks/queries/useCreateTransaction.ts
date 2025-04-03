@@ -5,6 +5,7 @@ import axios from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { queryClient } from "../useQueryClient";
+import { revalidateTransactionsCache } from "@/app/fixed-expenses/_actions";
 
 export function useCreateTransaction() {
   const [error, setError] = useState("");
@@ -13,6 +14,7 @@ export function useCreateTransaction() {
     mutationFn: async (data: Transaction) => {
       try {
         const response = await api.post("/transactions", data);
+        await revalidateTransactionsCache();
         return response.data;
       } catch (error: any) {
         if (axios.isAxiosError(error) && error.response) {

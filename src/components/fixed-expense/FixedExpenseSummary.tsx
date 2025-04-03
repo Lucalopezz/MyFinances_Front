@@ -13,7 +13,6 @@ interface FixedExpenseSummaryProps {
 }
 
 export function FixedExpenseSummary({ fixedExpenses }: FixedExpenseSummaryProps) {
-  // Calculate total amount of fixed expenses
   const totalAmount = fixedExpenses.reduce((sum, expense) => sum + expense.amount, 0);
 
   return (

@@ -5,8 +5,11 @@ import { FixedExpense } from "./types";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { deleteFixedExpense, markFixedExpenseAsPaid } from "./_services";
+import { revalidateTag } from "next/cache";
 
-export async function createFixedExpense(data: Omit<FixedExpense, "id">): Promise<boolean> {
+export async function createFixedExpense(
+  data: Omit<FixedExpense, "id">
+): Promise<boolean> {
   const session = await getServerSession(authOptions);
 
   if (!session?.jwt) {
@@ -15,17 +18,14 @@ export async function createFixedExpense(data: Omit<FixedExpense, "id">): Promis
   }
 
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/fixed-expenses`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.jwt}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    );
+    const response = await fetch(`${process.env.BACKEND_URL}/fixed-expenses`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.jwt}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -42,8 +42,6 @@ export async function createFixedExpense(data: Omit<FixedExpense, "id">): Promis
   }
 }
 
-
-
 export async function markAsPaidAction(formData: FormData) {
   const id = formData.get("id") as string;
   const dueDate = formData.get("dueDate") as string;
@@ -58,4 +56,11 @@ export async function deleteAction(id: string) {
   if (success) {
     revalidatePath("/fixed-expenses");
   }
+}
+
+
+
+export async function revalidateTransactionsCache() {
+  revalidateTag("transactions");
+  return { revalidated: true };
 }
