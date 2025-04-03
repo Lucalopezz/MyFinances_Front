@@ -4,8 +4,14 @@ import { revalidatePath } from "next/cache";
 import { FixedExpense } from "./types";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
-import { deleteFixedExpense, markFixedExpenseAsPaid } from "./_services";
+import {
+  deleteFixedExpense,
+  markFixedExpenseAsPaid,
+  updateFixedExpense,
+} from "./_services";
 import { revalidateTag } from "next/cache";
+import { redirect } from "next/navigation";
+import toast from "react-hot-toast";
 
 export async function createFixedExpense(
   data: Omit<FixedExpense, "id">
@@ -58,9 +64,39 @@ export async function deleteAction(id: string) {
   }
 }
 
-
-
 export async function revalidateTransactionsCache() {
   revalidateTag("transactions");
   return { revalidated: true };
+}
+
+export async function updateFixedExpenseAction(formData: FormData) {
+  const id = formData.get("id") as string;
+
+  if (!id) {
+    console.error("ID da despesa fixa não fornecido");
+    throw new Error("ID da despesa fixa não fornecido");
+  }
+
+  try {
+    const fixedExpenseData = {
+      name: formData.get("name") as string,
+      amount: parseFloat(formData.get("amount") as string),
+      dueDate: formData.get("dueDate") as string,
+      recurrence: formData.get("recurrence") as string,
+      isPaid: formData.get("isPaid") === "on",
+    };
+
+    const updated = await updateFixedExpense(id, fixedExpenseData);
+
+    if (!updated) {
+      throw new Error("Falha ao atualizar despesa fixa");
+    }
+
+    revalidateTag("fixed-expenses");
+    revalidatePath("/fixed-expenses");
+    redirect("/fixed-expenses");
+  } catch (error) {
+    console.error("Error in updateFixedExpenseAction:", error);
+    throw error;
+  }
 }
