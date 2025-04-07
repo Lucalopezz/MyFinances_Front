@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "@/utils/api";
 
-interface MonthlyComparisonDto {
+export interface MonthlyComparisonDto {
   month: string; // Formato "YYYY-MM"
   totalExpenses: number;
   totalIncomes: number;
