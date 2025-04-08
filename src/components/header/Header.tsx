@@ -51,7 +51,6 @@ const NavigationActions = ({
 
   return (
     <div className="flex items-center space-x-4">
-      <NotificationButton />
       <ThemeToggleButton />
 
       {isAuthenticated ? (
@@ -72,6 +71,7 @@ const NavigationActions = ({
 
 const AuthenticatedActions = ({ onLogout }: { onLogout: () => void }) => (
   <>
+    <NotificationButton />
     <UserProfileButton />
     <Button
       variant="ghost"

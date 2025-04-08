@@ -20,7 +20,10 @@ interface SemesterComparisonChartProps {
   isLoading: boolean;
 }
 
-const SemesterComparisonChart = ({ data, isLoading }: SemesterComparisonChartProps) => {
+const SemesterComparisonChart = ({
+  data,
+  isLoading,
+}: SemesterComparisonChartProps) => {
   return (
     <Card className="bg-white dark:bg-gray-800">
       <CardHeader>
@@ -30,7 +33,7 @@ const SemesterComparisonChart = ({ data, isLoading }: SemesterComparisonChartPro
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <Skeleton className="h-48 sm:h-64 w-full" /> 
+          <Skeleton className="h-48 sm:h-64 w-full" />
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data}>
