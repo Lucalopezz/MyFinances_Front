@@ -22,7 +22,7 @@ export function useCreateTransaction() {
             error.response.data.message || "Erro ao criar transição"
           );
         }
-        throw new Error("Erro ao criar conta");
+        throw new Error("Erro ao criar transição");
       }
     },
     onSuccess: () => {

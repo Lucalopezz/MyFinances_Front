@@ -2,13 +2,19 @@
 
 import { useState } from "react";
 import { Bell } from "lucide-react";
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
-import { useGetNotifications } from "@/hooks/queries/useNotification";
-import { NotificationsType } from "@/interfaces/notification.interface";
+import {
+  useGetNotifications,
+  useMarkAsRead,
+} from "@/hooks/queries/useNotification";
+import {
+  NotificationInterface,
+  NotificationsType,
+} from "@/interfaces/notification.interface";
 import { formatTimeAgo } from "@/utils/formatters";
 
 const NotificationIcon = ({ type }: { type: NotificationsType }) => {
@@ -25,16 +31,32 @@ const NotificationIcon = ({ type }: { type: NotificationsType }) => {
 };
 
 export const NotificationButton = () => {
-  const { data: notifications = [], isLoading, isError } = useGetNotifications();
+  const {
+    data: notifications = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useGetNotifications();
   const [isOpen, setIsOpen] = useState(false);
-  console.log(notifications)
-  // Contagem de notificações não lidas
-  const unreadCount = notifications.filter(notif => !notif.read).length;
-  
+  const { markAsRead } = useMarkAsRead();
+
+  async function handleNotificationClick(id: NotificationInterface["id"]) {
+    try {
+      await markAsRead(id);
+    } catch (error) {
+      console.error("Erro ao marcar notificação como lida:", error);
+    }
+  }
+
+  const unreadCount = notifications.filter((notif) => !notif.read).length;
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Notificações">
+        <button
+          className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          aria-label="Notificações"
+        >
           <Bell className="w-6 h-6 text-gray-700 dark:text-white" />
           {unreadCount > 0 && (
             <span className="absolute top-0 right-0 inline-flex justify-center items-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
@@ -48,7 +70,7 @@ export const NotificationButton = () => {
           <div className="p-4 border-b dark:border-gray-700">
             <h3 className="text-lg font-medium">Notificações</h3>
           </div>
-          
+
           <div className="max-h-96 overflow-y-auto">
             {isLoading ? (
               <div className="p-8 text-center text-gray-500">
@@ -61,16 +83,36 @@ export const NotificationButton = () => {
             ) : notifications.length > 0 ? (
               <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                 {notifications.map((notification) => (
-                  <li 
+                  <li
+                    onClick={() =>
+                      !notification.read &&
+                      handleNotificationClick(notification.id)
+                    }
                     key={notification.id}
                     className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                      notification.read ? "opacity-70" : "font-medium"
+                      notification.read ? "opacity-60" : ""
                     }`}
                   >
                     <div className="flex justify-between">
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">{notification.title}</p>
-                        <p className="text-gray-600 dark:text-gray-300">{notification.message}</p>
+                        <p
+                          className={`${
+                            notification.read
+                              ? "text-gray-600 dark:text-gray-400"
+                              : "font-medium text-gray-900 dark:text-white"
+                          }`}
+                        >
+                          {notification.title}
+                        </p>
+                        <p
+                          className={`${
+                            notification.read
+                              ? "text-gray-500 dark:text-gray-500"
+                              : "text-gray-600 dark:text-gray-300"
+                          }`}
+                        >
+                          {notification.message}
+                        </p>
                       </div>
                       <div className="flex flex-col items-end gap-2 ml-4">
                         <NotificationIcon type={notification.type} />
@@ -91,10 +133,10 @@ export const NotificationButton = () => {
               </div>
             )}
           </div>
-          
+
           {notifications.length > 0 && (
             <div className="p-3 border-t dark:border-gray-700">
-              <button 
+              <button
                 onClick={() => setIsOpen(false)}
                 className="w-full py-2 px-4 text-sm text-center text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
