@@ -39,6 +39,8 @@ export type Transaction = {
   type: "EXPENSE" | "INCOME";
 };
 
+const formattedDate = new Date().toISOString().split("T")[0];
+
 const TransactionSchema = z.object({
   type: z.enum(["EXPENSE", "INCOME"]),
   value: z.coerce.number().positive("Valor deve ser positivo"),
@@ -175,46 +177,26 @@ export const TransactionDialog = ({
             <Label htmlFor="date" className="text-right text-white">
               Data
             </Label>
-            <Controller
-              name="date"
-              control={control}
-              render={({ field }) => (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "col-span-3 justify-start text-left font-normal",
-                        "bg-[#364152] border-none text-white",
-                        !field.value && "text-gray-400"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4 text-white" />
-                      {field.value ? (
-                        format(field.value, "PPP", { locale: ptBR })
-                      ) : (
-                        <span>Selecione uma data</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-[#2C3344] border-none">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                      locale={ptBR}
-                      className="bg-[#2C3344] text-white"
-                      classNames={{
-                        day: "text-white hover:bg-[#364152] focus:bg-[#364152]",
-                        head: "text-white",
-                        caption: "text-white",
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
+            <div className="col-span-3">
+              <Controller
+                name="date"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    id="date"
+                    type="date"
+                    value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
+                    onChange={(e) => field.onChange(new Date(e.target.value))}
+                    className="bg-[#364152] border-none text-white"
+                  />
+                )}
+              />
+              {errors.date && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.date.message}
+                </p>
               )}
-            />
+            </div>
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
