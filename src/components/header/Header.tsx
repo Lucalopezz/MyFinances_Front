@@ -56,14 +56,24 @@ const NavigationActions = ({
       {isAuthenticated ? (
         <AuthenticatedActions onLogout={handleLogout} />
       ) : (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-          onClick={() => (window.location.href = "/login")}
-        >
-          Login
-        </Button>
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={() => (window.location.href = "/login")}
+          >
+            Login
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={() => (window.location.href = "/register")}
+          >
+            Criar conta
+          </Button>
+        </>
       )}
     </div>
   );

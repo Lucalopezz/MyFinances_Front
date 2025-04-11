@@ -1,32 +1,32 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { FormInput } from "@/components/form/FormInput";
 import { PasswordInput } from "@/components/form/PasswordInput";
 import { Button } from "@/components/ui/button";
-
-const schema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  email: z.string().email("E-mail inválido"),
-  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
-});
-
-type FormData = z.infer<typeof schema>;
+import {
+  RegisterFormData,
+  RegisterSchema,
+} from "@/schemas/auth/register.schema";
+import { useCreateUser } from "@/hooks/queries/useCreateUser";
+import { Loader } from "lucide-react";
 
 export default function RegisterPage() {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(RegisterSchema),
   });
+  const { createUser, isLoading } = useCreateUser();
 
-  const onSubmit = (data: FormData) => {
-    console.log("Cadastro:", data);
+  const onSubmit = (formData: RegisterFormData) => {
+    const { confirmPassword, ...dataToSend } = formData;
+
+    createUser(dataToSend);
   };
 
   return (
@@ -52,11 +52,20 @@ export default function RegisterPage() {
             register={register("password")}
             error={errors.password?.message}
           />
+          <PasswordInput
+            label="Confirme sua senha"
+            register={register("confirmPassword")}
+            error={errors.confirmPassword?.message}
+          />
           <Button
             type="submit"
             className="w-full bg-[#10B981] hover:bg-[#059669] text-white"
           >
-            Criar Conta
+            {isLoading ? (
+              <Loader className="animate-spin h-5 w-5" />
+            ) : (
+              "Criar conta"
+            )}
           </Button>
         </form>
         <p className="mt-4 text-sm text-[#6B7280] dark:text-gray-400">
