@@ -80,11 +80,11 @@ Uma aplicação full-stack para gerenciamento financeiro pessoal, permitindo que
      NEXT_PUBLIC_BACKEND_URL=http://url_da_api
      ```
 4. Configurar o next auth:
-  - Adicione o link no `.env` file:
-   ```bash
-   NEXTAUTH_SECRET=sua_chave_secreta_aleatoria
-   NEXTAUTH_URL=http://url_da_aplicacao
-   ```
+   - Adicione o link no `.env` file:
+       ```bash
+       NEXTAUTH_SECRET=sua_chave_secreta_aleatoria
+       NEXTAUTH_URL=http://url_da_aplicacao
+       ```
 6. Inicie o servidor:
    ```bash
    npm run dev
