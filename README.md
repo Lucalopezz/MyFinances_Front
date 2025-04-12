@@ -66,7 +66,7 @@ Uma aplicação full-stack para gerenciamento financeiro pessoal, permitindo que
 ## Instalação
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/Lucalopezz/MyFinances_API.git
+   git clone https://github.com/Lucalopezz/MyFinances_Front.git
    cd MyFinances_Front
    ```
 2. Instalar dependencias:
