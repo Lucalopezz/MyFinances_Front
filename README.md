@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SaaS Controle de Gastos
 
-## Getting Started
+Uma aplicação full-stack para gerenciamento financeiro pessoal, permitindo que os usuários controlem suas transações, acompanhem itens da wishlist, gerenciem despesas fixas e visualizem dashboards com comparativos mensais e indicadores financeiros.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Funcionalidades
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Transações:** Criação, atualização, listagem e remoção de transações (entradas/saídas).
+- **Dashboard:** Resumo financeiro com indicadores, gráficos interativos e comparativo mensal.
+- **Wishlist:** Gestão de itens desejados, com acompanhamento do progresso de economia.
+- **Despesas Fixas:** Cadastro e controle de despesas recorrentes (ex.: aluguel), com:
+    - Marcação de pagamento.
+    - Notificações automáticas dias antes do vencimento.
+    - Reset automático para o próximo ciclo após a data de vencimento.
+- **Notificações:** Alertas automáticos para despesas pendentes e vencimentos próximos.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tecnologias Utilizadas
 
-## Learn More
+### Back-end
+- **NestJS** – Framework para Node.js.
+- **Prisma** – ORM para o MongoDB.
+- **Zod** – Validação de dados.
+- **@nestjs/schedule** – Tarefas agendadas (para resetar despesas fixas e disparar notificações).
 
-To learn more about Next.js, take a look at the following resources:
+### Front-end
+- **Next.js** (App Router)
+- **TanStack Query** – Gerenciamento de dados e cache.
+- **React Hook Form** – Manipulação de formulários.
+- **Zod** – Validação de formulários.
+- **Tailwind CSS & Shadcn/UI** – Estilização e componentes UI.
+- **Recharts** – Visualização de gráficos.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Estrutura do Projeto
 
-## Deploy on Vercel
+```plaintext
+├── backend/                # Aplicação NestJS
+│   ├── src/
+│   │   ├── common/         # Filtros, guards, interceptors, pipes
+│   │   ├── modules/        # Módulos por funcionalidade
+│   │   │   ├── auth/       # Módulo de autenticação
+│   │   │   ├── dashboard/  # Módulo do dashboard
+│   │   │   ├── transactions/ # Módulo de transações
+│   │   │   ├── wishlist/   # Módulo da wishlist
+│   │   │   ├── fixed-expenses/ # Módulo de despesas fixas
+│   │   │   ├── notifications/  # Módulo de notificações
+│   │   ├── prisma/         # PrismaService e configurações
+│   │   ├── app.module.ts   # Módulo raiz que importa os demais
+│   │   └── main.ts         # Ponto de entrada da aplicação
+│   ├── prisma/             # Schema Prisma e scripts de seed
+│   └── package.json        # Configurações e dependências do backend
+│
+├── frontend/               # Aplicação Next.js
+│   ├── app/                # Páginas (dashboard, transactions, wishlist, fixed-expenses, auth)
+│   ├── components/         # Componentes compartilhados (Header, Sidebar, UI, Notifications)
+│   ├── hooks/              # Hooks customizados (useUser, useTransactions, etc.)
+│   ├── utils/              # Configurações de API e validações (Zod)
+│   ├── styles/             # Configurações do Tailwind CSS
+│   └── package.json        # Configurações e dependências do frontend
+└── README.md
+````
+## Instalação
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/Lucalopezz/MyFinances_API.git
+   cd MyFinances_Front
+   ```
+2. Instalar dependencias:
+   ```bash
+   npm install
+   ```
+3. Configurar a API:
+   - Configure seu backend
+   - Adicione o link no `.env` file:
+     ```
+     NEXT_PUBLIC_BACKEND_URL=http://url_da_api
+     ```
+4. Configurar o next auth:
+  - Adicione o link no `.env` file:
+   ```bash
+   NEXTAUTH_SECRET=sua_chave_secreta_aleatoria
+   NEXTAUTH_URL=http://url_da_aplicacao
+   ```
+6. Inicie o servidor:
+   ```bash
+   npm run dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+
+
+
