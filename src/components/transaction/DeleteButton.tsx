@@ -16,16 +16,16 @@ export function DeleteButton({ id, deleteAction }: DeleteButtonProps) {
   const handleDelete = () => {
     if (!id) return;
     
-    if (!confirm("Tem certeza que deseja excluir esta transação?")) return;
+    if (!confirm("Tem certeza que deseja excluir esse item?")) return;
 
     startTransition(async () => {
       try {
         await toast.promise(
           deleteAction(id),
           {
-            loading: "Excluindo transação...",
-            success: "Transação excluída com sucesso!",
-            error: (err) => err.message || "Falha ao excluir transação"
+            loading: "Excluindo item...",
+            success: "Item excluído com sucesso!",
+            error: (err) => err.message || "Falha ao excluir item"
           }
         );
       } catch (error) {

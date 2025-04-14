@@ -5,7 +5,7 @@ import { Pencil, Calendar, DollarSign, Wallet } from "lucide-react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { deleteWishItemAction } from "@/app/wishlist/_actions";
+import { deleteFixedExpenseAction } from "@/app/wishlist/_actions";
 import { WishListInterface } from "@/interfaces/wishlist.interface";
 import { DeleteButton } from "../transaction/DeleteButton";
 
@@ -105,7 +105,7 @@ function DesktopWishListRow({
               <Pencil className="h-4 w-4" />
             </Button>
           </a>
-          {/* <DeleteButton id={item.id} deleteAction={deleteWishItemAction} /> */}
+          <DeleteButton id={item.id} deleteAction={deleteFixedExpenseAction} />
         </div>
       </TableCell>
     </TableRow>
@@ -182,7 +182,7 @@ function MobileWishListCard({
               <Pencil className="h-4 w-4" />
             </Button>
           </a>
-          {/* <DeleteButton id={item.id} deleteAction={deleteWishItemAction} /> */}
+          <DeleteButton id={item.id} deleteAction={deleteFixedExpenseAction} />
         </div>
       </div>
     </div>

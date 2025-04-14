@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DeleteButton } from "../transaction/DeleteButton";
-import { deleteAction, markAsPaidAction } from "@/app/fixed-expenses/_actions";
+import { deleteFixedExpenseAction, markAsPaidAction } from "@/app/fixed-expenses/_actions";
 
 
 interface FixedExpenseListProps {
@@ -109,7 +109,7 @@ function DesktopFixedExpenseRow({
               <Pencil className="h-4 w-4" />
             </Button>
           </a>
-          <DeleteButton id={expense.id} deleteAction={deleteAction} />
+          <DeleteButton id={expense.id} deleteAction={deleteFixedExpenseAction} />
         </div>
       </TableCell>
     </TableRow>
@@ -178,7 +178,7 @@ function MobileFixedExpenseCard({
               <Pencil className="h-4 w-4" />
             </Button>
           </a>
-          <DeleteButton id={expense.id} deleteAction={deleteAction} />
+          <DeleteButton id={expense.id} deleteAction={deleteFixedExpenseAction} />
         </div>
       </div>
     </div>

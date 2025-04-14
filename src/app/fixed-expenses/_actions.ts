@@ -57,7 +57,7 @@ export async function markAsPaidAction(formData: FormData) {
   }
 }
 
-export async function deleteAction(id: string) {
+export async function deleteFixedExpenseAction(id: string) {
   const success = await deleteFixedExpense(id);
   if (success) {
     revalidatePath("/fixed-expenses");
