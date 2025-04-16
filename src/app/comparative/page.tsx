@@ -2,7 +2,7 @@
 
 import { useSixMonthComparison } from "@/hooks/queries/useSixMonthComparison";
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/formatters";
 import SemesterComparisonChart from "@/components/comparative/SemestralComparisonChart";
 import TrendLineChart from "@/components/comparative/TrendLineChart";

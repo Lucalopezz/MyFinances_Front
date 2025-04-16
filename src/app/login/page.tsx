@@ -8,7 +8,6 @@ import { PasswordInput } from "@/components/form/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/queries/useLogin";
 import { LoadingState } from "@/components/LoadingState";
-import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const {

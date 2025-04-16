@@ -2,7 +2,7 @@ import { RegisterFormData } from "@/schemas/auth/register.schema";
 import api from "@/utils/api";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { useState } from "react";
 import toast from "react-hot-toast";

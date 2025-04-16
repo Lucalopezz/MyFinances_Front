@@ -1,5 +1,5 @@
 import { Transaction } from "../dashboard/TransactionDialog";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil} from "lucide-react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

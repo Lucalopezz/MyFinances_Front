@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { createFixedExpense } from "@/app/fixed-expenses/_actions";
 import { cn } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 interface FixedExpenseDialogProps {
   setOpen: (open: boolean) => void;
@@ -59,6 +60,7 @@ export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
   async function onSubmit(data: FormData) {
     try {
       await createFixedExpense(data);
+      toast.success('Item criado com sucesso!')
       setOpen(false);
       router.refresh();
     } catch (error) {

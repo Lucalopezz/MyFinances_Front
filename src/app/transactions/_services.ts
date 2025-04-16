@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { Transaction } from "@/components/dashboard/TransactionDialog";
-import toast from "react-hot-toast";
 
 export async function getTransactions(): Promise<Transaction[]> {
   const session = await getServerSession(authOptions);
