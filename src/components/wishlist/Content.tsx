@@ -1,8 +1,9 @@
 "use client";
 
-import { WishListInterface } from "@/interfaces/wishlist.interface";
+import { useState } from "react";
+import { NewWish, WishListInterface } from "@/interfaces/wishlist.interface";
 import { WishList } from "./ListWishes";
-
+import { WishDialog } from "./CreateWishDialog";
 
 
 interface WishListPageProps {
@@ -10,6 +11,21 @@ interface WishListPageProps {
 }
 
 export function WishListPage({ wishListItems }: WishListPageProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleAddWish = async (wish: NewWish) => {
+    setIsLoading(true);
+    try {
+      console.log(wish)
+
+    } catch (error) {
+      console.error("Erro ao adicionar desejo:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
@@ -23,14 +39,22 @@ export function WishListPage({ wishListItems }: WishListPageProps) {
         <div className="text-sm text-gray-500 dark:text-gray-400">
           {wishListItems.length} {wishListItems.length === 1 ? 'item' : 'itens'} na sua lista
         </div>
-        <a href="/wishlist/new">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-            Adicionar novo desejo
-          </button>
-        </a>
+        <button 
+          onClick={() => setIsDialogOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+        >
+          Adicionar novo desejo
+        </button>
       </div>
       
       <WishList wishListItems={wishListItems} />
+      
+      <WishDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSubmit={handleAddWish}
+        loading={isLoading}
+      />
     </div>
   );
 }
