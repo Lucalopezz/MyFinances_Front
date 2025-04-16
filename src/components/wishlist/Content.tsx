@@ -4,6 +4,8 @@ import { useState } from "react";
 import { NewWish, WishListInterface } from "@/interfaces/wishlist.interface";
 import { WishList } from "./ListWishes";
 import { WishDialog } from "./CreateWishDialog";
+import { createWishAction } from "@/app/wishlist/_actions";
+import toast from "react-hot-toast";
 
 
 interface WishListPageProps {
@@ -17,7 +19,8 @@ export function WishListPage({ wishListItems }: WishListPageProps) {
   const handleAddWish = async (wish: NewWish) => {
     setIsLoading(true);
     try {
-      console.log(wish)
+      await createWishAction(wish)
+      toast.success('Item criado com sucesso!')
 
     } catch (error) {
       console.error("Erro ao adicionar desejo:", error);
