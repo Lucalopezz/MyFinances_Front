@@ -66,6 +66,97 @@ export async function deleteWish(id: string | undefined): Promise<boolean> {
   }
 }
 
+export async function getWish(id: string): Promise<WishListInterface | null> {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.jwt) {
+    console.error("Não autorizado - sessão não encontrada");
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.BACKEND_URL}/wishlist/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${session.jwt}`,
+          "Content-Type": "application/json",
+        },
+        next: { tags: ["fixed-expense"] },
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        console.error("Não autorizado - token inválido ou expirado");
+      } else if (response.status === 404) {
+        console.error("Despesa fixa não encontrada");
+      }
+      throw new Error(`Falha ao buscar despesa fixa: ${response.statusText}`);
+    }
+
+    const data: WishListInterface = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Erro ao buscar despesa fixa:", error);
+    return null;
+  }
+}
+
+export async function updateWish(
+  id: string,
+  wishData: {
+    name: string;
+    desiredValue: number;
+    targetDate: string;
+    savedAmount: number;
+  }
+): Promise<WishListInterface | null> {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.jwt) {
+    console.error("Não autorizado - sessão não encontrada");
+    return null;
+  }
+
+  try {
+    const formattedWishData = {
+      name: wishData.name,
+      desiredValue: wishData.desiredValue,
+      targetDate: new Date(wishData.targetDate), 
+      savedAmount: wishData.savedAmount,
+    };
+
+    const response = await fetch(
+      `${process.env.BACKEND_URL}/wishlist/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${session.jwt}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formattedWishData),
+        next: { tags: ["wishlist"] },
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        console.error("Não autorizado - token inválido ou expirado");
+      } else if (response.status === 404) {
+        console.error("Item de desejo não encontrado");
+      }
+      throw new Error(`Falha ao atualizar item de desejo: ${response.statusText}`);
+    }
+
+    const data: WishListInterface = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Erro ao atualizar item de desejo:", error);
+    return null;
+  }
+}
+
 export async function createWish(
   data: NewWish
 ): Promise<boolean> {
