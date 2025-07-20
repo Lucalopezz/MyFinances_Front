@@ -1,6 +1,8 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+
 import { FixedExpense } from "./types";
+import { authOptions } from "../api/auth/[...nextauth]/route";
+
 
 export async function getFixedExpenses(): Promise<FixedExpense[]> {
   const session = await getServerSession(authOptions);

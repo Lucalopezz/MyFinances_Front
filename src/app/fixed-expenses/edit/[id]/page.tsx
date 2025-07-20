@@ -22,7 +22,7 @@ export default async function EditFixedExpensePage({
 }: {
   params: { id: string };
 }) {
-  const id = await params.id;
+  const id = params.id;
 
   let fixedExpense;
   try {

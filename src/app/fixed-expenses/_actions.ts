@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { FixedExpense } from "./types";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+
 import {
   deleteFixedExpense,
   markFixedExpenseAsPaid,
@@ -11,6 +11,7 @@ import {
 } from "./_services";
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { authOptions } from "../api/auth/[...nextauth]/route";
 
 export async function createFixedExpense(
   data: Omit<FixedExpense, "id">
@@ -18,7 +19,7 @@ export async function createFixedExpense(
   const session = await getServerSession(authOptions);
 
   if (!session?.jwt) {
-    console.error("Não autorizado - sessão não encontrada");
+    console.error("Não autorizado - sessão não encontrada - Sessao", session);
     return false;
   }
 
