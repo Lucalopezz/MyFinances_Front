@@ -30,7 +30,7 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
-          const response = await fetch("http://localhost:3001/auth", {
+          const response = await fetch("http://backend:3001/auth", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
