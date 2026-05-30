@@ -7,6 +7,9 @@ import Link from "next/link";
 import { getWish } from "@/services/wishlist.service";
 import { updateWishAction } from "@/actions/wishlist/update-wish-action";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function EditWishPage({
   params,
 }: {

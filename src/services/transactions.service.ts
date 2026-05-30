@@ -1,6 +1,7 @@
 import { Transaction } from "@/components/dashboard/TransactionDialog";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
+import { unstable_noStore as noStore } from "next/cache";
 
 export async function createTransaction(
   transaction: Omit<Transaction, "id">,
@@ -35,12 +36,19 @@ export async function createTransaction(
 }
 
 export async function getTransactions(): Promise<Transaction[]> {
+  noStore();
+
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
+
+  if (!token) {
+    return [];
+  }
 
   try {
     const response = await fetch(`${backendUrl}/transactions`, {
       headers: createJsonHeaders(token),
+      cache: "no-store",
       next: { tags: ["transactions"] },
     });
 
@@ -48,7 +56,7 @@ export async function getTransactions(): Promise<Transaction[]> {
       if (response.status === 401) {
         console.error("Não autorizado - sessão expirada");
       }
-      throw new Error("Falha ao buscar transações");
+      return [];
     }
 
     return await response.json();
@@ -59,17 +67,19 @@ export async function getTransactions(): Promise<Transaction[]> {
 }
 
 export async function getTransaction(id: string): Promise<Transaction | null> {
+  noStore();
+
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
     return null;
   }
 
   try {
     const response = await fetch(`${backendUrl}/transactions/${id}`, {
       headers: createJsonHeaders(token),
+      cache: "no-store",
       next: { tags: ["transaction"] },
     });
 
@@ -79,7 +89,7 @@ export async function getTransaction(id: string): Promise<Transaction | null> {
       } else if (response.status === 404) {
         console.error("Transação não encontrada");
       }
-      throw new Error(`Falha ao buscar transação: ${response.statusText}`);
+      return null;
     }
 
     const data: Transaction = await response.json();

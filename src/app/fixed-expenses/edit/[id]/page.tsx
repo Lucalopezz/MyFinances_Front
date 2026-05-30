@@ -15,6 +15,9 @@ import { getFixedExpense } from "@/services/fixed-expenses.service";
 import { Switch } from "@/components/ui/switch";
 import { updateFixedExpenseAction } from "@/actions/fixed-expense/update-fixed-expense-action";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function EditFixedExpensePage({
   params,
 }: {

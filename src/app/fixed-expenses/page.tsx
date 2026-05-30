@@ -4,6 +4,9 @@ import { FixedExpenseSummary } from "@/components/fixed-expense/FixedExpenseSumm
 import { FixedExpenseDialogButton } from "@/components/fixed-expense/FixedExpenseDialogButton";
 import { getFixedExpenses } from "@/services/fixed-expenses.service";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function FixedExpenses() {
   const fixedExpenses = await getFixedExpenses();
 

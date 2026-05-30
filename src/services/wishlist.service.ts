@@ -1,6 +1,7 @@
 import { NewWish, WishListInterface } from "@/interfaces/wishlist.interface";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
+import { unstable_noStore as noStore } from "next/cache";
 
 export async function createWish(data: NewWish): Promise<boolean> {
   const token = await getServerToken();
@@ -33,12 +34,19 @@ export async function createWish(data: NewWish): Promise<boolean> {
 }
 
 export async function getWishList(): Promise<WishListInterface[]> {
+  noStore();
+
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
+
+  if (!token) {
+    return [];
+  }
 
   try {
     const response = await fetch(`${backendUrl}/wishlist`, {
       headers: createJsonHeaders(token),
+      cache: "no-store",
       next: { tags: ["wishlist"] },
     });
 
@@ -46,7 +54,7 @@ export async function getWishList(): Promise<WishListInterface[]> {
       if (response.status === 401) {
         console.error("Não autorizado - sessão expirada");
       }
-      throw new Error("Falha ao buscar itens de desejo");
+      return [];
     }
 
     return await response.json();
@@ -88,17 +96,19 @@ export async function deleteWish(id: string | undefined): Promise<boolean> {
 }
 
 export async function getWish(id: string): Promise<WishListInterface | null> {
+  noStore();
+
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
     return null;
   }
 
   try {
     const response = await fetch(`${backendUrl}/wishlist/${id}`, {
       headers: createJsonHeaders(token),
+      cache: "no-store",
       next: { tags: ["wishlist"] },
     });
 
@@ -108,7 +118,7 @@ export async function getWish(id: string): Promise<WishListInterface | null> {
       } else if (response.status === 404) {
         console.error("Item de desejo não encontrado");
       }
-      throw new Error(`Falha ao buscar item de desejo: ${response.statusText}`);
+      return null;
     }
 
     const data: WishListInterface = await response.json();

@@ -15,6 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { redirect } from "next/navigation";
 import { updateTransactionAction } from "@/actions/transaction/update-transaction-action";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function EditTransactionPage({
   params,
 }: {

@@ -2,6 +2,9 @@ import { Suspense } from "react";
 import { getWishList } from "@/services/wishlist.service";
 import { WishListPage } from "@/components/wishlist/Content";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function Wishlist() {
   const wishListItems = await getWishList();
 

@@ -1,6 +1,7 @@
 import { FixedExpense } from "@/interfaces/fixed-expense.interface";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
+import { unstable_noStore as noStore } from "next/cache";
 
 export async function createFixedExpense(
   fixedExpense: Omit<FixedExpense, "id">,
@@ -35,12 +36,19 @@ export async function createFixedExpense(
 }
 
 export async function getFixedExpenses(): Promise<FixedExpense[]> {
+  noStore();
+
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
+
+  if (!token) {
+    return [];
+  }
 
   try {
     const response = await fetch(`${backendUrl}/fixed-expenses`, {
       headers: createJsonHeaders(token),
+      cache: "no-store",
       next: { tags: ["fixed-expenses"] },
     });
 
@@ -48,7 +56,7 @@ export async function getFixedExpenses(): Promise<FixedExpense[]> {
       if (response.status === 401) {
         console.error("Não autorizado - sessão expirada");
       }
-      throw new Error("Falha ao buscar despesas fixas");
+      return [];
     }
 
     return await response.json();
@@ -61,17 +69,19 @@ export async function getFixedExpenses(): Promise<FixedExpense[]> {
 export async function getFixedExpense(
   id: string,
 ): Promise<FixedExpense | null> {
+  noStore();
+
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
     return null;
   }
 
   try {
     const response = await fetch(`${backendUrl}/fixed-expenses/${id}`, {
       headers: createJsonHeaders(token),
+      cache: "no-store",
       next: { tags: ["fixed-expense"] },
     });
 
@@ -81,7 +91,7 @@ export async function getFixedExpense(
       } else if (response.status === 404) {
         console.error("Despesa fixa não encontrada");
       }
-      throw new Error(`Falha ao buscar despesa fixa: ${response.statusText}`);
+      return null;
     }
 
     const data: FixedExpense = await response.json();

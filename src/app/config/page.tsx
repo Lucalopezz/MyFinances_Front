@@ -3,6 +3,9 @@ import { Suspense } from "react";
 import { getUser } from "@/services/config.service";
 import { User } from "@/interfaces/user.interface";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function Configurations() {
   const user: User | null = await getUser();
   return (

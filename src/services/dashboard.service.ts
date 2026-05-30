@@ -1,5 +1,6 @@
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
+import { unstable_noStore as noStore } from "next/cache";
 
 export interface FinancialSummary {
   balance: number;
@@ -23,31 +24,54 @@ export interface SixMonthComparisonItem extends MonthlyComparisonDto {
 }
 
 export async function getDashboardSummary(): Promise<FinancialSummary> {
+  noStore();
+
   const backendUrl = getServerBackendUrl();
   const currentYear = new Date().getFullYear();
   const startDate = `${currentYear}-01-01`;
   const endDate = `${currentYear}-12-31`;
   const token = await getServerToken();
 
-  const response = await fetch(
-    `${backendUrl}/dashboard/?startDate=${startDate}&endDate=${endDate}`,
-    {
-      headers: createJsonHeaders(token),
-      next: { tags: ["dashboard"] },
+  const emptySummary: FinancialSummary = {
+    balance: 0,
+    totalIncomes: 0,
+    totalExpenses: 0,
+    period: {
+      start: startDate,
+      end: endDate,
     },
-  );
+  };
 
-  if (!response.ok) {
-    throw new Error("Erro ao buscar dados do dashboard");
+  if (!token) {
+    return emptySummary;
   }
 
-  return response.json();
+  try {
+    const response = await fetch(
+      `${backendUrl}/dashboard/?startDate=${startDate}&endDate=${endDate}`,
+      {
+        headers: createJsonHeaders(token),
+        cache: "no-store",
+        next: { tags: ["dashboard"] },
+      },
+    );
+
+    if (!response.ok) {
+      return emptySummary;
+    }
+
+    return response.json();
+  } catch (error) {
+    return emptySummary;
+  }
 }
 
 export async function getMonthlyComparison(): Promise<{
   currentMonth: MonthlyComparisonDto;
   previousMonth: MonthlyComparisonDto;
 }> {
+  noStore();
+
   const backendUrl = getServerBackendUrl();
   const token = await getServerToken();
   const now = new Date();
@@ -63,45 +87,62 @@ export async function getMonthlyComparison(): Promise<{
   const previousStartDate = new Date(previousYear, previousMonthIndex, 1);
   const previousEndDate = new Date(previousYear, previousMonthIndex + 1, 0);
 
-  const [currentResponse, previousResponse] = await Promise.all([
-    fetch(
-      `${backendUrl}/dashboard/monthly-comparison?startDate=${currentStartDate.toISOString().split("T")[0]}&endDate=${currentEndDate.toISOString().split("T")[0]}`,
-      {
-        headers: createJsonHeaders(token),
-        next: { tags: ["monthlyComparison"] },
-        cache: "no-store",
-      },
-    ),
-    fetch(
-      `${backendUrl}/dashboard/monthly-comparison?startDate=${previousStartDate.toISOString().split("T")[0]}&endDate=${previousEndDate.toISOString().split("T")[0]}`,
-      {
-        headers: createJsonHeaders(token),
-        next: { tags: ["monthlyComparison"] },
-        cache: "no-store",
-      },
-    ),
-  ]);
+  const buildDefaultComparison = (date: Date): MonthlyComparisonDto => ({
+    month: date.toISOString().split("T")[0].slice(0, 7),
+    totalExpenses: 0,
+    totalIncomes: 0,
+  });
 
-  const currentData = currentResponse.ok ? await currentResponse.json() : [];
-  const previousData = previousResponse.ok ? await previousResponse.json() : [];
+  if (!token) {
+    return {
+      currentMonth: buildDefaultComparison(currentStartDate),
+      previousMonth: buildDefaultComparison(previousStartDate),
+    };
+  }
 
-  return {
-    currentMonth: currentData[0] || {
-      month: currentStartDate.toISOString().split("T")[0].slice(0, 7),
-      totalExpenses: 0,
-      totalIncomes: 0,
-    },
-    previousMonth: previousData[0] || {
-      month: previousStartDate.toISOString().split("T")[0].slice(0, 7),
-      totalExpenses: 0,
-      totalIncomes: 0,
-    },
-  };
+  try {
+    const [currentResponse, previousResponse] = await Promise.all([
+      fetch(
+        `${backendUrl}/dashboard/monthly-comparison?startDate=${currentStartDate.toISOString().split("T")[0]}&endDate=${currentEndDate.toISOString().split("T")[0]}`,
+        {
+          headers: createJsonHeaders(token),
+          next: { tags: ["monthlyComparison"] },
+          cache: "no-store",
+        },
+      ),
+      fetch(
+        `${backendUrl}/dashboard/monthly-comparison?startDate=${previousStartDate.toISOString().split("T")[0]}&endDate=${previousEndDate.toISOString().split("T")[0]}`,
+        {
+          headers: createJsonHeaders(token),
+          next: { tags: ["monthlyComparison"] },
+          cache: "no-store",
+        },
+      ),
+    ]);
+
+    const currentData = currentResponse.ok ? await currentResponse.json() : [];
+    const previousData = previousResponse.ok
+      ? await previousResponse.json()
+      : [];
+
+    return {
+      currentMonth: currentData[0] || buildDefaultComparison(currentStartDate),
+      previousMonth:
+        previousData[0] || buildDefaultComparison(previousStartDate),
+    };
+  } catch (error) {
+    return {
+      currentMonth: buildDefaultComparison(currentStartDate),
+      previousMonth: buildDefaultComparison(previousStartDate),
+    };
+  }
 }
 
 export async function getSixMonthComparison(): Promise<
   SixMonthComparisonItem[]
 > {
+  noStore();
+
   const backendUrl = getServerBackendUrl();
   const token = await getServerToken();
   const now = new Date();
@@ -130,29 +171,51 @@ export async function getSixMonthComparison(): Promise<
     };
   });
 
-  const results = await Promise.all(
-    months.map(async (month) => {
-      const response = await fetch(
-        `${backendUrl}/dashboard/monthly-comparison?startDate=${month.startDate}&endDate=${month.endDate}`,
-        {
-          headers: createJsonHeaders(token),
-          next: { tags: ["sixMonthComparison"] },
-          cache: "no-store",
-        },
-      );
-
-      const data = response.ok ? await response.json() : [];
-
-      return {
-        ...(data[0] || {
-          month: month.startDate.slice(0, 7),
-          totalExpenses: 0,
-          totalIncomes: 0,
-        }),
+  if (!token) {
+    return months
+      .map((month) => ({
+        month: month.startDate.slice(0, 7),
+        totalExpenses: 0,
+        totalIncomes: 0,
         label: month.label,
-      };
-    }),
-  );
+      }))
+      .reverse();
+  }
 
-  return results.reverse();
+  try {
+    const results = await Promise.all(
+      months.map(async (month) => {
+        const response = await fetch(
+          `${backendUrl}/dashboard/monthly-comparison?startDate=${month.startDate}&endDate=${month.endDate}`,
+          {
+            headers: createJsonHeaders(token),
+            next: { tags: ["sixMonthComparison"] },
+            cache: "no-store",
+          },
+        );
+
+        const data = response.ok ? await response.json() : [];
+
+        return {
+          ...(data[0] || {
+            month: month.startDate.slice(0, 7),
+            totalExpenses: 0,
+            totalIncomes: 0,
+          }),
+          label: month.label,
+        };
+      }),
+    );
+
+    return results.reverse();
+  } catch (error) {
+    return months
+      .map((month) => ({
+        month: month.startDate.slice(0, 7),
+        totalExpenses: 0,
+        totalIncomes: 0,
+        label: month.label,
+      }))
+      .reverse();
+  }
 }

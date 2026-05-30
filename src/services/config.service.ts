@@ -1,6 +1,7 @@
 import { UpdateUserInput, User } from "@/interfaces/user.interface";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
+import { unstable_noStore as noStore } from "next/cache";
 
 export async function createUser(data: {
   name: string;
@@ -28,12 +29,19 @@ export async function createUser(data: {
 }
 
 export async function getUser(): Promise<User | null> {
+  noStore();
+
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
+
+  if (!token) {
+    return null;
+  }
 
   try {
     const response = await fetch(`${backendUrl}/user/get-one`, {
       headers: createJsonHeaders(token),
+      cache: "no-store",
       next: { tags: ["get-user"] },
     });
 
@@ -41,7 +49,7 @@ export async function getUser(): Promise<User | null> {
       if (response.status === 401) {
         console.error("Não autorizado - sessão expirada");
       }
-      throw new Error("Falha ao buscar usuário");
+      return null;
     }
 
     return await response.json();
