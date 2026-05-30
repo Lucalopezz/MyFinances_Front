@@ -1,21 +1,22 @@
-import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default withAuth({
-  callbacks: {
-    authorized: ({ token, req }) => {
-      // paginas públicas que não requerem autenticação
-      const publicPaths = ["/login", "/register"];
+export function middleware(req: NextRequest) {
+  const publicPaths = ["/login", "/register", "/api/auth"];
 
-      // verifica se a rota atual é uma rota pública
-      if (publicPaths.includes(req.nextUrl.pathname)) {
-        return true; // permite acesso sem autenticação
-      }
+  if (publicPaths.some((p) => req.nextUrl.pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
 
-      // para todas as outras rotas, verifica se o usuário está autenticado
-      return !!token;
-    },
-  },
-});
+  const token = req.cookies.get("mf_token")?.value;
+  if (!token) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],

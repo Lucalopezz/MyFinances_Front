@@ -1,17 +1,13 @@
 import { NewWish, WishListInterface } from "@/interfaces/wishlist.interface";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
-
-
-
+import { getServerToken } from "@/lib/serverAuth";
 
 export async function getWishList(): Promise<WishListInterface[]> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
   try {
     const response = await fetch(`${process.env.BACKEND_URL}/wishlist`, {
       headers: {
-        Authorization: `Bearer ${session?.jwt}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       next: { tags: ["wishlist"] },
@@ -32,24 +28,21 @@ export async function getWishList(): Promise<WishListInterface[]> {
 }
 
 export async function deleteWish(id: string | undefined): Promise<boolean> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return false;
   }
 
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/wishlist/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${session.jwt}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await fetch(`${process.env.BACKEND_URL}/wishlist/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -68,24 +61,21 @@ export async function deleteWish(id: string | undefined): Promise<boolean> {
 }
 
 export async function getWish(id: string): Promise<WishListInterface | null> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return null;
   }
 
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/wishlist/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${session.jwt}`,
-          "Content-Type": "application/json",
-        },
-        next: { tags: ["fixed-expense"] },
-      }
-    );
+    const response = await fetch(`${process.env.BACKEND_URL}/wishlist/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      next: { tags: ["fixed-expense"] },
+    });
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -111,11 +101,11 @@ export async function updateWish(
     desiredValue: number;
     targetDate: string;
     savedAmount: number;
-  }
+  },
 ): Promise<WishListInterface | null> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return null;
   }
@@ -124,22 +114,19 @@ export async function updateWish(
     const formattedWishData = {
       name: wishData.name,
       desiredValue: wishData.desiredValue,
-      targetDate: new Date(wishData.targetDate), 
+      targetDate: new Date(wishData.targetDate),
       savedAmount: wishData.savedAmount,
     };
 
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/wishlist/${id}`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${session.jwt}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formattedWishData),
-        next: { tags: ["wishlist"] },
-      }
-    );
+    const response = await fetch(`${process.env.BACKEND_URL}/wishlist/${id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formattedWishData),
+      next: { tags: ["wishlist"] },
+    });
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -147,7 +134,9 @@ export async function updateWish(
       } else if (response.status === 404) {
         console.error("Item de desejo não encontrado");
       }
-      throw new Error(`Falha ao atualizar item de desejo: ${response.statusText}`);
+      throw new Error(
+        `Falha ao atualizar item de desejo: ${response.statusText}`,
+      );
     }
 
     const data: WishListInterface = await response.json();
@@ -158,12 +147,10 @@ export async function updateWish(
   }
 }
 
-export async function createWish(
-  data: NewWish
-): Promise<boolean> {
-  const session = await getServerSession(authOptions);
+export async function createWish(data: NewWish): Promise<boolean> {
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return false;
   }
@@ -172,7 +159,7 @@ export async function createWish(
     const response = await fetch(`${process.env.BACKEND_URL}/wishlist`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${session.jwt}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -185,7 +172,6 @@ export async function createWish(
       throw new Error(`Falha ao criar despesa fixa: ${response.statusText}`);
     }
 
-   
     return true;
   } catch (error) {
     console.error("Erro ao criar despesa fixa:", error);

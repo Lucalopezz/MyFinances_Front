@@ -1,14 +1,13 @@
-import { getServerSession } from "next-auth";
 import { Transaction } from "@/components/dashboard/TransactionDialog";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { getServerToken } from "@/lib/serverAuth";
 
 export async function getTransactions(): Promise<Transaction[]> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
   try {
     const response = await fetch(`${process.env.BACKEND_URL}/transactions`, {
       headers: {
-        Authorization: `Bearer ${session?.jwt}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       next: { tags: ["transactions"] },
@@ -28,9 +27,9 @@ export async function getTransactions(): Promise<Transaction[]> {
   }
 }
 export async function getTransaction(id: string): Promise<Transaction | null> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return null;
   }
@@ -40,11 +39,11 @@ export async function getTransaction(id: string): Promise<Transaction | null> {
       `${process.env.BACKEND_URL}/transactions/${id}`,
       {
         headers: {
-          Authorization: `Bearer ${session.jwt}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         next: { tags: ["transaction"] },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -66,11 +65,11 @@ export async function getTransaction(id: string): Promise<Transaction | null> {
 
 export async function updateTransaction(
   id: string,
-  transaction: Omit<Transaction, "id">
+  transaction: Omit<Transaction, "id">,
 ): Promise<Transaction | null> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return null;
   }
@@ -81,12 +80,12 @@ export async function updateTransaction(
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${session.jwt}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(transaction),
         next: { tags: ["transaction"] },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -106,10 +105,12 @@ export async function updateTransaction(
   }
 }
 
-export async function deleteTransaction(id: string | undefined): Promise<boolean> {
-  const session = await getServerSession(authOptions);
+export async function deleteTransaction(
+  id: string | undefined,
+): Promise<boolean> {
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return false;
   }
@@ -120,10 +121,10 @@ export async function deleteTransaction(id: string | undefined): Promise<boolean
       {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${session.jwt}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -135,7 +136,7 @@ export async function deleteTransaction(id: string | undefined): Promise<boolean
       throw new Error(`Falha ao deletar transação: ${response.statusText}`);
     }
 
-    return true; 
+    return true;
   } catch (error) {
     console.error("Erro ao deletar transação:", error);
     return false;

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { FixedExpense } from "./types";
-import { getServerSession } from "next-auth";
+import { getServerToken } from "@/lib/serverAuth";
 
 import {
   deleteFixedExpense,
@@ -11,15 +11,14 @@ import {
 } from "./_services";
 import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { authOptions } from "../api/auth/[...nextauth]/route";
 
 export async function createFixedExpense(
-  data: Omit<FixedExpense, "id">
+  data: Omit<FixedExpense, "id">,
 ): Promise<boolean> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
-  if (!session?.jwt) {
-    console.error("Não autorizado - sessão não encontrada - Sessao", session);
+  if (!token) {
+    console.error("Não autorizado - sessão não encontrada");
     return false;
   }
 
@@ -27,7 +26,7 @@ export async function createFixedExpense(
     const response = await fetch(`${process.env.BACKEND_URL}/fixed-expenses`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${session.jwt}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),

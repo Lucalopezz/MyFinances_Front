@@ -1,14 +1,13 @@
-import { getServerSession } from "next-auth";
 import { UpdateUserInput, User } from "@/interfaces/user.interface";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { getServerToken } from "@/lib/serverAuth";
 
 export async function getUser(): Promise<User | null> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
   try {
     const response = await fetch(`${process.env.BACKEND_URL}/user/get-one`, {
       headers: {
-        Authorization: `Bearer ${session?.jwt}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       next: { tags: ["get-user"] },
@@ -29,9 +28,9 @@ export async function getUser(): Promise<User | null> {
 }
 
 export async function updateUser(userData: UpdateUserInput): Promise<boolean> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return false;
   }
@@ -40,7 +39,7 @@ export async function updateUser(userData: UpdateUserInput): Promise<boolean> {
     const response = await fetch(`${process.env.BACKEND_URL}/user/update`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${session.jwt}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(userData),

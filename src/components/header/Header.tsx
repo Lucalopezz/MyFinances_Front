@@ -1,5 +1,5 @@
 "use client";
-import { useSession, signOut } from "next-auth/react";
+import useAuth from "@/hooks/useAuth";
 import { Menu, LogOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ onMenuClick }: HeaderProps) => {
-  const { status } = useSession();
+  const { status } = useAuth();
   const isAuthenticated = status === "authenticated";
 
   return (
@@ -45,8 +45,10 @@ const NavigationActions = ({
 }: {
   isAuthenticated: boolean;
 }) => {
+  const { logout } = useAuth();
+
   const handleLogout = () => {
-    signOut({ callbackUrl: "/login" });
+    logout();
   };
 
   return (

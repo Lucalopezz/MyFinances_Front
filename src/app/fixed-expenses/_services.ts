@@ -1,16 +1,13 @@
-import { getServerSession } from "next-auth";
-
 import { FixedExpense } from "./types";
-import { authOptions } from "../api/auth/[...nextauth]/route";
-
+import { getServerToken } from "@/lib/serverAuth";
 
 export async function getFixedExpenses(): Promise<FixedExpense[]> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
   try {
     const response = await fetch(`${process.env.BACKEND_URL}/fixed-expenses`, {
       headers: {
-        Authorization: `Bearer ${session?.jwt}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       next: { tags: ["fixed-expenses"] },
@@ -30,10 +27,12 @@ export async function getFixedExpenses(): Promise<FixedExpense[]> {
   }
 }
 
-export async function getFixedExpense(id: string): Promise<FixedExpense | null> {
-  const session = await getServerSession(authOptions);
+export async function getFixedExpense(
+  id: string,
+): Promise<FixedExpense | null> {
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return null;
   }
@@ -43,11 +42,11 @@ export async function getFixedExpense(id: string): Promise<FixedExpense | null> 
       `${process.env.BACKEND_URL}/fixed-expenses/${id}`,
       {
         headers: {
-          Authorization: `Bearer ${session.jwt}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         next: { tags: ["fixed-expense"] },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -69,11 +68,11 @@ export async function getFixedExpense(id: string): Promise<FixedExpense | null> 
 
 export async function updateFixedExpense(
   id: string,
-  fixedExpense: Omit<FixedExpense, "id">
+  fixedExpense: Omit<FixedExpense, "id">,
 ): Promise<FixedExpense | null> {
-  const session = await getServerSession(authOptions);
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return null;
   }
@@ -84,12 +83,12 @@ export async function updateFixedExpense(
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${session.jwt}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(fixedExpense),
         next: { tags: ["fixed-expense"] },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -98,7 +97,9 @@ export async function updateFixedExpense(
       } else if (response.status === 404) {
         console.error("Despesa fixa não encontrada");
       }
-      throw new Error(`Falha ao atualizar despesa fixa: ${response.statusText}`);
+      throw new Error(
+        `Falha ao atualizar despesa fixa: ${response.statusText}`,
+      );
     }
 
     const data: FixedExpense = await response.json();
@@ -109,10 +110,12 @@ export async function updateFixedExpense(
   }
 }
 
-export async function deleteFixedExpense(id: string | undefined): Promise<boolean> {
-  const session = await getServerSession(authOptions);
+export async function deleteFixedExpense(
+  id: string | undefined,
+): Promise<boolean> {
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return false;
   }
@@ -123,10 +126,10 @@ export async function deleteFixedExpense(id: string | undefined): Promise<boolea
       {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${session.jwt}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -145,10 +148,13 @@ export async function deleteFixedExpense(id: string | undefined): Promise<boolea
   }
 }
 
-export async function markFixedExpenseAsPaid(id: string, currentDueDate: string): Promise<boolean> {
-  const session = await getServerSession(authOptions);
+export async function markFixedExpenseAsPaid(
+  id: string,
+  currentDueDate: string,
+): Promise<boolean> {
+  const token = getServerToken();
 
-  if (!session?.jwt) {
+  if (!token) {
     console.error("Não autorizado - sessão não encontrada");
     return false;
   }
@@ -161,7 +167,7 @@ export async function markFixedExpenseAsPaid(id: string, currentDueDate: string)
 
     const updateData = {
       isPaid: true,
-      dueDate: nextMonth.toISOString()
+      dueDate: nextMonth.toISOString(),
     };
 
     const response = await fetch(
@@ -169,11 +175,11 @@ export async function markFixedExpenseAsPaid(id: string, currentDueDate: string)
       {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${session.jwt}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(updateData),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -182,7 +188,9 @@ export async function markFixedExpenseAsPaid(id: string, currentDueDate: string)
       } else if (response.status === 404) {
         console.error("Despesa fixa não encontrada");
       }
-      throw new Error(`Falha ao marcar despesa como paga: ${response.statusText}`);
+      throw new Error(
+        `Falha ao marcar despesa como paga: ${response.statusText}`,
+      );
     }
 
     return true;

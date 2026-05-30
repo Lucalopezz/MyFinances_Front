@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { SessionProvider, useSession } from "next-auth/react";
+import { AuthProvider, useAuthContext } from "./auth-provider";
 import { queryClient } from "@/hooks/useQueryClient";
 import { ToastProvider } from "@/providers/toast-provider";
 import { Header } from "@/components/header/Header";
@@ -10,7 +10,8 @@ import { Sidebar } from "@/components/Sidebar";
 import { ThemeProvider } from "next-themes";
 
 function Layout({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
+  // using local AuthProvider state
+  const { status, jwt } = useAuthContext();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -22,7 +23,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       <Header onMenuClick={toggleSidebar} />
 
       <div className="flex flex-1">
-        {session && (
+        {status === "authenticated" && jwt && (
           <>
             <div
               className={`fixed md:relative inset-y-0 left-0 z-30 w-64 transform ${
@@ -54,12 +55,12 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    <AuthProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="light">
           <Layout>{children}</Layout>
         </ThemeProvider>
       </QueryClientProvider>
-    </SessionProvider>
+    </AuthProvider>
   );
 }
