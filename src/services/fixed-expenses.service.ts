@@ -1,15 +1,46 @@
-import { FixedExpense } from "./types";
+import { FixedExpense } from "@/interfaces/fixed-expense.interface";
+import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 
-export async function getFixedExpenses(): Promise<FixedExpense[]> {
-  const token = getServerToken();
+export async function createFixedExpense(
+  fixedExpense: Omit<FixedExpense, "id">,
+): Promise<boolean> {
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
+
+  if (!token) {
+    console.error("Não autorizado - sessão não encontrada");
+    return false;
+  }
 
   try {
-    const response = await fetch(`${process.env.BACKEND_URL}/fixed-expenses`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+    const response = await fetch(`${backendUrl}/fixed-expenses`, {
+      method: "POST",
+      headers: createJsonHeaders(token),
+      body: JSON.stringify(fixedExpense),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        console.error("Não autorizado - token inválido ou expirado");
+      }
+      throw new Error(`Falha ao criar despesa fixa: ${response.statusText}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Erro ao criar despesa fixa:", error);
+    return false;
+  }
+}
+
+export async function getFixedExpenses(): Promise<FixedExpense[]> {
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
+
+  try {
+    const response = await fetch(`${backendUrl}/fixed-expenses`, {
+      headers: createJsonHeaders(token),
       next: { tags: ["fixed-expenses"] },
     });
 
@@ -30,7 +61,8 @@ export async function getFixedExpenses(): Promise<FixedExpense[]> {
 export async function getFixedExpense(
   id: string,
 ): Promise<FixedExpense | null> {
-  const token = getServerToken();
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
 
   if (!token) {
     console.error("Não autorizado - sessão não encontrada");
@@ -38,16 +70,10 @@ export async function getFixedExpense(
   }
 
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/fixed-expenses/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        next: { tags: ["fixed-expense"] },
-      },
-    );
+    const response = await fetch(`${backendUrl}/fixed-expenses/${id}`, {
+      headers: createJsonHeaders(token),
+      next: { tags: ["fixed-expense"] },
+    });
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -70,7 +96,8 @@ export async function updateFixedExpense(
   id: string,
   fixedExpense: Omit<FixedExpense, "id">,
 ): Promise<FixedExpense | null> {
-  const token = getServerToken();
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
 
   if (!token) {
     console.error("Não autorizado - sessão não encontrada");
@@ -78,18 +105,12 @@ export async function updateFixedExpense(
   }
 
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/fixed-expenses/${id}`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(fixedExpense),
-        next: { tags: ["fixed-expense"] },
-      },
-    );
+    const response = await fetch(`${backendUrl}/fixed-expenses/${id}`, {
+      method: "PATCH",
+      headers: createJsonHeaders(token),
+      body: JSON.stringify(fixedExpense),
+      next: { tags: ["fixed-expense"] },
+    });
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -113,7 +134,8 @@ export async function updateFixedExpense(
 export async function deleteFixedExpense(
   id: string | undefined,
 ): Promise<boolean> {
-  const token = getServerToken();
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
 
   if (!token) {
     console.error("Não autorizado - sessão não encontrada");
@@ -121,16 +143,10 @@ export async function deleteFixedExpense(
   }
 
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/fixed-expenses/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      },
-    );
+    const response = await fetch(`${backendUrl}/fixed-expenses/${id}`, {
+      method: "DELETE",
+      headers: createJsonHeaders(token),
+    });
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -152,7 +168,8 @@ export async function markFixedExpenseAsPaid(
   id: string,
   currentDueDate: string,
 ): Promise<boolean> {
-  const token = getServerToken();
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
 
   if (!token) {
     console.error("Não autorizado - sessão não encontrada");
@@ -160,7 +177,6 @@ export async function markFixedExpenseAsPaid(
   }
 
   try {
-    // Calcular a data do próximo mês mantendo o mesmo dia
     const currentDate = new Date(currentDueDate);
     const nextMonth = new Date(currentDate);
     nextMonth.setMonth(nextMonth.getMonth() + 1);
@@ -170,17 +186,11 @@ export async function markFixedExpenseAsPaid(
       dueDate: nextMonth.toISOString(),
     };
 
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/fixed-expenses/${id}`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updateData),
-      },
-    );
+    const response = await fetch(`${backendUrl}/fixed-expenses/${id}`, {
+      method: "PATCH",
+      headers: createJsonHeaders(token),
+      body: JSON.stringify(updateData),
+    });
 
     if (!response.ok) {
       if (response.status === 401) {

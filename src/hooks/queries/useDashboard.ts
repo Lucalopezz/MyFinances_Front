@@ -25,7 +25,7 @@ function getCurrentYearDates(): { startDate: string; endDate: string } {
 
 async function fetchDashboard(
   startDate: string,
-  endDate: string
+  endDate: string,
 ): Promise<FinancialSummary> {
   try {
     const response = await api.get<FinancialSummary>("/dashboard/", {
@@ -34,9 +34,7 @@ async function fetchDashboard(
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      throw new Error(
-        error.response.data.message
-      );
+      throw new Error(error.response.data.message);
     }
     throw new Error("Erro ao buscar dados do dashboard");
   }

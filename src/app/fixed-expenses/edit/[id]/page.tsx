@@ -10,12 +10,10 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getFixedExpense } from "../../_services";
+import { getFixedExpense } from "@/services/fixed-expenses.service";
 
 import { Switch } from "@/components/ui/switch";
-import { updateFixedExpenseAction } from "../../_actions";
-
-
+import { updateFixedExpenseAction } from "@/actions/fixed-expense/update-fixed-expense-action";
 
 export default async function EditFixedExpensePage({
   params,
@@ -107,7 +105,11 @@ export default async function EditFixedExpensePage({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label htmlFor="recurrence">Recorrência</Label>
-              <Select name="recurrence" defaultValue={fixedExpense.recurrence} required>
+              <Select
+                name="recurrence"
+                defaultValue={fixedExpense.recurrence}
+                required
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
@@ -122,7 +124,9 @@ export default async function EditFixedExpensePage({
             </div>
 
             <div className="space-y-1 flex flex-col justify-end">
-              <Label htmlFor="isPaid" className="mb-2">Status</Label>
+              <Label htmlFor="isPaid" className="mb-2">
+                Status
+              </Label>
               <div className="flex items-center space-x-2">
                 <Switch
                   id="isPaid"

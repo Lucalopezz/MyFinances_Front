@@ -2,12 +2,11 @@ import { Suspense } from "react";
 
 import { FixedExpenseSummary } from "@/components/fixed-expense/FixedExpenseSummary";
 import { FixedExpenseDialogButton } from "@/components/fixed-expense/FixedExpenseDialogButton";
-import { getFixedExpenses } from "./_services";
-
+import { getFixedExpenses } from "@/services/fixed-expenses.service";
 
 export default async function FixedExpenses() {
   const fixedExpenses = await getFixedExpenses();
-  
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-6 dark:text-white">

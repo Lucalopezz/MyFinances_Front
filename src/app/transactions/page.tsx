@@ -1,5 +1,5 @@
 import { TransactionSummary } from "@/components/transaction/TransactionSummary";
-import { getTransactions } from "./_services";
+import { getTransactions } from "@/services/transactions.service";
 import { TransactionList } from "@/components/transaction/TransactionList";
 import { Suspense } from "react";
 

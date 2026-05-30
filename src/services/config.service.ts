@@ -1,15 +1,39 @@
 import { UpdateUserInput, User } from "@/interfaces/user.interface";
+import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 
-export async function getUser(): Promise<User | null> {
-  const token = getServerToken();
+export async function createUser(data: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<User | null> {
+  const backendUrl = getServerBackendUrl();
 
   try {
-    const response = await fetch(`${process.env.BACKEND_URL}/user/get-one`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+    const response = await fetch(`${backendUrl}/user`, {
+      method: "POST",
+      headers: createJsonHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Falha ao criar usuário: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao criar usuário:", error);
+    return null;
+  }
+}
+
+export async function getUser(): Promise<User | null> {
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
+
+  try {
+    const response = await fetch(`${backendUrl}/user/get-one`, {
+      headers: createJsonHeaders(token),
       next: { tags: ["get-user"] },
     });
 
@@ -28,7 +52,8 @@ export async function getUser(): Promise<User | null> {
 }
 
 export async function updateUser(userData: UpdateUserInput): Promise<boolean> {
-  const token = getServerToken();
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
 
   if (!token) {
     console.error("Não autorizado - sessão não encontrada");
@@ -36,12 +61,9 @@ export async function updateUser(userData: UpdateUserInput): Promise<boolean> {
   }
 
   try {
-    const response = await fetch(`${process.env.BACKEND_URL}/user/update`, {
+    const response = await fetch(`${backendUrl}/user/update`, {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+      headers: createJsonHeaders(token),
       body: JSON.stringify(userData),
       next: { tags: ["users"] },
     });

@@ -15,11 +15,9 @@ function getCurrentAndPreviousMonthDates() {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
 
-  // Mês atual
   const currentStartDate = new Date(currentYear, currentMonth, 1);
   const currentEndDate = new Date(currentYear, currentMonth + 1, 0);
 
-  // Mês anterior
   const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
   const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
   const previousStartDate = new Date(previousYear, previousMonth, 1);

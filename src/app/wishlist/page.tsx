@@ -1,7 +1,6 @@
 import { Suspense } from "react";
-import { getWishList } from "./_services";
+import { getWishList } from "@/services/wishlist.service";
 import { WishListPage } from "@/components/wishlist/Content";
-
 
 export default async function Wishlist() {
   const wishListItems = await getWishList();

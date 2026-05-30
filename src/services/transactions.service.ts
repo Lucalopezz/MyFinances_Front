@@ -1,15 +1,46 @@
 import { Transaction } from "@/components/dashboard/TransactionDialog";
+import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 
-export async function getTransactions(): Promise<Transaction[]> {
-  const token = getServerToken();
+export async function createTransaction(
+  transaction: Omit<Transaction, "id">,
+): Promise<Transaction | null> {
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
+
+  if (!token) {
+    console.error("Não autorizado - sessão não encontrada");
+    return null;
+  }
 
   try {
-    const response = await fetch(`${process.env.BACKEND_URL}/transactions`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+    const response = await fetch(`${backendUrl}/transactions`, {
+      method: "POST",
+      headers: createJsonHeaders(token),
+      body: JSON.stringify(transaction),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        console.error("Não autorizado - token inválido ou expirado");
+      }
+      throw new Error(`Falha ao criar transação: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erro ao criar transação:", error);
+    return null;
+  }
+}
+
+export async function getTransactions(): Promise<Transaction[]> {
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
+
+  try {
+    const response = await fetch(`${backendUrl}/transactions`, {
+      headers: createJsonHeaders(token),
       next: { tags: ["transactions"] },
     });
 
@@ -26,8 +57,10 @@ export async function getTransactions(): Promise<Transaction[]> {
     return [];
   }
 }
+
 export async function getTransaction(id: string): Promise<Transaction | null> {
-  const token = getServerToken();
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
 
   if (!token) {
     console.error("Não autorizado - sessão não encontrada");
@@ -35,16 +68,10 @@ export async function getTransaction(id: string): Promise<Transaction | null> {
   }
 
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/transactions/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        next: { tags: ["transaction"] },
-      },
-    );
+    const response = await fetch(`${backendUrl}/transactions/${id}`, {
+      headers: createJsonHeaders(token),
+      next: { tags: ["transaction"] },
+    });
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -67,7 +94,8 @@ export async function updateTransaction(
   id: string,
   transaction: Omit<Transaction, "id">,
 ): Promise<Transaction | null> {
-  const token = getServerToken();
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
 
   if (!token) {
     console.error("Não autorizado - sessão não encontrada");
@@ -75,18 +103,12 @@ export async function updateTransaction(
   }
 
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/transactions/${id}`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(transaction),
-        next: { tags: ["transaction"] },
-      },
-    );
+    const response = await fetch(`${backendUrl}/transactions/${id}`, {
+      method: "PATCH",
+      headers: createJsonHeaders(token),
+      body: JSON.stringify(transaction),
+      next: { tags: ["transaction"] },
+    });
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -108,7 +130,8 @@ export async function updateTransaction(
 export async function deleteTransaction(
   id: string | undefined,
 ): Promise<boolean> {
-  const token = getServerToken();
+  const token = await getServerToken();
+  const backendUrl = getServerBackendUrl();
 
   if (!token) {
     console.error("Não autorizado - sessão não encontrada");
@@ -116,16 +139,10 @@ export async function deleteTransaction(
   }
 
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_URL}/transactions/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      },
-    );
+    const response = await fetch(`${backendUrl}/transactions/${id}`, {
+      method: "DELETE",
+      headers: createJsonHeaders(token),
+    });
 
     if (!response.ok) {
       if (response.status === 401) {

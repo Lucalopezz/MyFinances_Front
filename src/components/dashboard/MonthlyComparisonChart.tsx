@@ -1,3 +1,7 @@
+"use client";
+
+"use client";
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/utils/formatters";
@@ -11,7 +15,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-
 interface MonthlyComparisonChartProps {
   data: Array<{
     name: string;
@@ -21,7 +24,10 @@ interface MonthlyComparisonChartProps {
   isLoading: boolean;
 }
 
-const MonthlyComparisonChart = ({ data, isLoading }: MonthlyComparisonChartProps) => {
+const MonthlyComparisonChart = ({
+  data,
+  isLoading,
+}: MonthlyComparisonChartProps) => {
   return (
     <Card className="bg-white dark:bg-gray-800">
       <CardHeader>
@@ -31,7 +37,7 @@ const MonthlyComparisonChart = ({ data, isLoading }: MonthlyComparisonChartProps
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <Skeleton className="h-48 sm:h-64 w-full" /> 
+          <Skeleton className="h-48 sm:h-64 w-full" />
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data}>

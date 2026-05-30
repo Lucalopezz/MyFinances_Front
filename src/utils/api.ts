@@ -1,20 +1,19 @@
 import axios from "axios";
+import { getPublicBackendUrl } from "@/lib/backend";
+import { getClientAuthToken } from "@/lib/client-auth";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  baseURL: getPublicBackendUrl(),
 });
 
 api.interceptors.request.use(async (config) => {
   try {
-    const res = await fetch("/api/auth/session");
-    if (res.ok) {
-      const data = await res.json();
-      if (data?.jwt) {
-        config.headers = config.headers ?? {};
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        config.headers.Authorization = `Bearer ${data.jwt}`;
-      }
+    const token = getClientAuthToken();
+    if (token) {
+      config.headers = config.headers ?? {};
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      config.headers.Authorization = `Bearer ${token}`;
     }
   } catch (e) {
     // ignore

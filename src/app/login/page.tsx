@@ -6,7 +6,7 @@ import Link from "next/link";
 import { FormInput } from "@/components/form/FormInput";
 import { PasswordInput } from "@/components/form/PasswordInput";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/queries/useLogin";
+import { useLogin } from "@/hooks/queries/useLogin";
 import { LoadingState } from "@/components/LoadingState";
 
 export default function LoginPage() {
@@ -17,7 +17,7 @@ export default function LoginPage() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(LoginSchema),
   });
-  const { handleLogin, loading } = useAuth();
+  const { handleLogin, loading } = useLogin();
 
   if (loading) return <LoadingState />;
 

@@ -5,7 +5,7 @@ import axios from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { queryClient } from "../useQueryClient";
-import { revalidateTransactionsCache } from "@/app/fixed-expenses/_actions";
+import { revalidateTransactionsCache } from "@/actions/cache";
 
 export function useCreateTransaction() {
   const [error, setError] = useState("");
@@ -19,7 +19,7 @@ export function useCreateTransaction() {
       } catch (error: any) {
         if (axios.isAxiosError(error) && error.response) {
           throw new Error(
-            error.response.data.message || "Erro ao criar transição"
+            error.response.data.message || "Erro ao criar transição",
           );
         }
         throw new Error("Erro ao criar transição");
@@ -27,11 +27,11 @@ export function useCreateTransaction() {
     },
     onSuccess: () => {
       toast.success("Transição criada com sucesso!");
-      queryClient.invalidateQueries({ 
-        queryKey: ['dashboard'] 
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard"],
       });
-      queryClient.invalidateQueries({ 
-        queryKey: ['monthlyComparison'] 
+      queryClient.invalidateQueries({
+        queryKey: ["monthlyComparison"],
       });
     },
     onError: (err: Error) => {

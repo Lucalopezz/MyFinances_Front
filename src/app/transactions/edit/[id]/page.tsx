@@ -10,42 +10,10 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getTransaction, updateTransaction } from "../../_services";
+import { getTransaction } from "@/services/transactions.service";
 import { Textarea } from "@/components/ui/textarea";
 import { redirect } from "next/navigation";
-import { revalidateTag } from "next/cache";
-
-async function updateTransactionAction(formData: FormData) {
-  "use server";
-
-  const id = formData.get("id") as string;
-
-  if (!id) {
-    console.error("Transaction ID is missing");
-    throw new Error("ID da transação não fornecido");
-  }
-
-  try {
-    const transactionData = {
-      value: parseFloat(formData.get("value") as string),
-      date: formData.get("date") as string,
-      description: formData.get("description") as string,
-      category: formData.get("category") as string,
-      type: formData.get("type") as "EXPENSE" | "INCOME",
-    };
-
-    const updated = await updateTransaction(id, transactionData);
-
-    if (!updated) {
-      throw new Error("Falha ao atualizar transação");
-    }
-    revalidateTag("transactions");
-    redirect("/transactions");
-  } catch (error) {
-    console.error("Error in updateTransactionAction:", error);
-    throw error;
-  }
-}
+import { updateTransactionAction } from "@/actions/transaction/update-transaction-action";
 
 export default async function EditTransactionPage({
   params,

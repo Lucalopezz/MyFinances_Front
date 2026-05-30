@@ -1,68 +1,52 @@
 "use client";
 
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-
-import { useDashboard } from "@/hooks/queries/useDashboard";
-import { useMonthlyComparison } from "@/hooks/queries/useMonthlyComparison";
 import SummaryCards from "./SummaryCards";
 import MonthlyComparisonChart from "./MonthlyComparisonChart";
 import DashboardActions from "./DashboardActions";
+import type {
+  FinancialSummary,
+  MonthlyComparisonDto,
+} from "@/services/dashboard.service";
 
-const DashboardContent = () => {
-  const {
-    data: dashboardData,
-    isLoading: isDashboardLoading,
-    error: dashboardError,
-  } = useDashboard();
+interface DashboardContentProps {
+  dashboardData: FinancialSummary;
+  monthlyComparison: {
+    currentMonth: MonthlyComparisonDto;
+    previousMonth: MonthlyComparisonDto;
+  };
+}
 
-  const {
-    data: monthlyData,
-    isLoading: isMonthlyLoading,
-    error: monthlyError,
-  } = useMonthlyComparison();
-
-  // Exibir mensagem de erro caso ocorra
-  if (dashboardError || monthlyError) {
-    return (
-      <div className="p-4 sm:p-6">
-        <DashboardHeader />
-        <div className="text-red-500">
-          Erro: {dashboardError?.message || monthlyError?.message}
-        </div>
-      </div>
-    );
-  }
-
-  // Dados para o gráfico
+const DashboardContent = ({
+  dashboardData,
+  monthlyComparison,
+}: DashboardContentProps) => {
   const chartData = [
     {
       name: "Mês Anterior",
-      Receitas: monthlyData?.previousMonth.totalIncomes || 0,
-      Despesas: monthlyData?.previousMonth.totalExpenses || 0,
+      Receitas: monthlyComparison.previousMonth.totalIncomes,
+      Despesas: monthlyComparison.previousMonth.totalExpenses,
     },
     {
       name: "Mês Atual",
-      Receitas: monthlyData?.currentMonth.totalIncomes || 0,
-      Despesas: monthlyData?.currentMonth.totalExpenses || 0,
+      Receitas: monthlyComparison.currentMonth.totalIncomes,
+      Despesas: monthlyComparison.currentMonth.totalExpenses,
     },
   ];
 
   return (
     <div className="p-4 sm:p-6">
       <DashboardHeader />
-      
-      <SummaryCards 
-        balance={dashboardData?.balance || 0}
-        totalIncomes={dashboardData?.totalIncomes || 0}
-        totalExpenses={dashboardData?.totalExpenses || 0}
-        isLoading={isDashboardLoading}
+
+      <SummaryCards
+        balance={dashboardData.balance}
+        totalIncomes={dashboardData.totalIncomes}
+        totalExpenses={dashboardData.totalExpenses}
+        isLoading={false}
       />
-      
-      <MonthlyComparisonChart 
-        data={chartData}
-        isLoading={isMonthlyLoading}
-      />
-      
+
+      <MonthlyComparisonChart data={chartData} isLoading={false} />
+
       <DashboardActions />
     </div>
   );

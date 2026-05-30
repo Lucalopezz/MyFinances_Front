@@ -4,10 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getWish } from "../../_services";
-import { updateWishAction } from "../../_actions";
+import { getWish } from "@/services/wishlist.service";
+import { updateWishAction } from "@/actions/wishlist/update-wish-action";
 
-export default async function EditWishPage({ params }: { params: { id: string } }) {
+export default async function EditWishPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const id = params.id;
 
   let wish;

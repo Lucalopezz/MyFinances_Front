@@ -12,7 +12,7 @@ import {
   User,
 } from "@/interfaces/user.interface";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { updateUserAction } from "@/app/config/_actions";
+import { updateUserAction } from "@/actions/user/update-user-action";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
@@ -26,7 +26,7 @@ interface UpdateUserFormProps {
 }
 
 export default function UpdateUserForm({ user }: UpdateUserFormProps) {
-    const router = useRouter();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -42,7 +42,7 @@ export default function UpdateUserForm({ user }: UpdateUserFormProps) {
     try {
       await updateUserAction(data);
       toast.success("Usuário atualizado com sucesso!");
-      router.push('/'); 
+      router.push("/");
     } catch (error) {
       toast.error("Erro ao atualizar usuário");
     }

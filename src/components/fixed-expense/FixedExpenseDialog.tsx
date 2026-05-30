@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createFixedExpense } from "@/app/fixed-expenses/_actions";
+import { createFixedExpenseAction as createFixedExpense } from "@/actions/fixed-expense/create-fixed-expense-action";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
@@ -60,7 +60,7 @@ export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
   async function onSubmit(data: FormData) {
     try {
       await createFixedExpense(data);
-      toast.success('Item criado com sucesso!')
+      toast.success("Item criado com sucesso!");
       setOpen(false);
       router.refresh();
     } catch (error) {
@@ -74,7 +74,7 @@ export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
         "sm:max-w-[425px]",
         "bg-[#2C3344] border-none",
         "text-white",
-        "rounded-lg"
+        "rounded-lg",
       )}
     >
       <DialogHeader>

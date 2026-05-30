@@ -1,11 +1,10 @@
 "use client";
 
-
 import { Pencil, Calendar, DollarSign, Wallet } from "lucide-react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { deleteFixedExpenseAction } from "@/app/wishlist/_actions";
+import { deleteWishAction } from "@/actions/wishlist/delete-wish-action";
 import { WishListInterface } from "@/interfaces/wishlist.interface";
 import { DeleteButton } from "../transaction/DeleteButton";
 
@@ -59,12 +58,14 @@ function DesktopWishListRow({
   item: WishListInterface;
   editUrlPrefix: string;
 }) {
-  const itemId = item.id || encodeURIComponent(`${item.name}-${item.desiredValue}`);
+  const itemId =
+    item.id || encodeURIComponent(`${item.name}-${item.desiredValue}`);
   const targetDate = new Date(item.targetDate);
   const isTargetDatePassed = targetDate < new Date();
-  const progressPercentage = item.desiredValue > 0 
-    ? Math.min(Math.round((item.savedAmount / item.desiredValue) * 100), 100)
-    : 0;
+  const progressPercentage =
+    item.desiredValue > 0
+      ? Math.min(Math.round((item.savedAmount / item.desiredValue) * 100), 100)
+      : 0;
 
   return (
     <TableRow className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -77,8 +78,8 @@ function DesktopWishListRow({
       <TableCell className="py-4 whitespace-nowrap text-green-600 dark:text-green-400">
         R$ {item.savedAmount.toFixed(2)}
         <div className="w-24 h-2 bg-gray-200 rounded-full mt-1">
-          <div 
-            className="h-2 bg-green-500 rounded-full" 
+          <div
+            className="h-2 bg-green-500 rounded-full"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
@@ -105,7 +106,7 @@ function DesktopWishListRow({
               <Pencil className="h-4 w-4" />
             </Button>
           </a>
-          <DeleteButton id={item.id} deleteAction={deleteFixedExpenseAction} />
+          <DeleteButton id={item.id} deleteAction={deleteWishAction} />
         </div>
       </TableCell>
     </TableRow>
@@ -120,12 +121,14 @@ function MobileWishListCard({
   item: WishListInterface;
   editUrlPrefix: string;
 }) {
-  const itemId = item.id || encodeURIComponent(`${item.name}-${item.desiredValue}`);
+  const itemId =
+    item.id || encodeURIComponent(`${item.name}-${item.desiredValue}`);
   const targetDate = new Date(item.targetDate);
   const isTargetDatePassed = targetDate < new Date();
-  const progressPercentage = item.desiredValue > 0 
-    ? Math.min(Math.round((item.savedAmount / item.desiredValue) * 100), 100)
-    : 0;
+  const progressPercentage =
+    item.desiredValue > 0
+      ? Math.min(Math.round((item.savedAmount / item.desiredValue) * 100), 100)
+      : 0;
 
   return (
     <div className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700">
@@ -153,8 +156,8 @@ function MobileWishListCard({
           </span>
         </div>
         <div className="w-full h-2 bg-gray-200 rounded-full mt-1">
-          <div 
-            className="h-2 bg-green-500 rounded-full" 
+          <div
+            className="h-2 bg-green-500 rounded-full"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
@@ -182,7 +185,7 @@ function MobileWishListCard({
               <Pencil className="h-4 w-4" />
             </Button>
           </a>
-          <DeleteButton id={item.id} deleteAction={deleteFixedExpenseAction} />
+          <DeleteButton id={item.id} deleteAction={deleteWishAction} />
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { AUTH_COOKIE_NAME } from "@/lib/backend";
 
 export function middleware(req: NextRequest) {
   const publicPaths = ["/login", "/register", "/api/auth"];
@@ -8,7 +9,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = req.cookies.get("mf_token")?.value;
+  const token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
   if (!token) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";

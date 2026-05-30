@@ -1,11 +1,10 @@
 import { Transaction } from "../dashboard/TransactionDialog";
-import { Pencil} from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import { revalidatePath } from "next/cache";
-import { deleteTransaction } from "@/app/transactions/_services";
+import { deleteTransactionAction } from "@/actions/transaction/delete-transaction-action";
 import { DeleteButton } from "./DeleteButton";
 
 interface TransactionListProps {
@@ -20,10 +19,7 @@ export function TransactionList({
   async function handleDelete(id: string) {
     "use server";
 
-    const success = await deleteTransaction(id);
-    if (success) {
-      revalidatePath("/transactions"); 
-    }
+    await deleteTransactionAction(id);
   }
 
   return (
@@ -80,7 +76,7 @@ function DesktopTransactionRow({
   const transactionId =
     transaction.id ||
     encodeURIComponent(
-      `${transaction.date}-${transaction.description}-${transaction.value}`
+      `${transaction.date}-${transaction.description}-${transaction.value}`,
     );
 
   return (
@@ -140,7 +136,7 @@ function MobileTransactionCard({
   const transactionId =
     transaction.id ||
     encodeURIComponent(
-      `${transaction.date}-${transaction.description}-${transaction.value}`
+      `${transaction.date}-${transaction.description}-${transaction.value}`,
     );
 
   return (

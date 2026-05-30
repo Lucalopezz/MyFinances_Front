@@ -1,25 +1,9 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
-import { createWish, deleteWish, updateWish } from "./_services";
-import { NewWish } from "@/interfaces/wishlist.interface";
 import { redirect } from "next/navigation";
+import { revalidatePath, revalidateTag } from "next/cache";
 
-
-
-export async function deleteFixedExpenseAction(id: string) {
-  const success = await deleteWish(id);
-  if (success) {
-    revalidatePath("/wishlist");
-  }
-}
-
-export async function createWishAction(data:NewWish) {
-  const success = await createWish(data)
-  if (success) {
-    revalidatePath("/wishlist");
-  }
-}
+import { updateWish } from "@/services/wishlist.service";
 
 export async function updateWishAction(formData: FormData) {
   const id = formData.get("id") as string;

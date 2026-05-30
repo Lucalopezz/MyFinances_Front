@@ -32,7 +32,7 @@ export function useMarkAsRead() {
       try {
         const response = await api.patch(
           `/notifications/${id}/mark-as-read`,
-          read
+          read,
         );
         return response.data;
       } catch (error) {

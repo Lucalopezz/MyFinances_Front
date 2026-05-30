@@ -1,13 +1,13 @@
 "use client";
 
-import { FixedExpense } from "@/app/fixed-expenses/types";
+import { FixedExpense } from "@/interfaces/fixed-expense.interface";
 import { Pencil, Check } from "lucide-react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DeleteButton } from "../transaction/DeleteButton";
-import { deleteFixedExpenseAction, markAsPaidAction } from "@/app/fixed-expenses/_actions";
-
+import { deleteFixedExpenseAction } from "@/actions/fixed-expense/delete-fixed-expense-action";
+import { markFixedExpenseAsPaidAction as markAsPaidAction } from "@/actions/fixed-expense/mark-fixed-expense-as-paid-action";
 
 interface FixedExpenseListProps {
   fixedExpenses: FixedExpense[];
@@ -59,7 +59,8 @@ function DesktopFixedExpenseRow({
   expense: FixedExpense;
   editUrlPrefix: string;
 }) {
-  const expenseId = expense.id || encodeURIComponent(`${expense.name}-${expense.amount}`);
+  const expenseId =
+    expense.id || encodeURIComponent(`${expense.name}-${expense.amount}`);
 
   return (
     <TableRow className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -109,7 +110,10 @@ function DesktopFixedExpenseRow({
               <Pencil className="h-4 w-4" />
             </Button>
           </a>
-          <DeleteButton id={expense.id} deleteAction={deleteFixedExpenseAction} />
+          <DeleteButton
+            id={expense.id}
+            deleteAction={deleteFixedExpenseAction}
+          />
         </div>
       </TableCell>
     </TableRow>
@@ -124,7 +128,8 @@ function MobileFixedExpenseCard({
   expense: FixedExpense;
   editUrlPrefix: string;
 }) {
-  const expenseId = expense.id || encodeURIComponent(`${expense.name}-${expense.amount}`);
+  const expenseId =
+    expense.id || encodeURIComponent(`${expense.name}-${expense.amount}`);
 
   return (
     <div className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700">
@@ -178,7 +183,10 @@ function MobileFixedExpenseCard({
               <Pencil className="h-4 w-4" />
             </Button>
           </a>
-          <DeleteButton id={expense.id} deleteAction={deleteFixedExpenseAction} />
+          <DeleteButton
+            id={expense.id}
+            deleteAction={deleteFixedExpenseAction}
+          />
         </div>
       </div>
     </div>
