@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { Transaction, TransactionDialog } from "../dashboard/TransactionDialog";
+import { TransactionDialog } from "../dashboard/TransactionDialog";
+import type { Transaction } from "./transaction.types";
 import { useCreateTransaction } from "@/hooks/queries/useCreateTransaction";
 import { useRouter } from "next/navigation";
 
@@ -9,61 +10,58 @@ interface TransactionSummaryProps {
   onTransactionAdded?: (transaction: Transaction) => void;
 }
 
-export function TransactionSummary({ 
-  transactions, 
-  onTransactionAdded 
+export function TransactionSummary({
+  transactions,
+  onTransactionAdded,
 }: TransactionSummaryProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { createTransaction, isLoading: loading } = useCreateTransaction();
-  const [isLoading, setIsLoading] = useState(false);
+  const { createTransactionAsync, isLoading } = useCreateTransaction();
   const router = useRouter();
 
   const totalIncome = transactions
-    .filter(t => t.type === 'INCOME')
+    .filter((t) => t.type === "INCOME")
     .reduce((sum, t) => sum + t.value, 0);
 
   const totalExpense = transactions
-    .filter(t => t.type === 'EXPENSE')
+    .filter((t) => t.type === "EXPENSE")
     .reduce((sum, t) => sum + t.value, 0);
 
   const balance = totalIncome - totalExpense;
 
   const handleTransactionSubmit = async (transaction: Transaction) => {
-    try {
-      await createTransaction(transaction);
-      
-      if (onTransactionAdded) {
-        onTransactionAdded(transaction);
-      }
-      
-      setIsDialogOpen(false);
-      router.refresh();
-    } catch (error) {
-      console.error("Error adding transaction:", error);
+    const createdTransaction = await createTransactionAsync(transaction);
+
+    if (createdTransaction && onTransactionAdded) {
+      onTransactionAdded(createdTransaction);
     }
+
+    router.refresh();
+    setIsDialogOpen(false);
   };
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Resumo Financeiro</h2>
-        <TransactionDialog 
+        <TransactionDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
           onSubmit={handleTransactionSubmit}
           loading={isLoading}
         />
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {/* Card de Saldo */}
         <div className="bg-green-50 dark:bg-green-800/50 p-4 rounded-lg border border-green-100 dark:border-green-800/50">
           <p className="text-gray-500 dark:text-gray-400">Saldo</p>
-          <p className={`text-2xl font-bold ${
-            balance >= 0 
-              ? 'text-green-600 dark:text-green-400' 
-              : 'text-red-600 dark:text-red-400'
-          }`}>
+          <p
+            className={`text-2xl font-bold ${
+              balance >= 0
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400"
+            }`}
+          >
             R$ {balance.toFixed(2)}
           </p>
         </div>
@@ -84,8 +82,6 @@ export function TransactionSummary({
           </p>
         </div>
       </div>
-      
-
     </div>
   );
 }

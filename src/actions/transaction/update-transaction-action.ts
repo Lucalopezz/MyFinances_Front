@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidateTag } from "next/cache";
 
 import { updateTransaction } from "@/services/transactions.service";
+import type { Transaction } from "@/components/transaction/transaction.types";
 
 export async function updateTransactionAction(formData: FormData) {
   const id = formData.get("id") as string;
@@ -17,7 +18,7 @@ export async function updateTransactionAction(formData: FormData) {
     date: formData.get("date") as string,
     description: formData.get("description") as string,
     category: formData.get("category") as string,
-    type: formData.get("type") as "EXPENSE" | "INCOME",
+    type: formData.get("type") as Transaction["type"],
   };
 
   const updated = await updateTransaction(id, transactionData);

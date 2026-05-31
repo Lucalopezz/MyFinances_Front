@@ -1,0 +1,41 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="18" y1="16" x2="112" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B4BFF" />
+      <stop offset="0.45" stop-color="#0AA5E6" />
+      <stop offset="1" stop-color="#39D66F" />
+    </linearGradient>
+    <linearGradient id="panel" x1="34" y1="28" x2="94" y2="98" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B3FD1" />
+      <stop offset="1" stop-color="#08308A" />
+    </linearGradient>
+    <linearGradient id="chart" x1="84" y1="48" x2="112" y2="84" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14B8A6" />
+      <stop offset="1" stop-color="#7CFF63" />
+    </linearGradient>
+  </defs>
+
+  <rect x="16" y="16" width="96" height="96" rx="28" fill="url(#bg)"/>
+
+  <path d="M36 48C36 41.3726 41.3726 36 48 36H76.5C82.8513 36 88 41.1487 88 47.5V72.5C88 78.8513 82.8513 84 76.5 84H48C41.3726 84 36 78.6274 36 72V48Z" fill="url(#panel)" stroke="#0E57E6" stroke-width="3"/>
+
+  <path d="M86 49L99.5 61V78.5C99.5 84.8513 94.3513 90 88 90H68.5C63.2533 90 59 85.7467 59 80.5V58.5C59 53.2533 63.2533 49 68.5 49H86Z" fill="#0A2E8C" stroke="#0B4BFF" stroke-width="3"/>
+
+  <path d="M52 49.5L67 42L73 53.5L62 60L52 49.5Z" fill="#FFFFFF"/>
+  <path d="M67 42L78 36L84 44L73 53.5L67 42Z" fill="#FFFFFF"/>
+  <path d="M51.5 50L61.5 60" stroke="#08308A" stroke-width="3" stroke-linecap="round"/>
+
+  <rect x="45" y="63" width="20" height="4" rx="2" fill="#14B8A6"/>
+  <rect x="45" y="70" width="12" height="4" rx="2" fill="#14B8A6"/>
+  <rect x="45" y="77" width="8" height="4" rx="2" fill="#14B8A6"/>
+
+  <path d="M40 74C47 70 51 67 57.5 60" stroke="url(#chart)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M55.5 58.5L60 59.5L58.2 63.7" fill="none" stroke="#7CFF63" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M87 43C87 38.5817 90.5817 35 95 35C90.5817 35 87 31.4183 87 27C87 31.4183 83.4183 35 79 35C83.4183 35 87 38.5817 87 43Z" fill="#FDE047"/>
+  <path d="M99 50C99 47.2386 101.239 45 104 45C101.239 45 99 42.7614 99 40C99 42.7614 96.7614 45 94 45C96.7614 45 99 47.2386 99 50Z" fill="#FDE047"/>
+
+  <circle cx="75.5" cy="67.5" r="2.5" fill="#0EA5E9"/>
+  <circle cx="80" cy="74" r="2" fill="#0EA5E9"/>
+  <circle cx="84.5" cy="80.5" r="1.5" fill="#0EA5E9"/>
+</svg>

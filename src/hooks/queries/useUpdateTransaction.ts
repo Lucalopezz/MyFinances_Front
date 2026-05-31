@@ -1,4 +1,3 @@
-import type { Transaction } from "@/components/transaction/transaction.types";
 import api from "@/utils/api";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
@@ -6,27 +5,35 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { queryClient } from "../useQueryClient";
 import { revalidateTransactionsCache } from "@/actions/cache";
+import type { Transaction } from "@/components/transaction/transaction.types";
 
-export function useCreateTransaction() {
+export function useUpdateTransaction() {
   const [error, setError] = useState("");
 
   const mutation = useMutation({
-    mutationFn: async (data: Transaction) => {
+    mutationFn: async ({
+      id,
+      transaction,
+    }: {
+      id: string;
+      transaction: Transaction;
+    }) => {
       try {
-        const response = await api.post("/transactions", data);
+        const response = await api.patch(`/transactions/${id}`, transaction);
         await revalidateTransactionsCache();
         return response.data;
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
           throw new Error(
-            error.response.data.message || "Erro ao criar transição",
+            error.response.data.message || "Erro ao atualizar transação",
           );
         }
-        throw new Error("Erro ao criar transição");
+
+        throw new Error("Erro ao atualizar transação");
       }
     },
     onSuccess: () => {
-      toast.success("Transição criada com sucesso!");
+      toast.success("Transação atualizada com sucesso!");
       queryClient.invalidateQueries({
         queryKey: ["dashboard"],
       });
@@ -40,8 +47,8 @@ export function useCreateTransaction() {
   });
 
   return {
-    createTransaction: mutation.mutate,
-    createTransactionAsync: mutation.mutateAsync,
+    updateTransaction: mutation.mutate,
+    updateTransactionAsync: mutation.mutateAsync,
     isLoading: mutation.isPending,
     error,
   };

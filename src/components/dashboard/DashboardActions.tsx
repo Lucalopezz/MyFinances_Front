@@ -1,25 +1,24 @@
 "use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Transaction, TransactionDialog } from "./TransactionDialog";
-import { useCreateTransaction } from '@/hooks/queries/useCreateTransaction';
+import { TransactionDialog } from "./TransactionDialog";
+import type { Transaction } from "@/components/transaction/transaction.types";
+import { useCreateTransaction } from "@/hooks/queries/useCreateTransaction";
 
 const DashboardActions = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const {createTransaction, isLoading} = useCreateTransaction()
+  const { createTransactionAsync, isLoading } = useCreateTransaction();
 
-  const handleAddTransaction = (transaction: Transaction) => {
-
-    createTransaction(transaction)
-    
+  const handleAddTransaction = async (transaction: Transaction) => {
+    await createTransactionAsync(transaction);
     setIsDialogOpen(false);
   };
 
   return (
     <>
       <div className="mt-6 flex justify-center sm:justify-start">
-        <TransactionDialog 
+        <TransactionDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
           loading={isLoading}
@@ -28,7 +27,10 @@ const DashboardActions = () => {
       </div>
 
       <div className="mt-4 flex justify-center sm:justify-start">
-        <Badge variant="outline" className="text-emerald-600 border-emerald-600">
+        <Badge
+          variant="outline"
+          className="text-emerald-600 border-emerald-600"
+        >
           Status: Ativo
         </Badge>
       </div>

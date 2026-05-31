@@ -1,21 +1,16 @@
-import { Transaction } from "../dashboard/TransactionDialog";
-import { Pencil } from "lucide-react";
+import type { Transaction } from "./transaction.types";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { deleteTransactionAction } from "@/actions/transaction/delete-transaction-action";
-import { DeleteButton } from "./DeleteButton";
+import { TransactionRowActions } from "./TransactionRowActions";
+import { CATEGORY_LABELS } from "@/constants/transaction-categories";
 
 interface TransactionListProps {
   transactions: Transaction[];
-  editUrlPrefix?: string;
 }
 
-export function TransactionList({
-  transactions,
-  editUrlPrefix = "/transactions/edit",
-}: TransactionListProps) {
+export function TransactionList({ transactions }: TransactionListProps) {
   async function handleDelete(id: string) {
     "use server";
 
@@ -36,7 +31,6 @@ export function TransactionList({
                     `${transaction.date}-${transaction.description}-${transaction.value}`
                   }
                   transaction={transaction}
-                  editUrlPrefix={editUrlPrefix}
                   handleDelete={handleDelete} // Passamos a ação como prop
                 />
               ))}
@@ -54,7 +48,6 @@ export function TransactionList({
               `${transaction.date}-${transaction.description}-${transaction.value}`
             }
             transaction={transaction}
-            editUrlPrefix={editUrlPrefix}
             handleDelete={handleDelete} // Passamos a ação como prop
           />
         ))}
@@ -66,18 +59,14 @@ export function TransactionList({
 // Componente para linha da tabela (desktop)
 function DesktopTransactionRow({
   transaction,
-  editUrlPrefix,
   handleDelete,
 }: {
   transaction: Transaction;
-  editUrlPrefix: string;
   handleDelete: (id: string) => Promise<void>;
 }) {
-  const transactionId =
-    transaction.id ||
-    encodeURIComponent(
-      `${transaction.date}-${transaction.description}-${transaction.value}`,
-    );
+  const categoryLabel =
+    CATEGORY_LABELS[transaction.category as keyof typeof CATEGORY_LABELS] ??
+    transaction.category;
 
   return (
     <TableRow className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -88,7 +77,7 @@ function DesktopTransactionRow({
         {transaction.description}
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">
-        {transaction.category}
+        {categoryLabel}
       </TableCell>
       <TableCell
         className={`py-4 whitespace-nowrap font-medium ${
@@ -110,14 +99,10 @@ function DesktopTransactionRow({
         )}
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
-        <div className="flex space-x-2">
-          <a href={`${editUrlPrefix}/${transactionId}`}>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Pencil className="h-4 w-4" />
-            </Button>
-          </a>
-          <DeleteButton id={transaction.id} deleteAction={handleDelete} />
-        </div>
+        <TransactionRowActions
+          transaction={transaction}
+          deleteAction={handleDelete}
+        />
       </TableCell>
     </TableRow>
   );
@@ -126,18 +111,14 @@ function DesktopTransactionRow({
 // Componente para card mobile
 function MobileTransactionCard({
   transaction,
-  editUrlPrefix,
   handleDelete,
 }: {
   transaction: Transaction;
-  editUrlPrefix: string;
   handleDelete: (id: string) => Promise<void>;
 }) {
-  const transactionId =
-    transaction.id ||
-    encodeURIComponent(
-      `${transaction.date}-${transaction.description}-${transaction.value}`,
-    );
+  const categoryLabel =
+    CATEGORY_LABELS[transaction.category as keyof typeof CATEGORY_LABELS] ??
+    transaction.category;
 
   return (
     <div className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700">
@@ -167,7 +148,7 @@ function MobileTransactionCard({
           <Badge
             variant={transaction.type === "INCOME" ? "default" : "destructive"}
           >
-            {transaction.category}
+            {categoryLabel}
           </Badge>
           {transaction.type === "INCOME" ? (
             <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
@@ -178,15 +159,10 @@ function MobileTransactionCard({
           )}
         </div>
 
-        <div className="flex space-x-2">
-          <a href={`${editUrlPrefix}/${transactionId}`}>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Pencil className="h-4 w-4" />
-            </Button>
-          </a>
-
-          <DeleteButton id={transaction.id} deleteAction={handleDelete} />
-        </div>
+        <TransactionRowActions
+          transaction={transaction}
+          deleteAction={handleDelete}
+        />
       </div>
     </div>
   );

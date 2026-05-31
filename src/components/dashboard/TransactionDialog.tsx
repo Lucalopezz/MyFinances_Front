@@ -1,5 +1,6 @@
 "use client";
-import { useForm, Controller } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -10,235 +11,182 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
 import { format } from "date-fns";
 
 import { cn } from "@/lib/utils";
+import {
+  CATEGORY_BY_TYPE,
+  TRANSACTION_CATEGORIES,
+  TRANSACTION_TYPES,
+  type TransactionCategory,
+} from "@/constants/transaction-categories";
+import { TransactionFormFields } from "../transaction/TransactionFormFields";
+import type {
+  Transaction,
+  TransactionFormValues,
+} from "../transaction/transaction.types";
 
-export type Transaction = {
-  id?: string;
-  value: number;
-  date: string;
-  category: string;
-  description: string;
-  type: "EXPENSE" | "INCOME";
-};
+export type { Transaction } from "../transaction/transaction.types";
 
 const TransactionSchema = z.object({
-  type: z.enum(["EXPENSE", "INCOME"]),
+  type: z.enum([TRANSACTION_TYPES.EXPENSE, TRANSACTION_TYPES.INCOME]),
   value: z.coerce.number().positive("Valor deve ser positivo"),
   date: z.date(),
-  category: z.string().min(1, "Categoria é obrigatória"),
+  category: z.enum(TRANSACTION_CATEGORIES),
   description: z.string().default(""),
 });
 
 type TransactionDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (transaction: Transaction) => void;
+  onSubmit: (transaction: Transaction) => void | Promise<void>;
   loading: boolean;
+  mode?: "create" | "edit";
+  transaction?: Transaction;
+  showTrigger?: boolean;
 };
+
+function getInitialValues(transaction?: Transaction): TransactionFormValues {
+  const type = transaction?.type ?? TRANSACTION_TYPES.EXPENSE;
+  const categories = CATEGORY_BY_TYPE[type] as readonly TransactionCategory[];
+  const fallbackCategory = categories[0];
+  const category = transaction?.category as TransactionCategory | undefined;
+
+  return {
+    type,
+    value: transaction?.value ?? 0,
+    date: transaction?.date ? new Date(transaction.date) : new Date(),
+    category: categories.includes(category as TransactionCategory)
+      ? (category as TransactionCategory)
+      : fallbackCategory,
+    description: transaction?.description ?? "",
+  };
+}
 
 export const TransactionDialog = ({
   open,
   onOpenChange,
   onSubmit,
   loading,
+  mode = "create",
+  transaction,
+  showTrigger = true,
 }: TransactionDialogProps) => {
   const {
     control,
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
+    getValues,
     formState: { errors },
-  } = useForm<z.infer<typeof TransactionSchema>>({
+  } = useForm<TransactionFormValues>({
     resolver: zodResolver(TransactionSchema),
-    defaultValues: {
-      type: "EXPENSE",
-      date: new Date(),
-      value: undefined,
-      category: "",
-      description: "",
-    },
+    defaultValues: getInitialValues(transaction),
   });
+  // Atualiza os valores do formulário quando o modal é aberto ou quando a transação muda
+  useEffect(() => {
+    if (open) {
+      reset(getInitialValues(transaction));
+    }
+  }, [open, reset, transaction]);
+  // Observa o tipo de transação para garantir que a categoria selecionada seja válida para o tipo atual
+  const currentType = watch("type");
+  // Garante que a categoria selecionada seja válida para o tipo de transação atual
+  useEffect(() => {
+    const allowedCategories = CATEGORY_BY_TYPE[
+      currentType
+    ] as readonly TransactionCategory[];
+    const currentCategory = getValues("category") as TransactionCategory;
 
-  const handleFormSubmit = (data: z.infer<typeof TransactionSchema>) => {
-    const transaction: Transaction = {
+    if (!allowedCategories.includes(currentCategory)) {
+      setValue("category", allowedCategories[0], {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+    }
+  }, [currentType, getValues, setValue]);
+
+  const handleFormSubmit = async (data: TransactionFormValues) => {
+    const payload: Transaction = {
       ...data,
       value: data.value,
       date: format(data.date, "yyyy-MM-dd"),
     };
 
-    onSubmit(transaction);
-    reset();
-    onOpenChange(false);
+    try {
+      await onSubmit(payload);
+      reset(getInitialValues(transaction));
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Erro ao salvar transação:", error);
+    }
   };
+
+  const title =
+    mode === "edit" ? "Editar transação" : "Adicionar nova transação";
+  const description =
+    mode === "edit"
+      ? "Atualize os dados abaixo e salve as alterações no mesmo modal."
+      : "Registre receitas e despesas sem sair da página.";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
-          Adicionar Transação
-        </Button>
-      </DialogTrigger>
+      {showTrigger ? (
+        <DialogTrigger asChild>
+          <Button className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400">
+            {mode === "edit" ? "Editar transação" : "Adicionar transação"}
+          </Button>
+        </DialogTrigger>
+      ) : null}
       <DialogContent
         className={cn(
-          "sm:max-w-[425px]",
-          "bg-[#2C3344] border-none",
-          "text-white",
-          "rounded-lg"
+          "sm:max-w-[680px]",
+          "border-slate-200 bg-white text-slate-900 shadow-2xl",
+          "dark:border-slate-800 dark:bg-slate-950 dark:text-slate-50",
+          "rounded-2xl",
         )}
       >
-        <DialogHeader>
-          <DialogTitle className="text-white">
-            Adicionar Nova Transação
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-slate-50">
+            {title}
           </DialogTitle>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            {description}
+          </p>
         </DialogHeader>
 
         <form
           onSubmit={handleSubmit(handleFormSubmit)}
-          className="grid gap-4 py-4"
+          className="grid gap-6 py-2"
         >
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="type" className="text-right text-white">
-              Tipo
-            </Label>
-            <Controller
-              name="type"
-              control={control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="col-span-3 bg-[#364152] border-none text-white">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#2C3344] border-none text-white">
-                    <SelectItem
-                      value="EXPENSE"
-                      className="hover:bg-[#364152] focus:bg-[#364152] text-white"
-                    >
-                      Gasto
-                    </SelectItem>
-                    <SelectItem
-                      value="INCOME"
-                      className="hover:bg-[#364152] focus:bg-[#364152] text-white"
-                    >
-                      Entrada
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
+          <TransactionFormFields
+            control={control}
+            register={register}
+            setValue={setValue}
+            errors={errors}
+          />
 
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="value" className="text-right text-white">
-              Valor
-            </Label>
-            <div className="col-span-3">
-              <Input
-                id="value"
-                type="number"
-                step="0.01"
-                {...register("value", {
-                  setValueAs: (v) => parseFloat(v),
-                })}
-                placeholder="150.00"
-                className={cn(
-                  "bg-[#364152] border-none text-white placeholder-gray-400",
-                  errors.value && "border-red-500"
-                )}
-              />
-              {errors.value && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.value.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="date" className="text-right text-white">
-              Data
-            </Label>
-            <div className="col-span-3">
-              <Controller
-                name="date"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    id="date"
-                    type="date"
-                    value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
-                    onChange={(e) => field.onChange(new Date(e.target.value))}
-                    className="bg-[#364152] border-none text-white"
-                  />
-                )}
-              />
-              {errors.date && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.date.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="category" className="text-right text-white">
-              Categoria
-            </Label>
-            <div className="col-span-3">
-              <Input
-                id="category"
-                {...register("category")}
-                placeholder="Academia"
-                className={cn(
-                  "bg-[#364152] border-none text-white placeholder-gray-400",
-                  errors.category && "border-red-500"
-                )}
-              />
-              {errors.category && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.category.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right text-white">
-              Descrição
-            </Label>
-            <Input
-              id="description"
-              {...register("description")}
-              placeholder="Pagar a academia"
-              className="col-span-3 bg-[#364152] border-none text-white placeholder-gray-400"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end gap-3 border-t border-slate-200 pt-4 dark:border-slate-800">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="bg-[#364152] border-none text-white hover:bg-[#4A5567]"
+              className="border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:hover:text-white"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400"
             >
-              {loading ? "Carrgando" : "Salvar"}
+              {loading
+                ? "Carregando"
+                : mode === "edit"
+                  ? "Salvar alterações"
+                  : "Salvar transação"}
             </Button>
           </div>
         </form>
