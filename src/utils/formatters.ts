@@ -5,6 +5,48 @@ export const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
+export const formatPercentage = (value = 0): string => {
+  return new Intl.NumberFormat("pt-BR", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
+  }).format(value) + "%";
+};
+
+export const formatMonthLabel = (value?: string): string => {
+  if (!value) return "Mês atual";
+
+  const normalizedValue = value.length === 7 ? `${value}-01` : value;
+  const date = new Date(`${normalizedValue}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Mês atual";
+  }
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric",
+  }).format(date);
+};
+
+export const formatDateRange = (start?: string, end?: string): string => {
+  if (!start || !end) return "Período mensal";
+
+  const startDate = new Date(`${start.slice(0, 10)}T00:00:00`);
+  const endDate = new Date(`${end.slice(0, 10)}T00:00:00`);
+
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return "Período mensal";
+  }
+
+  const formatter = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+  return `${formatter.format(startDate)} a ${formatter.format(endDate)}`;
+};
+
 export const formatTimeAgo = (date?: Date) => {
   if (!date) return "Agora";
   

@@ -6,6 +6,11 @@ export interface FinancialSummary {
   balance: number;
   totalIncomes: number;
   totalExpenses: number;
+  economyRate?: number;
+  highestSpendingCategory?: {
+    category: string;
+    total: number;
+  } | null;
   period: {
     start: string;
     end: string;
@@ -16,31 +21,130 @@ export interface MonthlyComparisonDto {
   month: string;
   totalExpenses: number;
   totalIncomes: number;
+  balance?: number;
+  economyRate?: number;
   percentageChange?: number;
+}
+
+export interface MonthlyComparisonResponse {
+  months: MonthlyComparisonDto[];
+  bestMonth?: {
+    month: string;
+    balance: number;
+    economyRate?: number;
+  } | null;
+  worstMonth?: {
+    month: string;
+    balance: number;
+    economyRate?: number;
+  } | null;
+  period: {
+    start: string;
+    end: string;
+  };
 }
 
 export interface SixMonthComparisonItem extends MonthlyComparisonDto {
   label: string;
 }
 
-export async function getDashboardSummary(): Promise<FinancialSummary> {
-  noStore();
+const MONTH_PARAM_PATTERN = /^\d{4}-\d{2}$/;
 
-  const backendUrl = getServerBackendUrl();
-  const currentYear = new Date().getFullYear();
-  const startDate = `${currentYear}-01-01`;
-  const endDate = `${currentYear}-12-31`;
-  const token = await getServerToken();
+function formatDateParam(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
-  const emptySummary: FinancialSummary = {
+  return `${year}-${month}-${day}`;
+}
+
+function getSelectedMonthDate(month?: string) {
+  if (month && MONTH_PARAM_PATTERN.test(month)) {
+    const [year, monthNumber] = month.split("-").map(Number);
+
+    if (monthNumber >= 1 && monthNumber <= 12) {
+      return new Date(year, monthNumber - 1, 1);
+    }
+  }
+
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1);
+}
+
+function getMonthPeriod(month?: string) {
+  const selectedMonth = getSelectedMonthDate(month);
+  const start = new Date(
+    selectedMonth.getFullYear(),
+    selectedMonth.getMonth(),
+    1,
+  );
+  const end = new Date(
+    selectedMonth.getFullYear(),
+    selectedMonth.getMonth() + 1,
+    0,
+  );
+
+  return {
+    selectedMonth: formatDateParam(start).slice(0, 7),
+    startDate: formatDateParam(start),
+    endDate: formatDateParam(end),
+  };
+}
+
+function getComparisonPeriod(month?: string) {
+  const selectedMonth = getSelectedMonthDate(month);
+  const start = new Date(
+    selectedMonth.getFullYear(),
+    selectedMonth.getMonth() - 5,
+    1,
+  );
+  const end = new Date(
+    selectedMonth.getFullYear(),
+    selectedMonth.getMonth() + 1,
+    0,
+  );
+
+  return {
+    startDate: formatDateParam(start),
+    endDate: formatDateParam(end),
+  };
+}
+
+function getEmptySummary(month?: string): FinancialSummary {
+  const { startDate, endDate } = getMonthPeriod(month);
+
+  return {
     balance: 0,
     totalIncomes: 0,
     totalExpenses: 0,
+    economyRate: 0,
+    highestSpendingCategory: null,
     period: {
       start: startDate,
       end: endDate,
     },
   };
+}
+
+function buildDefaultComparison(month: string): MonthlyComparisonDto {
+  return {
+    month,
+    totalExpenses: 0,
+    totalIncomes: 0,
+    balance: 0,
+    economyRate: 0,
+  };
+}
+
+export async function getDashboardSummary(
+  month?: string,
+): Promise<FinancialSummary> {
+  noStore();
+
+  const backendUrl = getServerBackendUrl();
+  const { startDate, endDate } = getMonthPeriod(month);
+  const token = await getServerToken();
+  const emptySummary = getEmptySummary(month);
 
   if (!token) {
     return emptySummary;
@@ -48,7 +152,7 @@ export async function getDashboardSummary(): Promise<FinancialSummary> {
 
   try {
     const response = await fetch(
-      `${backendUrl}/dashboard/?startDate=${startDate}&endDate=${endDate}`,
+      `${backendUrl}/dashboard?startDate=${startDate}&endDate=${endDate}`,
       {
         headers: createJsonHeaders(token),
         cache: "no-store",
@@ -66,75 +170,61 @@ export async function getDashboardSummary(): Promise<FinancialSummary> {
   }
 }
 
-export async function getMonthlyComparison(): Promise<{
-  currentMonth: MonthlyComparisonDto;
-  previousMonth: MonthlyComparisonDto;
-}> {
+export async function getMonthlyComparison(
+  month?: string,
+): Promise<MonthlyComparisonResponse> {
   noStore();
 
   const backendUrl = getServerBackendUrl();
   const token = await getServerToken();
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonthIndex = now.getMonth();
-
-  const currentStartDate = new Date(currentYear, currentMonthIndex, 1);
-  const currentEndDate = new Date(currentYear, currentMonthIndex + 1, 0);
-
-  const previousMonthIndex =
-    currentMonthIndex === 0 ? 11 : currentMonthIndex - 1;
-  const previousYear = currentMonthIndex === 0 ? currentYear - 1 : currentYear;
-  const previousStartDate = new Date(previousYear, previousMonthIndex, 1);
-  const previousEndDate = new Date(previousYear, previousMonthIndex + 1, 0);
-
-  const buildDefaultComparison = (date: Date): MonthlyComparisonDto => ({
-    month: date.toISOString().split("T")[0].slice(0, 7),
-    totalExpenses: 0,
-    totalIncomes: 0,
-  });
+  const selectedMonth = getMonthPeriod(month).selectedMonth;
+  const { startDate, endDate } = getComparisonPeriod(month);
+  const emptyComparison: MonthlyComparisonResponse = {
+    months: [buildDefaultComparison(selectedMonth)],
+    bestMonth: null,
+    worstMonth: null,
+    period: {
+      start: startDate,
+      end: endDate,
+    },
+  };
 
   if (!token) {
-    return {
-      currentMonth: buildDefaultComparison(currentStartDate),
-      previousMonth: buildDefaultComparison(previousStartDate),
-    };
+    return emptyComparison;
   }
 
   try {
-    const [currentResponse, previousResponse] = await Promise.all([
-      fetch(
-        `${backendUrl}/dashboard/monthly-comparison?startDate=${currentStartDate.toISOString().split("T")[0]}&endDate=${currentEndDate.toISOString().split("T")[0]}`,
-        {
-          headers: createJsonHeaders(token),
-          next: { tags: ["monthlyComparison"] },
-          cache: "no-store",
-        },
-      ),
-      fetch(
-        `${backendUrl}/dashboard/monthly-comparison?startDate=${previousStartDate.toISOString().split("T")[0]}&endDate=${previousEndDate.toISOString().split("T")[0]}`,
-        {
-          headers: createJsonHeaders(token),
-          next: { tags: ["monthlyComparison"] },
-          cache: "no-store",
-        },
-      ),
-    ]);
+    const response = await fetch(
+      `${backendUrl}/dashboard/monthly-comparison?startDate=${startDate}&endDate=${endDate}`,
+      {
+        headers: createJsonHeaders(token),
+        next: { tags: ["monthlyComparison"] },
+        cache: "no-store",
+      },
+    );
 
-    const currentData = currentResponse.ok ? await currentResponse.json() : [];
-    const previousData = previousResponse.ok
-      ? await previousResponse.json()
-      : [];
+    if (!response.ok) {
+      return emptyComparison;
+    }
+
+    const data = await response.json();
+
+    if (Array.isArray(data)) {
+      return {
+        ...emptyComparison,
+        months: data.length ? data : emptyComparison.months,
+      };
+    }
 
     return {
-      currentMonth: currentData[0] || buildDefaultComparison(currentStartDate),
-      previousMonth:
-        previousData[0] || buildDefaultComparison(previousStartDate),
+      ...emptyComparison,
+      ...data,
+      months: Array.isArray(data.months) && data.months.length
+        ? data.months
+        : emptyComparison.months,
     };
   } catch (error) {
-    return {
-      currentMonth: buildDefaultComparison(currentStartDate),
-      previousMonth: buildDefaultComparison(previousStartDate),
-    };
+    return emptyComparison;
   }
 }
 
@@ -195,9 +285,10 @@ export async function getSixMonthComparison(): Promise<
         );
 
         const data = response.ok ? await response.json() : [];
+        const monthData = Array.isArray(data) ? data[0] : data.months?.[0];
 
         return {
-          ...(data[0] || {
+          ...(monthData || {
             month: month.startDate.slice(0, 7),
             totalExpenses: 0,
             totalIncomes: 0,

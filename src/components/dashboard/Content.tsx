@@ -6,46 +6,47 @@ import MonthlyComparisonChart from "./MonthlyComparisonChart";
 import DashboardActions from "./DashboardActions";
 import type {
   FinancialSummary,
-  MonthlyComparisonDto,
+  MonthlyComparisonResponse,
 } from "@/services/dashboard.service";
+import { formatMonthLabel } from "@/utils/formatters";
 
 interface DashboardContentProps {
   dashboardData: FinancialSummary;
-  monthlyComparison: {
-    currentMonth: MonthlyComparisonDto;
-    previousMonth: MonthlyComparisonDto;
-  };
+  monthlyComparison: MonthlyComparisonResponse;
 }
 
 const DashboardContent = ({
   dashboardData,
   monthlyComparison,
 }: DashboardContentProps) => {
-  const chartData = [
-    {
-      name: "Mês Anterior",
-      Receitas: monthlyComparison.previousMonth.totalIncomes,
-      Despesas: monthlyComparison.previousMonth.totalExpenses,
-    },
-    {
-      name: "Mês Atual",
-      Receitas: monthlyComparison.currentMonth.totalIncomes,
-      Despesas: monthlyComparison.currentMonth.totalExpenses,
-    },
-  ];
+  const chartData = monthlyComparison.months.map((month) => ({
+    name: formatMonthLabel(month.month),
+    Receitas: month.totalIncomes,
+    Despesas: month.totalExpenses,
+    Saldo: month.balance,
+  }));
 
   return (
     <div className="p-4 sm:p-6">
-      <DashboardHeader />
+      <DashboardHeader period={dashboardData.period} />
 
       <SummaryCards
         balance={dashboardData.balance}
         totalIncomes={dashboardData.totalIncomes}
         totalExpenses={dashboardData.totalExpenses}
+        economyRate={dashboardData.economyRate}
+        highestSpendingCategory={dashboardData.highestSpendingCategory}
+        periodStart={dashboardData.period.start}
         isLoading={false}
       />
 
-      <MonthlyComparisonChart data={chartData} isLoading={false} />
+      <MonthlyComparisonChart
+        data={chartData}
+        bestMonth={monthlyComparison.bestMonth}
+        worstMonth={monthlyComparison.worstMonth}
+        period={monthlyComparison.period}
+        isLoading={false}
+      />
 
       <DashboardActions />
     </div>
