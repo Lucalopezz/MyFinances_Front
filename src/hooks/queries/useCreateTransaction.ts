@@ -1,4 +1,4 @@
-import type { Transaction } from "@/components/transaction/types";
+import type { Transaction } from "@/models/transaction.model";
 import api from "@/utils/api";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";

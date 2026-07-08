@@ -10,7 +10,7 @@ import {
   UpdateUserInput,
   updateUserSchema,
   User,
-} from "@/interfaces/user.interface";
+} from "@/models/user.model";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateUserAction } from "@/actions/user/update-user-action";
 import toast from "react-hot-toast";

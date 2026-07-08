@@ -1,15 +1,8 @@
 import SummaryCard from "@/components/summary-card";
+import type { FixedExpense } from "@/models/fixed-expense.model";
 import { formatCurrency } from "@/utils/formatters";
 
 import { FixedExpenseList } from "../fixed-expense-list";
-
-export interface FixedExpense {
-  id?: string;
-  name: string;
-  amount: number;
-  dueDate: string;
-  recurrence: string;
-}
 
 interface FixedExpenseSummaryProps {
   fixedExpenses: FixedExpense[];

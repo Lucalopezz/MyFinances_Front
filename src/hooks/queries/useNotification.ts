@@ -1,4 +1,4 @@
-import { NotificationInterface } from "@/interfaces/notification.interface";
+import { NotificationInterface } from "@/models/notification.model";
 import api from "@/utils/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { NewWish, WishListInterface } from "@/interfaces/wishlist.interface";
+import { NewWish, WishListInterface } from "@/models/wishlist.model";
 import { WishList } from "../list-wishes";
 import { WishDialog } from "../create-wish-dialog";
 import { createWishAction } from "@/actions/wishlist/create-wish-action";

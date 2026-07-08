@@ -1,4 +1,4 @@
-import { UpdateUserInput, User } from "@/interfaces/user.interface";
+import { UpdateUserInput, User } from "@/models/user.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import { unstable_noStore as noStore } from "next/cache";

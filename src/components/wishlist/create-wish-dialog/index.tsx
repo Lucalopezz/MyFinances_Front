@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { NewWish, WishSchema } from "@/interfaces/wishlist.interface";
+import { NewWish, WishSchema } from "@/models/wishlist.model";
 
 type WishDialogProps = {
   open: boolean;

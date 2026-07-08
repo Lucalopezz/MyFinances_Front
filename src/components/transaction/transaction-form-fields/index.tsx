@@ -26,7 +26,7 @@ import {
   TRANSACTION_TYPES,
   type TransactionCategory,
 } from "@/constants/transaction-categories";
-import type { TransactionFormValues } from "@/components/transaction/types";
+import type { TransactionFormValues } from "@/models/transaction.model";
 
 type TransactionFormFieldsProps = {
   control: Control<TransactionFormValues>;

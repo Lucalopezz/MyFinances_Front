@@ -1,52 +1,12 @@
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
+import type {
+  FinancialSummary,
+  MonthlyComparisonDto,
+  MonthlyComparisonResponse,
+  SixMonthComparisonItem,
+} from "@/models/dashboard.model";
 import { unstable_noStore as noStore } from "next/cache";
-
-export interface FinancialSummary {
-  balance: number;
-  totalIncomes: number;
-  totalExpenses: number;
-  economyRate?: number;
-  highestSpendingCategory?: {
-    category: string;
-    total: number;
-  } | null;
-  period: {
-    start: string;
-    end: string;
-  };
-}
-
-export interface MonthlyComparisonDto {
-  month: string;
-  totalExpenses: number;
-  totalIncomes: number;
-  balance?: number;
-  economyRate?: number;
-  percentageChange?: number;
-}
-
-export interface MonthlyComparisonResponse {
-  months: MonthlyComparisonDto[];
-  bestMonth?: {
-    month: string;
-    balance: number;
-    economyRate?: number;
-  } | null;
-  worstMonth?: {
-    month: string;
-    balance: number;
-    economyRate?: number;
-  } | null;
-  period: {
-    start: string;
-    end: string;
-  };
-}
-
-export interface SixMonthComparisonItem extends MonthlyComparisonDto {
-  label: string;
-}
 
 const MONTH_PARAM_PATTERN = /^\d{4}-\d{2}$/;
 

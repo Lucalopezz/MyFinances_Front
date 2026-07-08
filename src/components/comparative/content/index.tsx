@@ -3,7 +3,7 @@ import { formatCurrency } from "@/utils/formatters";
 import SemesterComparisonChart from "../semestral-comparison-chart";
 import TrendLineChart from "../trend-line-chart";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import type { SixMonthComparisonItem } from "@/actions/dashboard/dashboard";
+import type { SixMonthComparisonItem } from "@/models/dashboard.model";
 
 interface ComparativeContentProps {
   sixMonthData: SixMonthComparisonItem[];

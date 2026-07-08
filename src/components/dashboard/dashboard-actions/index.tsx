@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { TransactionDialog } from "../transaction-dialog";
-import type { Transaction } from "@/components/transaction/types";
+import type { Transaction } from "@/models/transaction.model";
 import { useCreateTransaction } from "@/hooks/queries/useCreateTransaction";
 
 const DashboardActions = () => {

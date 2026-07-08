@@ -14,7 +14,7 @@ import {
 import {
   NotificationInterface,
   NotificationsType,
-} from "@/interfaces/notification.interface";
+} from "@/models/notification.model";
 import { formatTimeAgo } from "@/utils/formatters";
 
 const NotificationIcon = ({ type }: { type: NotificationsType }) => {

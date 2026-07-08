@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { deleteWishAction } from "@/actions/wishlist/delete-wish-action";
-import { WishListInterface } from "@/interfaces/wishlist.interface";
+import { WishListInterface } from "@/models/wishlist.model";
 import { DeleteButton } from "@/components/transaction/delete-button";
 
 interface WishListProps {

@@ -1,4 +1,4 @@
-import { FixedExpense } from "@/interfaces/fixed-expense.interface";
+import { FixedExpense } from "@/models/fixed-expense.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import { unstable_noStore as noStore } from "next/cache";

@@ -24,9 +24,9 @@ import { TransactionFormFields } from "@/components/transaction/transaction-form
 import type {
   Transaction,
   TransactionFormValues,
-} from "@/components/transaction/types";
+} from "@/models/transaction.model";
 
-export type { Transaction } from "@/components/transaction/types";
+export type { Transaction } from "@/models/transaction.model";
 
 const TransactionSchema = z.object({
   type: z.enum([TRANSACTION_TYPES.EXPENSE, TRANSACTION_TYPES.INCOME]),

@@ -1,4 +1,4 @@
-import type { Transaction } from "@/components/transaction/types";
+import type { Transaction } from "@/models/transaction.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import { unstable_noStore as noStore } from "next/cache";

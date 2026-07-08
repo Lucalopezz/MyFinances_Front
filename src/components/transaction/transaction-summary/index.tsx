@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { TransactionDialog } from "@/components/dashboard/transaction-dialog";
-import type { Transaction } from "@/components/transaction/types";
+import type { Transaction } from "@/models/transaction.model";
 import { useCreateTransaction } from "@/hooks/queries/useCreateTransaction";
 import { useRouter } from "next/navigation";
 import SummaryCard from "@/components/summary-card";

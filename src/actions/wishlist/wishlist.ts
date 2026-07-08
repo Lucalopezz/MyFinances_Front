@@ -1,4 +1,4 @@
-import { NewWish, WishListInterface } from "@/interfaces/wishlist.interface";
+import { NewWish, WishListInterface } from "@/models/wishlist.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import { unstable_noStore as noStore } from "next/cache";

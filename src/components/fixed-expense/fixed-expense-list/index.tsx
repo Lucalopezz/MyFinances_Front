@@ -1,6 +1,6 @@
 "use client";
 
-import { FixedExpense } from "@/interfaces/fixed-expense.interface";
+import { FixedExpense } from "@/models/fixed-expense.model";
 import { Pencil, Check } from "lucide-react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";

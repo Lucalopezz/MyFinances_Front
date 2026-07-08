@@ -5,7 +5,7 @@ import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DeleteButton } from "../delete-button";
 import { TransactionDialog } from "@/components/dashboard/transaction-dialog";
-import type { Transaction } from "@/components/transaction/types";
+import type { Transaction } from "@/models/transaction.model";
 import { useUpdateTransaction } from "@/hooks/queries/useUpdateTransaction";
 
 type TransactionRowActionsProps = {

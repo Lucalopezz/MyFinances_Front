@@ -3,7 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import { createFixedExpense as createFixedExpenseService } from "@/actions/fixed-expense/fixed-expenses";
-import { FixedExpense } from "@/interfaces/fixed-expense.interface";
+import { FixedExpense } from "@/models/fixed-expense.model";
 
 export async function createFixedExpenseAction(data: Omit<FixedExpense, "id">) {
   const success = await createFixedExpenseService(data);
