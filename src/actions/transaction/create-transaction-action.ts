@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { createTransaction } from "@/services/transactions.service";
+import { createTransaction } from "@/actions/transaction/transactions";
 import type { Transaction } from "@/components/transaction/types";
 
 export async function createTransactionAction(transaction: Transaction) {

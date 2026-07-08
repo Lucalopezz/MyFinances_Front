@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getWishList } from "@/services/wishlist.service";
+import { getWishList } from "@/actions/wishlist/wishlist";
 import { WishListPage } from "@/components/wishlist/content";
 
 export const dynamic = "force-dynamic";

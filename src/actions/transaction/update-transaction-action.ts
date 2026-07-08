@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidateTag } from "next/cache";
 
-import { updateTransaction } from "@/services/transactions.service";
+import { updateTransaction } from "@/actions/transaction/transactions";
 import type { Transaction } from "@/components/transaction/types";
 
 export async function updateTransactionAction(formData: FormData) {

@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { createFixedExpense as createFixedExpenseService } from "@/services/fixed-expenses.service";
+import { createFixedExpense as createFixedExpenseService } from "@/actions/fixed-expense/fixed-expenses";
 import { FixedExpense } from "@/interfaces/fixed-expense.interface";
 
 export async function createFixedExpenseAction(data: Omit<FixedExpense, "id">) {

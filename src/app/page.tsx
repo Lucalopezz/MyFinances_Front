@@ -2,7 +2,7 @@ import DashboardContent from "@/components/dashboard/content";
 import {
   getDashboardSummary,
   getMonthlyComparison,
-} from "@/services/dashboard.service";
+} from "@/actions/dashboard/dashboard";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

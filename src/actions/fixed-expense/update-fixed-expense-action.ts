@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { updateFixedExpense } from "@/services/fixed-expenses.service";
+import { updateFixedExpense } from "@/actions/fixed-expense/fixed-expenses";
 
 export async function updateFixedExpenseAction(formData: FormData) {
   const id = formData.get("id") as string;

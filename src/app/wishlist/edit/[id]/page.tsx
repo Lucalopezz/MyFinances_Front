@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getWish } from "@/services/wishlist.service";
+import { getWish } from "@/actions/wishlist/wishlist";
 import { updateWishAction } from "@/actions/wishlist/update-wish-action";
 
 export const dynamic = "force-dynamic";

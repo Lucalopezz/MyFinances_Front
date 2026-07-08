@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { updateUser } from "@/services/config.service";
+import { updateUser } from "@/actions/user/user";
 import { UpdateUserInput } from "@/interfaces/user.interface";
 
 export async function updateUserAction(formData: UpdateUserInput) {

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { deleteFixedExpense } from "@/services/fixed-expenses.service";
+import { deleteFixedExpense } from "@/actions/fixed-expense/fixed-expenses";
 
 export async function deleteFixedExpenseAction(id: string | undefined) {
   const success = await deleteFixedExpense(id);

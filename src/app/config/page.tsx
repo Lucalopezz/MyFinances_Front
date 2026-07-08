@@ -1,6 +1,6 @@
 import UpdateUserForm from "@/components/config/update-user-form";
 import { Suspense } from "react";
-import { getUser } from "@/services/config.service";
+import { getUser } from "@/actions/user/user";
 import { User } from "@/interfaces/user.interface";
 
 export const dynamic = "force-dynamic";

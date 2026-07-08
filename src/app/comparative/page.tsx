@@ -1,5 +1,5 @@
 import ComparativeContent from "@/components/comparative/content";
-import { getSixMonthComparison } from "@/services/dashboard.service";
+import { getSixMonthComparison } from "@/actions/dashboard/dashboard";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

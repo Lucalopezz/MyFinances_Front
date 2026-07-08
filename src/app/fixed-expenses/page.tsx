@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import { FixedExpenseSummary } from "@/components/fixed-expense/fixed-expense-summary";
 import { FixedExpenseDialogButton } from "@/components/fixed-expense/fixed-expense-dialog-button";
-import { getFixedExpenses } from "@/services/fixed-expenses.service";
+import { getFixedExpenses } from "@/actions/fixed-expense/fixed-expenses";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { getFixedExpense } from "@/services/fixed-expenses.service";
+import { getFixedExpense } from "@/actions/fixed-expense/fixed-expenses";
 
 import { Switch } from "@/components/ui/switch";
 import { updateFixedExpenseAction } from "@/actions/fixed-expense/update-fixed-expense-action";

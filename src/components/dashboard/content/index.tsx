@@ -7,7 +7,7 @@ import DashboardActions from "../dashboard-actions";
 import type {
   FinancialSummary,
   MonthlyComparisonResponse,
-} from "@/services/dashboard.service";
+} from "@/actions/dashboard/dashboard";
 import { formatMonthLabel } from "@/utils/formatters";
 
 interface DashboardContentProps {

@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { deleteTransaction } from "@/services/transactions.service";
+import { deleteTransaction } from "@/actions/transaction/transactions";
 
 export async function deleteTransactionAction(id: string) {
   const success = await deleteTransaction(id);
