@@ -50,6 +50,42 @@ const SemesterComparisonChart = ({
         )}
       </CardContent>
     </Card>
+
+    // {(bestMonth || worstMonth) && (
+    //   <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+    //     {bestMonth && (
+    //       <div className="rounded-lg border border-green-100 bg-green-50 p-3 dark:border-green-800/50 dark:bg-green-800/30">
+    //         <p className="text-sm text-gray-500 dark:text-gray-400">
+    //           Melhor mês do período
+    //         </p>
+    //         <p className="font-semibold text-[#1F2937] dark:text-white">
+    //           {formatMonthLabel(bestMonth.month)}
+    //         </p>
+    //         <p className="text-sm text-[#10B981]">
+    //           {formatCurrency(bestMonth.balance)} de saldo
+    //           {bestMonth.economyRate !== undefined &&
+    //             ` - ${formatPercentage(bestMonth.economyRate)} de economia`}
+    //         </p>
+    //       </div>
+    //     )}
+
+    //     {worstMonth && (
+    //       <div className="rounded-lg border border-red-100 bg-red-50 p-3 dark:border-red-800/50 dark:bg-red-800/30">
+    //         <p className="text-sm text-gray-500 dark:text-gray-400">
+    //           Pior mês do período
+    //         </p>
+    //         <p className="font-semibold text-[#1F2937] dark:text-white">
+    //           {formatMonthLabel(worstMonth.month)}
+    //         </p>
+    //         <p className="text-sm text-[#EF4444]">
+    //           {formatCurrency(worstMonth.balance)} de saldo
+    //           {worstMonth.economyRate !== undefined &&
+    //             ` - ${formatPercentage(worstMonth.economyRate)} de economia`}
+    //         </p>
+    //       </div>
+    //     )}
+    //   </div>
+    // )}
   );
 };
 

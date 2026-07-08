@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import SummaryCard from "@/components/cards";
 import { formatCurrency } from "@/utils/formatters";
 import SemesterComparisonChart from "@/components/comparative/SemestralComparisonChart";
 import TrendLineChart from "@/components/comparative/TrendLineChart";
@@ -33,6 +33,26 @@ export default function ComparativeContent({
     (sum, month) => sum + month.totalExpenses,
     0,
   );
+  const summaryCards = [
+    {
+      title: "Total de Receitas",
+      content: formatCurrency(totalIncome),
+      icon: (
+        <div className="rounded-full bg-green-100 p-2">
+          <TrendingUp className="h-6 w-6 text-green-600" />
+        </div>
+      ),
+    },
+    {
+      title: "Total de Despesas",
+      content: formatCurrency(totalExpenses),
+      icon: (
+        <div className="rounded-full bg-red-100 p-2">
+          <TrendingDown className="h-6 w-6 text-red-600" />
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="p-4 sm:p-6">
@@ -41,41 +61,9 @@ export default function ComparativeContent({
       </h1>
 
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Total de Receitas
-                </p>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatCurrency(totalIncome)}
-                </h3>
-              </div>
-              <div className="rounded-full bg-green-100 p-2">
-                <TrendingUp className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Total de Despesas
-                </p>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatCurrency(totalExpenses)}
-                </h3>
-              </div>
-              <div className="rounded-full bg-red-100 p-2">
-                <TrendingDown className="h-6 w-6 text-red-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {summaryCards.map((card) => (
+          <SummaryCard key={card.title} layout="inline" {...card} />
+        ))}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
