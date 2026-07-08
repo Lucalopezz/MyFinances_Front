@@ -3,7 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import { createTransaction } from "@/services/transactions.service";
-import type { Transaction } from "@/components/transaction/transaction.types";
+import type { Transaction } from "@/components/transaction/types";
 
 export async function createTransactionAction(transaction: Transaction) {
   const created = await createTransaction(transaction);

@@ -3,8 +3,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { FormInput } from "@/components/form/FormInput";
-import { PasswordInput } from "@/components/form/PasswordInput";
+import { FormInput } from "@/components/form/form-input";
+import { PasswordInput } from "@/components/form/password-input";
 import { Button } from "@/components/ui/button";
 import {
   RegisterFormData,

@@ -1,4 +1,4 @@
-import ComparativeContent from "@/components/comparative/Content";
+import ComparativeContent from "@/components/comparative/content";
 import { getSixMonthComparison } from "@/services/dashboard.service";
 
 export const dynamic = "force-dynamic";

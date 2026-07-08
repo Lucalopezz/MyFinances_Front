@@ -1,4 +1,4 @@
-import DashboardContent from "@/components/dashboard/Content";
+import DashboardContent from "@/components/dashboard/content";
 import {
   getDashboardSummary,
   getMonthlyComparison,

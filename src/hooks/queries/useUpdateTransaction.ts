@@ -5,7 +5,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { queryClient } from "../useQueryClient";
 import { revalidateTransactionsCache } from "@/actions/cache";
-import type { Transaction } from "@/components/transaction/transaction.types";
+import type { Transaction } from "@/components/transaction/types";
 
 export function useUpdateTransaction() {
   const [error, setError] = useState("");

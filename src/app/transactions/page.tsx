@@ -1,6 +1,6 @@
-import { TransactionSummary } from "@/components/transaction/TransactionSummary";
+import { TransactionSummary } from "@/components/transaction/transaction-summary";
 import { getTransactions } from "@/services/transactions.service";
-import { TransactionList } from "@/components/transaction/TransactionList";
+import { TransactionList } from "@/components/transaction/transaction-list";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";

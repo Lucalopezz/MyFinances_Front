@@ -13,9 +13,9 @@ export const revalidate = 0;
 export default async function EditWishPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const id = params.id;
+  const { id } = await params;
 
   let wish;
   try {

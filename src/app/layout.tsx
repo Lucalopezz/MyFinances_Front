@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AppProviders } from "@/providers/app-providers";
-import { AppShell } from "@/components/layout/AppShell";
+import { AppShell } from "@/components/layout/app-shell";
 import { cookies } from "next/headers";
 import { AUTH_COOKIE_NAME } from "@/lib/backend";
 
