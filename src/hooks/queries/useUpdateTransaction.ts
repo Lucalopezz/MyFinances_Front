@@ -1,11 +1,9 @@
-import api from "@/utils/api";
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { queryClient } from "../useQueryClient";
-import { revalidateTransactionsCache } from "@/actions/cache";
 import type { Transaction } from "@/models/transaction.model";
+import { updateTransactionAction } from "@/actions/transaction/update-transaction-action";
 
 export function useUpdateTransaction() {
   const [error, setError] = useState("");
@@ -19,16 +17,9 @@ export function useUpdateTransaction() {
       transaction: Transaction;
     }) => {
       try {
-        const response = await api.patch(`/transactions/${id}`, transaction);
-        await revalidateTransactionsCache();
-        return response.data;
+        return await updateTransactionAction({ id, transaction });
       } catch (error: unknown) {
-        if (axios.isAxiosError(error) && error.response) {
-          throw new Error(
-            error.response.data.message || "Erro ao atualizar transação",
-          );
-        }
-
+        if (error instanceof Error) throw error;
         throw new Error("Erro ao atualizar transação");
       }
     },

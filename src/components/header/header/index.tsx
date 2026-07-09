@@ -17,7 +17,11 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow p-4 flex items-center justify-between">
-      <MobileMenuButton onMenuClick={onMenuClick} />
+      {isAuthenticated ? (
+        <MobileMenuButton onMenuClick={onMenuClick} />
+      ) : (
+        <div className="md:hidden w-10" />
+      )}
       <LogoSection />
       <NavigationActions isAuthenticated={isAuthenticated} />
     </header>
@@ -55,28 +59,7 @@ const NavigationActions = ({
     <div className="flex items-center space-x-4">
       <ThemeToggleButton />
 
-      {isAuthenticated ? (
-        <AuthenticatedActions onLogout={handleLogout} />
-      ) : (
-        <>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={() => (window.location.href = "/login")}
-          >
-            Login
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={() => (window.location.href = "/register")}
-          >
-            Criar conta
-          </Button>
-        </>
-      )}
+      {isAuthenticated && <AuthenticatedActions onLogout={handleLogout} />}
     </div>
   );
 };

@@ -20,14 +20,13 @@ Documentação técnica do front-end do MyFinances. O projeto é uma aplicação
 Crie um arquivo `.env` com base em `env.exemple`:
 
 ```env
-NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
 BACKEND_URL=http://localhost:3001
 ```
 
 Variáveis:
 
-- `NEXT_PUBLIC_BACKEND_URL`: URL pública da API usada no browser.
-- `BACKEND_URL`: URL da API usada em Server Components, Server Actions e services server-side.
+- `BACKEND_URL`: URL da API usada pelo servidor Next em Server Components e Server Actions.
+- `NEXT_PUBLIC_BACKEND_URL`: mantida apenas como fallback legado em `getServerBackendUrl`; novas chamadas autenticadas nao devem depender dela no browser.
 
 ## Scripts
 
@@ -86,11 +85,12 @@ Quando a API retorna `accessToken`, o token é salvo no cookie HTTP-only `mf_tok
 
 Fluxo principal:
 
-- `middleware.ts` bloqueia rotas privadas quando o cookie `mf_token` não existe.
-- `RootLayout` lê o cookie no servidor e passa `initialJwt` para `AppProviders`.
-- `AuthProvider` mantém o estado de autenticação no client.
-- `src/lib/serverAuth.ts` lê o token no servidor.
-- `src/lib/client-auth.ts` mantém uma cópia em memória para chamadas client-side.
+- `middleware.ts` bloqueia rotas privadas quando o cookie `mf_token` não existe ou está expirado.
+- `src/app/(private)/layout.tsx` chama `requireAuth()` e garante a autenticação antes de renderizar páginas privadas.
+- `RootLayout` fica neutro e mantém apenas providers globais.
+- `AuthProvider` mantém o estado de sessão no client para UI, logout e tratamento de `401`.
+- `src/lib/serverAuth.ts` lê o token no servidor e expõe `requireAuth()`.
+- Server Actions em `src/actions/**` leem o cookie HTTP-only no servidor e repassam `Authorization` para a API.
 - `logoutAction` remove o cookie e redireciona o usuário para `/login`.
 
 ## Comunicação com a API
@@ -105,7 +105,7 @@ Services principais:
 - `wishlist.service.ts`: CRUD de wishlist.
 - `fixed-expenses.service.ts`: CRUD e marcação de pagamento de despesas fixas.
 
-O cliente Axios fica em `src/utils/api.ts` e usa `NEXT_PUBLIC_BACKEND_URL`. O interceptor adiciona o header `Authorization: Bearer <token>` quando existe token em memória e redireciona para `/login` em respostas `401`.
+Chamadas autenticadas devem passar por Server Actions ou funcoes server-side em `src/actions/**`. Essas funcoes leem o cookie `mf_token` no servidor e adicionam `Authorization: Bearer <token>` quando existe sessão.
 
 ## Cache e Revalidação
 
@@ -176,7 +176,7 @@ Permite atualizar dados do usuário e senha.
 ## Convenções de Implementação
 
 - Use alias `@/*` para imports internos.
-- Mantenha acesso HTTP concentrado em `src/services` ou `src/utils/api.ts`.
+- Mantenha acesso HTTP autenticado concentrado em Server Actions/funcoes server-side dentro de `src/actions/**`.
 - Use Server Actions para mutações que dependem de cookie HTTP-only.
 - Após mutações, revalide tags e rotas afetadas.
 - Componentes de UI base devem ficar em `src/components/ui`.

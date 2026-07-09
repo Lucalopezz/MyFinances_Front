@@ -1,9 +1,7 @@
-let currentAuthToken: string | null = null;
+export const SESSION_EXPIRED_EVENT = "mf:session-expired";
 
-export function setClientAuthToken(token: string | null) {
-  currentAuthToken = token;
-}
-
-export function getClientAuthToken() {
-  return currentAuthToken;
+export function notifySessionExpired() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+  }
 }

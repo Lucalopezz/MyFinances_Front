@@ -25,13 +25,15 @@ Front-end Next.js para gerenciamento financeiro pessoal. A aplicação consome u
 - **React Hook Form** e **Zod** para formulários e validação.
 - **Tailwind CSS**, **Shadcn/UI** e **Radix UI** para interface.
 - **Recharts** para gráficos.
-- **Axios** e `fetch` para comunicação HTTP.
+- **Server Actions** e `fetch` para comunicação HTTP autenticada.
 
 ---
 
 ## Documentação
 
 A documentação técnica do front-end está em [docs/doc.md](docs/doc.md).
+
+O fluxo de autenticação está descrito em [docs/authentication.md](docs/authentication.md).
 
 Planejamento da próxima versão do front está em [docs/v2.md](docs/v2.md).
 
@@ -44,7 +46,7 @@ Planejamento da próxima versão do front está em [docs/v2.md](docs/v2.md).
 ├── public/               # Assets públicos
 ├── src/
 │   ├── actions/          # Server Actions
-│   ├── app/              # Rotas do App Router
+│   ├── app/              # Rotas do App Router, separadas em (public) e (private)
 │   ├── components/       # Componentes de tela, layout e UI
 │   ├── hooks/            # Hooks e query client
 │   ├── interfaces/       # Tipos de domínio
@@ -52,7 +54,7 @@ Planejamento da próxima versão do front está em [docs/v2.md](docs/v2.md).
 │   ├── providers/        # Providers globais
 │   ├── schemas/          # Schemas Zod
 │   ├── services/         # Acesso server-side à API
-│   └── utils/            # Axios e formatadores
+│   └── utils/            # Formatadores e utilitários
 ├── env.exemple
 └── package.json
 ```
@@ -75,7 +77,6 @@ Planejamento da próxima versão do front está em [docs/v2.md](docs/v2.md).
 3. Configure a API no `.env`:
 
    ```env
-   NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
    BACKEND_URL=http://localhost:3001
    ```
 

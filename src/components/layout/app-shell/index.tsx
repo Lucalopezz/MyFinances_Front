@@ -8,14 +8,14 @@ import { Sidebar } from "@/components/sidebar";
 import { useAuthContext } from "@/providers/auth-provider";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { status, jwt } = useAuthContext();
+  const { status } = useAuthContext();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsSidebarOpen((current) => !current);
   };
 
-  const isAuthenticated = status === "authenticated" && Boolean(jwt);
+  const isAuthenticated = status === "authenticated";
 
   return (
     <div className="flex min-h-screen flex-col">

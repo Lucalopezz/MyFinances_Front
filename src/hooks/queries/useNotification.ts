@@ -1,17 +1,16 @@
 import { NotificationInterface } from "@/models/notification.model";
-import api from "@/utils/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { queryClient } from "../useQueryClient";
+import {
+  getNotifications,
+  markNotificationAsRead,
+} from "@/actions/notification/notifications";
 
 async function fetchNotification(): Promise<NotificationInterface[]> {
   try {
-    const response = await api.get<NotificationInterface[]>("/notifications");
-    return response.data;
+    return await getNotifications();
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message);
-    }
+    if (error instanceof Error) throw error;
     throw new Error("Erro ao buscar dados do dashboard");
   }
 }
@@ -26,19 +25,10 @@ export function useGetNotifications() {
 export function useMarkAsRead() {
   const mutation = useMutation({
     mutationFn: async (id: NotificationInterface["id"]) => {
-      const read = {
-        read: true,
-      };
       try {
-        const response = await api.patch(
-          `/notifications/${id}/mark-as-read`,
-          read,
-        );
-        return response.data;
+        return await markNotificationAsRead(id);
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-          throw new Error(error.response.data.message || "Erro ao editar");
-        }
+        if (error instanceof Error) throw error;
         throw new Error("Erro ao editar");
       }
     },
