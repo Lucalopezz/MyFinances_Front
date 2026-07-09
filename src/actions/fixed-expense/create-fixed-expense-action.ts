@@ -14,4 +14,6 @@ export async function createFixedExpenseAction(data: Omit<FixedExpense, "id">) {
 
   revalidateTag("fixed-expenses");
   revalidatePath("/fixed-expenses");
+
+  return true;
 }

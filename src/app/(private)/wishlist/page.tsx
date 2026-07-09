@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { getWishList } from "@/actions/wishlist/wishlist";
 import { WishListPage } from "@/components/wishlist/content";
 
@@ -10,9 +9,7 @@ export default async function Wishlist() {
 
   return (
     <div>
-      <Suspense fallback={<div>Carregando sua lista de desejos...</div>}>
-        <WishListPage wishListItems={wishListItems} />
-      </Suspense>
+      <WishListPage wishListItems={wishListItems} />
     </div>
   );
 }

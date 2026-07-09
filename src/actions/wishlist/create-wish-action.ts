@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { NewWish } from "@/models/wishlist.model";
 import { createWish } from "@/actions/wishlist/wishlist";
@@ -8,7 +8,10 @@ import { createWish } from "@/actions/wishlist/wishlist";
 export async function createWishAction(data: NewWish) {
   const success = await createWish(data);
 
-  if (success) {
-    revalidatePath("/wishlist");
+  if (!success) {
+    throw new Error("Falha ao criar item de desejo");
   }
+
+  revalidateTag("wishlist");
+  revalidatePath("/wishlist");
 }

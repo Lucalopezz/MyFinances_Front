@@ -4,9 +4,10 @@ import { Pencil, Calendar, DollarSign, Wallet } from "lucide-react";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { deleteWishAction } from "@/actions/wishlist/delete-wish-action";
 import { WishListInterface } from "@/models/wishlist.model";
 import { DeleteButton } from "@/components/transaction/delete-button";
+import { useDeleteWish } from "@/hooks/queries/useWishlist";
+import Link from "next/link";
 
 interface WishListProps {
   wishListItems: WishListInterface[];
@@ -17,6 +18,8 @@ export function WishList({
   wishListItems,
   editUrlPrefix = "/wishlist/edit",
 }: WishListProps) {
+  const { deleteWish } = useDeleteWish();
+
   return (
     <>
       {/* Versão Desktop (tabela) */}
@@ -29,6 +32,7 @@ export function WishList({
                   key={item.id || `${item.name}-${item.desiredValue}`}
                   item={item}
                   editUrlPrefix={editUrlPrefix}
+                  deleteAction={deleteWish}
                 />
               ))}
             </TableBody>
@@ -43,6 +47,7 @@ export function WishList({
             key={item.id || `${item.name}-${item.desiredValue}`}
             item={item}
             editUrlPrefix={editUrlPrefix}
+            deleteAction={deleteWish}
           />
         ))}
       </div>
@@ -54,9 +59,11 @@ export function WishList({
 function DesktopWishListRow({
   item,
   editUrlPrefix,
+  deleteAction,
 }: {
   item: WishListInterface;
   editUrlPrefix: string;
+  deleteAction: (id: string) => Promise<void>;
 }) {
   const itemId =
     item.id || encodeURIComponent(`${item.name}-${item.desiredValue}`);
@@ -101,12 +108,12 @@ function DesktopWishListRow({
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
         <div className="flex space-x-2 items-center">
-          <a href={`${editUrlPrefix}/${itemId}`}>
+          <Link href={`${editUrlPrefix}/${itemId}`}>
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Pencil className="h-4 w-4" />
             </Button>
-          </a>
-          <DeleteButton id={item.id} deleteAction={deleteWishAction} />
+          </Link>
+          <DeleteButton id={item.id} deleteAction={deleteAction} />
         </div>
       </TableCell>
     </TableRow>
@@ -117,9 +124,11 @@ function DesktopWishListRow({
 function MobileWishListCard({
   item,
   editUrlPrefix,
+  deleteAction,
 }: {
   item: WishListInterface;
   editUrlPrefix: string;
+  deleteAction: (id: string) => Promise<void>;
 }) {
   const itemId =
     item.id || encodeURIComponent(`${item.name}-${item.desiredValue}`);
@@ -180,12 +189,12 @@ function MobileWishListCard({
         </div>
 
         <div className="flex space-x-2">
-          <a href={`${editUrlPrefix}/${itemId}`}>
+          <Link href={`${editUrlPrefix}/${itemId}`}>
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Pencil className="h-4 w-4" />
             </Button>
-          </a>
-          <DeleteButton id={item.id} deleteAction={deleteWishAction} />
+          </Link>
+          <DeleteButton id={item.id} deleteAction={deleteAction} />
         </div>
       </div>
     </div>

@@ -1,3 +1,5 @@
+"use server";
+
 import { NewWish, WishListInterface } from "@/models/wishlist.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";

@@ -1,1 +1,1 @@
-export { queryClient } from "@/hooks/shared/queryClient";
+export { makeQueryClient } from "@/hooks/shared/queryClient";

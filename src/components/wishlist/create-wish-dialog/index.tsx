@@ -15,7 +15,7 @@ import { NewWish, WishSchema } from "@/models/wishlist.model";
 type WishDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (wish: NewWish) => void;
+  onSubmit: (wish: NewWish) => void | Promise<void>;
   loading: boolean;
 };
 
@@ -39,8 +39,8 @@ export const WishDialog = ({
     },
   });
 
-  const handleFormSubmit = (data: NewWish) => {
-    onSubmit(data);
+  const handleFormSubmit = async (data: NewWish) => {
+    await onSubmit(data);
     reset();
     onOpenChange(false);
   };

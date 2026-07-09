@@ -6,8 +6,11 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DeleteButton } from "@/components/transaction/delete-button";
-import { deleteFixedExpenseAction } from "@/actions/fixed-expense/delete-fixed-expense-action";
-import { markFixedExpenseAsPaidAction as markAsPaidAction } from "@/actions/fixed-expense/mark-fixed-expense-as-paid-action";
+import {
+  useDeleteFixedExpense,
+  useMarkFixedExpenseAsPaid,
+} from "@/hooks/queries/useFixedExpenses";
+import Link from "next/link";
 
 interface FixedExpenseListProps {
   fixedExpenses: FixedExpense[];
@@ -18,6 +21,9 @@ export function FixedExpenseList({
   fixedExpenses,
   editUrlPrefix = "/fixed-expenses/edit",
 }: FixedExpenseListProps) {
+  const { deleteFixedExpense } = useDeleteFixedExpense();
+  const { markAsPaid } = useMarkFixedExpenseAsPaid();
+
   return (
     <>
       {/* Versão Desktop (tabela) */}
@@ -30,6 +36,8 @@ export function FixedExpenseList({
                   key={expense.id || `${expense.name}-${expense.amount}`}
                   expense={expense}
                   editUrlPrefix={editUrlPrefix}
+                  deleteAction={deleteFixedExpense}
+                  markAsPaidAction={markAsPaid}
                 />
               ))}
             </TableBody>
@@ -44,6 +52,8 @@ export function FixedExpenseList({
             key={expense.id || `${expense.name}-${expense.amount}`}
             expense={expense}
             editUrlPrefix={editUrlPrefix}
+            deleteAction={deleteFixedExpense}
+            markAsPaidAction={markAsPaid}
           />
         ))}
       </div>
@@ -55,9 +65,13 @@ export function FixedExpenseList({
 function DesktopFixedExpenseRow({
   expense,
   editUrlPrefix,
+  deleteAction,
+  markAsPaidAction,
 }: {
   expense: FixedExpense;
   editUrlPrefix: string;
+  deleteAction: (id: string) => Promise<void>;
+  markAsPaidAction: (payload: { id: string; dueDate: string }) => Promise<boolean>;
 }) {
   const expenseId =
     expense.id || encodeURIComponent(`${expense.name}-${expense.amount}`);
@@ -91,29 +105,26 @@ function DesktopFixedExpenseRow({
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
         <div className="flex space-x-2 items-center">
-          <form action={markAsPaidAction}>
-            <input type="hidden" name="id" value={expense.id} />
-            <input type="hidden" name="dueDate" value={expense.dueDate} />
-            <Button
-              type="submit"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-green-600"
-              disabled={expense.isPaid}
-              title={expense.isPaid ? "Já pago" : "Marcar como pago"}
-            >
-              <Check className="h-4 w-4" />
-            </Button>
-          </form>
-          <a href={`${editUrlPrefix}/${expenseId}`}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-green-600"
+            disabled={expense.isPaid || !expense.id}
+            title={expense.isPaid ? "Já pago" : "Marcar como pago"}
+            onClick={() =>
+              expense.id &&
+              markAsPaidAction({ id: expense.id, dueDate: expense.dueDate })
+            }
+          >
+            <Check className="h-4 w-4" />
+          </Button>
+          <Link href={`${editUrlPrefix}/${expenseId}`}>
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Pencil className="h-4 w-4" />
             </Button>
-          </a>
-          <DeleteButton
-            id={expense.id}
-            deleteAction={deleteFixedExpenseAction}
-          />
+          </Link>
+          <DeleteButton id={expense.id} deleteAction={deleteAction} />
         </div>
       </TableCell>
     </TableRow>
@@ -124,9 +135,13 @@ function DesktopFixedExpenseRow({
 function MobileFixedExpenseCard({
   expense,
   editUrlPrefix,
+  deleteAction,
+  markAsPaidAction,
 }: {
   expense: FixedExpense;
   editUrlPrefix: string;
+  deleteAction: (id: string) => Promise<void>;
+  markAsPaidAction: (payload: { id: string; dueDate: string }) => Promise<boolean>;
 }) {
   const expenseId =
     expense.id || encodeURIComponent(`${expense.name}-${expense.amount}`);
@@ -164,29 +179,26 @@ function MobileFixedExpenseCard({
         </div>
 
         <div className="flex space-x-2">
-          <form action={markAsPaidAction}>
-            <input type="hidden" name="id" value={expense.id} />
-            <input type="hidden" name="dueDate" value={expense.dueDate} />
-            <Button
-              type="submit"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-green-600"
-              disabled={expense.isPaid}
-              title={expense.isPaid ? "Já pago" : "Marcar como pago"}
-            >
-              <Check className="h-4 w-4" />
-            </Button>
-          </form>
-          <a href={`${editUrlPrefix}/${expenseId}`}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-green-600"
+            disabled={expense.isPaid || !expense.id}
+            title={expense.isPaid ? "Já pago" : "Marcar como pago"}
+            onClick={() =>
+              expense.id &&
+              markAsPaidAction({ id: expense.id, dueDate: expense.dueDate })
+            }
+          >
+            <Check className="h-4 w-4" />
+          </Button>
+          <Link href={`${editUrlPrefix}/${expenseId}`}>
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Pencil className="h-4 w-4" />
             </Button>
-          </a>
-          <DeleteButton
-            id={expense.id}
-            deleteAction={deleteFixedExpenseAction}
-          />
+          </Link>
+          <DeleteButton id={expense.id} deleteAction={deleteAction} />
         </div>
       </div>
     </div>

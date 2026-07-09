@@ -1,5 +1,3 @@
-import { Suspense } from "react";
-
 import { FixedExpenseSummary } from "@/components/fixed-expense/fixed-expense-summary";
 import { FixedExpenseDialogButton } from "@/components/fixed-expense/fixed-expense-dialog-button";
 import { getFixedExpenses } from "@/actions/fixed-expense/fixed-expenses";
@@ -15,9 +13,7 @@ export default async function FixedExpenses() {
       <h2 className="text-xl font-semibold mb-6 dark:text-white">
         Minhas despesas fixas
       </h2>
-      <Suspense fallback={<div>Carregando despesas fixas...</div>}>
-        <FixedExpenseSummary fixedExpenses={fixedExpenses} />
-      </Suspense>
+      <FixedExpenseSummary fixedExpenses={fixedExpenses} />
       <div className="mt-6">
         <FixedExpenseDialogButton />
       </div>

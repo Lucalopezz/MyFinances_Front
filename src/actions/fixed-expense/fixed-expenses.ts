@@ -1,3 +1,5 @@
+"use server";
+
 import { FixedExpense } from "@/models/fixed-expense.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";

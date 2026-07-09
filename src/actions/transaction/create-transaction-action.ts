@@ -15,7 +15,10 @@ export async function createTransactionAction(transaction: Transaction) {
   revalidateTag("transactions");
   revalidateTag("dashboard");
   revalidateTag("monthlyComparison");
+  revalidateTag("sixMonthComparison");
   revalidatePath("/transactions");
+  revalidatePath("/");
+  revalidatePath("/comparative");
 
   return created;
 }

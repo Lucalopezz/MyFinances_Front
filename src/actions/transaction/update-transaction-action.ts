@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { updateTransaction } from "@/actions/transaction/transactions";
 import type { Transaction } from "@/models/transaction.model";
@@ -43,6 +43,10 @@ export async function updateTransactionAction(payload: UpdateTransactionPayload)
   revalidateTag("transactions");
   revalidateTag("dashboard");
   revalidateTag("monthlyComparison");
+  revalidateTag("sixMonthComparison");
+  revalidatePath("/transactions");
+  revalidatePath("/");
+  revalidatePath("/comparative");
 
   if (isFormData(payload)) {
     redirect("/transactions");

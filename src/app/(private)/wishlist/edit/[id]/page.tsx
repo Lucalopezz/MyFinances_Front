@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { getWish } from "@/actions/wishlist/wishlist";
 import { updateWishAction } from "@/actions/wishlist/update-wish-action";
+import type { WishListInterface } from "@/models/wishlist.model";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -17,7 +17,7 @@ export default async function EditWishPage({
 }) {
   const { id } = await params;
 
-  let wish;
+  let wish: WishListInterface | null;
   try {
     wish = await getWish(id);
   } catch (error) {

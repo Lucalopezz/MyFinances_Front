@@ -1,21 +1,23 @@
+"use client";
+
 import type { Transaction } from "@/models/transaction.model";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-import { deleteTransactionAction } from "@/actions/transaction/delete-transaction-action";
 import { TransactionRowActions } from "../transaction-row-actions";
 import { CATEGORY_LABELS } from "@/constants/transaction-categories";
+import {
+  useDeleteTransaction,
+  useTransactions,
+} from "@/hooks/queries/useTransactions";
 
 interface TransactionListProps {
   transactions: Transaction[];
 }
 
 export function TransactionList({ transactions }: TransactionListProps) {
-  async function handleDelete(id: string) {
-    "use server";
-
-    await deleteTransactionAction(id);
-  }
+  const { data: currentTransactions = [] } = useTransactions(transactions);
+  const { deleteTransaction } = useDeleteTransaction();
 
   return (
     <>
@@ -24,14 +26,14 @@ export function TransactionList({ transactions }: TransactionListProps) {
         <div className="max-h-[calc(100vh-300px)] overflow-y-auto bg-gray-50 dark:bg-gray-900">
           <Table>
             <TableBody>
-              {transactions.map((transaction) => (
+              {currentTransactions.map((transaction) => (
                 <DesktopTransactionRow
                   key={
                     transaction.id ||
                     `${transaction.date}-${transaction.description}-${transaction.value}`
                   }
                   transaction={transaction}
-                  handleDelete={handleDelete} // Passamos a ação como prop
+                  handleDelete={deleteTransaction}
                 />
               ))}
             </TableBody>
@@ -41,14 +43,14 @@ export function TransactionList({ transactions }: TransactionListProps) {
 
       {/* Versão Mobile (cards) */}
       <div className="md:hidden space-y-3">
-        {transactions.map((transaction) => (
+        {currentTransactions.map((transaction) => (
           <MobileTransactionCard
             key={
               transaction.id ||
               `${transaction.date}-${transaction.description}-${transaction.value}`
             }
             transaction={transaction}
-            handleDelete={handleDelete} // Passamos a ação como prop
+            handleDelete={deleteTransaction}
           />
         ))}
       </div>

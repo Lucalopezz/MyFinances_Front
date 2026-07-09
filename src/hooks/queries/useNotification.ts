@@ -1,10 +1,10 @@
 import { NotificationInterface } from "@/models/notification.model";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { queryClient } from "../useQueryClient";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getNotifications,
   markNotificationAsRead,
 } from "@/actions/notification/notifications";
+import { queryKeys } from "@/hooks/queries/query-keys";
 
 async function fetchNotification(): Promise<NotificationInterface[]> {
   try {
@@ -17,12 +17,14 @@ async function fetchNotification(): Promise<NotificationInterface[]> {
 
 export function useGetNotifications() {
   return useQuery<NotificationInterface[], Error>({
-    queryKey: ["notifications"],
+    queryKey: queryKeys.notifications.all(),
     queryFn: () => fetchNotification(),
   });
 }
 
 export function useMarkAsRead() {
+  const queryClient = useQueryClient();
+
   const mutation = useMutation({
     mutationFn: async (id: NotificationInterface["id"]) => {
       try {
@@ -34,7 +36,7 @@ export function useMarkAsRead() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["notifications"],
+        queryKey: queryKeys.notifications.all(),
       });
     },
   });

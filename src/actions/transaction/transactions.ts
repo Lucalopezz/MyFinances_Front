@@ -1,3 +1,5 @@
+"use server";
+
 import type { Transaction } from "@/models/transaction.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";

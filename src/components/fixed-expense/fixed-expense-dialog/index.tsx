@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-import { useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -27,9 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createFixedExpenseAction as createFixedExpense } from "@/actions/fixed-expense/create-fixed-expense-action";
 import { cn } from "@/lib/utils";
-import toast from "react-hot-toast";
+import { useCreateFixedExpense } from "@/hooks/queries/useFixedExpenses";
 
 interface FixedExpenseDialogProps {
   setOpen: (open: boolean) => void;
@@ -45,7 +43,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
-  const router = useRouter();
+  const { createFixedExpense, isLoading } = useCreateFixedExpense();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -58,14 +56,8 @@ export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
   });
 
   async function onSubmit(data: FormData) {
-    try {
-      await createFixedExpense(data);
-      toast.success("Item criado com sucesso!");
-      setOpen(false);
-      router.refresh();
-    } catch (error) {
-      console.error("Erro ao criar despesa fixa:", error);
-    }
+    await createFixedExpense(data);
+    setOpen(false);
   }
 
   return (
@@ -163,7 +155,9 @@ export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
             >
               Cancelar
             </Button>
-            <Button type="submit">Criar</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Criando..." : "Criar"}
+            </Button>
           </div>
         </form>
       </Form>

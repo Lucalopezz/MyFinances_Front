@@ -1,6 +1,9 @@
+"use client";
+
 import SummaryCard from "@/components/summary-card";
 import type { FixedExpense } from "@/models/fixed-expense.model";
 import { formatCurrency } from "@/utils/formatters";
+import { useFixedExpenses } from "@/hooks/queries/useFixedExpenses";
 
 import { FixedExpenseList } from "../fixed-expense-list";
 
@@ -11,7 +14,8 @@ interface FixedExpenseSummaryProps {
 export function FixedExpenseSummary({
   fixedExpenses,
 }: FixedExpenseSummaryProps) {
-  const totalAmount = fixedExpenses.reduce(
+  const { data: currentFixedExpenses = [] } = useFixedExpenses(fixedExpenses);
+  const totalAmount = currentFixedExpenses.reduce(
     (sum, expense) => sum + expense.amount,
     0,
   );
@@ -25,7 +29,7 @@ export function FixedExpenseSummary({
     },
     {
       title: "Quantidade de despesas",
-      content: fixedExpenses.length,
+      content: currentFixedExpenses.length,
       className:
         "bg-blue-50 dark:bg-blue-800/50 border-blue-100 dark:border-blue-800/50",
       valueClassName: "text-blue-600 dark:text-blue-400",
@@ -41,7 +45,7 @@ export function FixedExpenseSummary({
       </div>
 
       <FixedExpenseList
-        fixedExpenses={fixedExpenses}
+        fixedExpenses={currentFixedExpenses}
         editUrlPrefix="/fixed-expenses/edit"
       />
     </div>

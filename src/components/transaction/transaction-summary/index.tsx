@@ -3,9 +3,9 @@ import { useState } from "react";
 import { TransactionDialog } from "@/components/dashboard/transaction-dialog";
 import type { Transaction } from "@/models/transaction.model";
 import { useCreateTransaction } from "@/hooks/queries/useCreateTransaction";
-import { useRouter } from "next/navigation";
 import SummaryCard from "@/components/summary-card";
 import { formatCurrency } from "@/utils/formatters";
+import { useTransactions } from "@/hooks/queries/useTransactions";
 
 interface TransactionSummaryProps {
   transactions: Transaction[];
@@ -18,13 +18,13 @@ export function TransactionSummary({
 }: TransactionSummaryProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { createTransactionAsync, isLoading } = useCreateTransaction();
-  const router = useRouter();
+  const { data: currentTransactions = [] } = useTransactions(transactions);
 
-  const totalIncome = transactions
+  const totalIncome = currentTransactions
     .filter((t) => t.type === "INCOME")
     .reduce((sum, t) => sum + t.value, 0);
 
-  const totalExpense = transactions
+  const totalExpense = currentTransactions
     .filter((t) => t.type === "EXPENSE")
     .reduce((sum, t) => sum + t.value, 0);
 
@@ -63,7 +63,6 @@ export function TransactionSummary({
       onTransactionAdded(createdTransaction);
     }
 
-    router.refresh();
     setIsDialogOpen(false);
   };
 

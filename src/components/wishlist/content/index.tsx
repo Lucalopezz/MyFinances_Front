@@ -4,8 +4,7 @@ import { useState } from "react";
 import { NewWish, WishListInterface } from "@/models/wishlist.model";
 import { WishList } from "../list-wishes";
 import { WishDialog } from "../create-wish-dialog";
-import { createWishAction } from "@/actions/wishlist/create-wish-action";
-import toast from "react-hot-toast";
+import { useCreateWish, useWishlist } from "@/hooks/queries/useWishlist";
 
 interface WishListPageProps {
   wishListItems: WishListInterface[];
@@ -13,18 +12,11 @@ interface WishListPageProps {
 
 export function WishListPage({ wishListItems }: WishListPageProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { data: currentWishListItems = [] } = useWishlist(wishListItems);
+  const { createWish, isLoading } = useCreateWish();
 
   const handleAddWish = async (wish: NewWish) => {
-    setIsLoading(true);
-    try {
-      await createWishAction(wish);
-      toast.success("Item criado com sucesso!");
-    } catch (error) {
-      console.error("Erro ao adicionar desejo:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    await createWish(wish);
   };
 
   return (
@@ -40,7 +32,8 @@ export function WishListPage({ wishListItems }: WishListPageProps) {
 
       <div className="flex justify-between items-center mb-6">
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          {wishListItems.length} {wishListItems.length === 1 ? "item" : "itens"}{" "}
+          {currentWishListItems.length}{" "}
+          {currentWishListItems.length === 1 ? "item" : "itens"}{" "}
           na sua lista
         </div>
         <button
@@ -51,7 +44,7 @@ export function WishListPage({ wishListItems }: WishListPageProps) {
         </button>
       </div>
 
-      <WishList wishListItems={wishListItems} />
+      <WishList wishListItems={currentWishListItems} />
 
       <WishDialog
         open={isDialogOpen}

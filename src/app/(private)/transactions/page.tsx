@@ -1,7 +1,6 @@
 import { TransactionSummary } from "@/components/transaction/transaction-summary";
 import { getTransactions } from "@/actions/transaction/transactions";
 import { TransactionList } from "@/components/transaction/transaction-list";
-import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -14,10 +13,8 @@ export default async function TransactionsPage() {
       <h2 className="text-xl font-semibold mb-6 dark:text-white">
         Listagem de Transações
       </h2>
-      <Suspense fallback={<div>Carregando transações...</div>}>
-        <TransactionSummary transactions={transactions} />
-        <TransactionList transactions={transactions} />
-      </Suspense>
+      <TransactionSummary transactions={transactions} />
+      <TransactionList transactions={transactions} />
     </div>
   );
 }
