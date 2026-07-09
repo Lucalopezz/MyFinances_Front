@@ -8,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -28,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useCreateFixedExpense } from "@/hooks/queries/useFixedExpenses";
+import { DialogFormActions } from "@/components/common/dialog-form-actions";
 
 interface FixedExpenseDialogProps {
   setOpen: (open: boolean) => void;
@@ -147,18 +147,13 @@ export function FixedExpenseDialog({ setOpen }: FixedExpenseDialogProps) {
             )}
           />
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Criando..." : "Criar"}
-            </Button>
-          </div>
+          <DialogFormActions
+            onCancel={() => setOpen(false)}
+            isLoading={isLoading}
+            submitLabel="Criar"
+            loadingLabel="Criando..."
+            className="gap-2"
+          />
         </form>
       </Form>
     </DialogContent>

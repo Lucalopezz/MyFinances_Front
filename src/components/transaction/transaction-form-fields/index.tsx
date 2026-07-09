@@ -49,12 +49,10 @@ export function TransactionFormFields({
   setValue,
   errors,
 }: TransactionFormFieldsProps) {
-  // Observa o tipo de transação e a categoria selecionada para garantir que a categoria seja válida para o tipo atual
   const transactionType =
     useWatch({ control, name: "type" }) ?? TRANSACTION_TYPES.EXPENSE;
   const transactionCategory = useWatch({ control, name: "category" });
-  // Garante que a categoria selecionada seja válida para o tipo de transação atual
-  // Se não for, define a categoria para a primeira categoria válida do tipo atual
+
   useEffect(() => {
     const allowedCategories = CATEGORY_BY_TYPE[
       transactionType
@@ -63,8 +61,6 @@ export function TransactionFormFields({
 
     if (!allowedCategories.includes(currentCategory)) {
       setValue("category", allowedCategories[0], {
-        // Marca o campo como sujo para garantir que a validação seja acionada
-        // Essa validação ocorre na submissão do formulário
         shouldDirty: true,
         shouldTouch: true,
         shouldValidate: true,

@@ -1,6 +1,5 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { NewWish, WishSchema } from "@/models/wishlist.model";
+import { DialogFormActions } from "@/components/common/dialog-form-actions";
 
 type WishDialogProps = {
   open: boolean;
@@ -135,22 +135,14 @@ export const WishDialog = ({
             </div>
           </div>
 
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="bg-[#364152] border-none text-white hover:bg-[#4A5567]"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {loading ? "Carregando" : "Salvar"}
-            </Button>
-          </div>
+          <DialogFormActions
+            onCancel={() => onOpenChange(false)}
+            isLoading={loading}
+            submitLabel="Salvar"
+            className="mt-4 gap-2"
+            cancelClassName="bg-[#364152] border-none text-white hover:bg-[#4A5567]"
+            submitClassName="bg-blue-600 hover:bg-blue-700 text-white"
+          />
         </form>
       </DialogContent>
     </Dialog>

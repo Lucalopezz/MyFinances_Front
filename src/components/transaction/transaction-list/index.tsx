@@ -1,7 +1,7 @@
 "use client";
 
 import type { Transaction } from "@/models/transaction.model";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 import { TransactionRowActions } from "../transaction-row-actions";
@@ -10,6 +10,10 @@ import {
   useDeleteTransaction,
   useTransactions,
 } from "@/hooks/queries/useTransactions";
+import { MobileListCard } from "@/components/common/mobile-list-card";
+import { ResponsiveList } from "@/components/common/responsive-list";
+import { StatusBadge } from "@/components/common/status-badge";
+import { formatShortDate, formatSignedCurrency } from "@/utils/formatters";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -20,45 +24,25 @@ export function TransactionList({ transactions }: TransactionListProps) {
   const { deleteTransaction } = useDeleteTransaction();
 
   return (
-    <>
-      {/* Versão Desktop (tabela) */}
-      <div className="hidden md:block border rounded-lg shadow-sm border-gray-300 dark:border-gray-700">
-        <div className="max-h-[calc(100vh-300px)] overflow-y-auto bg-gray-50 dark:bg-gray-900">
-          <Table>
-            <TableBody>
-              {currentTransactions.map((transaction) => (
-                <DesktopTransactionRow
-                  key={
-                    transaction.id ||
-                    `${transaction.date}-${transaction.description}-${transaction.value}`
-                  }
-                  transaction={transaction}
-                  handleDelete={deleteTransaction}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {/* Versão Mobile (cards) */}
-      <div className="md:hidden space-y-3">
-        {currentTransactions.map((transaction) => (
-          <MobileTransactionCard
-            key={
-              transaction.id ||
-              `${transaction.date}-${transaction.description}-${transaction.value}`
-            }
-            transaction={transaction}
-            handleDelete={deleteTransaction}
-          />
-        ))}
-      </div>
-    </>
+    <ResponsiveList
+      items={currentTransactions}
+      getKey={getTransactionKey}
+      renderDesktopRow={(transaction) => (
+        <DesktopTransactionRow
+          transaction={transaction}
+          handleDelete={deleteTransaction}
+        />
+      )}
+      renderMobileCard={(transaction) => (
+        <MobileTransactionCard
+          transaction={transaction}
+          handleDelete={deleteTransaction}
+        />
+      )}
+    />
   );
 }
 
-// Componente para linha da tabela (desktop)
 function DesktopTransactionRow({
   transaction,
   handleDelete,
@@ -73,7 +57,7 @@ function DesktopTransactionRow({
   return (
     <TableRow className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
       <TableCell className="py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">
-        {new Date(transaction.date).toLocaleDateString()}
+        {formatShortDate(transaction.date)}
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">
         {transaction.description}
@@ -88,17 +72,10 @@ function DesktopTransactionRow({
             : "text-red-600 dark:text-red-400"
         }`}
       >
-        {transaction.type === "INCOME" ? "+" : "-"} R${" "}
-        {transaction.value.toFixed(2)}
+        {formatTransactionValue(transaction)}
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
-        {transaction.type === "INCOME" ? (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-            Entrada
-          </Badge>
-        ) : (
-          <Badge variant="destructive">Saída</Badge>
-        )}
+        <TransactionTypeBadge transaction={transaction} />
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
         <TransactionRowActions
@@ -110,7 +87,6 @@ function DesktopTransactionRow({
   );
 }
 
-// Componente para card mobile
 function MobileTransactionCard({
   transaction,
   handleDelete,
@@ -123,29 +99,16 @@ function MobileTransactionCard({
     transaction.category;
 
   return (
-    <div className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700">
-      <div className="flex justify-between items-start">
-        <div>
-          <div className="font-medium text-gray-900 dark:text-gray-100">
-            {transaction.description}
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {new Date(transaction.date).toLocaleDateString()}
-          </div>
-        </div>
-        <div
-          className={`text-lg font-semibold ${
-            transaction.type === "INCOME"
-              ? "text-green-600 dark:text-green-400"
-              : "text-red-600 dark:text-red-400"
-          }`}
-        >
-          {transaction.type === "INCOME" ? "+" : "-"} R${" "}
-          {transaction.value.toFixed(2)}
-        </div>
-      </div>
-
-      <div className="mt-3 flex justify-between items-center">
+    <MobileListCard
+      title={transaction.description}
+      meta={formatShortDate(transaction.date)}
+      amount={formatTransactionValue(transaction)}
+      amountClassName={
+        transaction.type === "INCOME"
+          ? "text-green-600 dark:text-green-400"
+          : "text-red-600 dark:text-red-400"
+      }
+      footerLeft={
         <div className="flex items-center space-x-2">
           <Badge
             variant={transaction.type === "INCOME" ? "default" : "destructive"}
@@ -153,19 +116,40 @@ function MobileTransactionCard({
             {categoryLabel}
           </Badge>
           {transaction.type === "INCOME" ? (
-            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-              Entrada
-            </Badge>
+            <StatusBadge tone="green">Entrada</StatusBadge>
           ) : (
             <Badge variant="destructive">Saída</Badge>
           )}
         </div>
-
+      }
+      actions={
         <TransactionRowActions
           transaction={transaction}
           deleteAction={handleDelete}
         />
-      </div>
-    </div>
+      }
+    />
+  );
+}
+
+function TransactionTypeBadge({ transaction }: { transaction: Transaction }) {
+  return transaction.type === "INCOME" ? (
+    <StatusBadge tone="green">Entrada</StatusBadge>
+  ) : (
+    <Badge variant="destructive">Saída</Badge>
+  );
+}
+
+function formatTransactionValue(transaction: Transaction) {
+  return formatSignedCurrency(
+    transaction.value,
+    transaction.type === "INCOME" ? "+" : "-",
+  );
+}
+
+function getTransactionKey(transaction: Transaction) {
+  return (
+    transaction.id ||
+    `${transaction.date}-${transaction.description}-${transaction.value}`
   );
 }

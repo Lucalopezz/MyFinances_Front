@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import { DialogFormActions } from "@/components/common/dialog-form-actions";
 import {
   Dialog,
   DialogContent,
@@ -85,15 +86,15 @@ export const TransactionDialog = ({
     resolver: zodResolver(TransactionSchema),
     defaultValues: getInitialValues(transaction),
   });
-  // Atualiza os valores do formulário quando o modal é aberto ou quando a transação muda
+
   useEffect(() => {
     if (open) {
       reset(getInitialValues(transaction));
     }
   }, [open, reset, transaction]);
-  // Observa o tipo de transação para garantir que a categoria selecionada seja válida para o tipo atual
+
   const currentType = watch("type");
-  // Garante que a categoria selecionada seja válida para o tipo de transação atual
+
   useEffect(() => {
     const allowedCategories = CATEGORY_BY_TYPE[
       currentType
@@ -169,26 +170,16 @@ export const TransactionDialog = ({
             errors={errors}
           />
 
-          <div className="flex justify-end gap-3 border-t border-slate-200 pt-4 dark:border-slate-800">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:hover:text-white"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400"
-            >
-              {loading
-                ? "Carregando"
-                : mode === "edit"
-                  ? "Salvar alterações"
-                  : "Salvar transação"}
-            </Button>
-          </div>
+          <DialogFormActions
+            onCancel={() => onOpenChange(false)}
+            isLoading={loading}
+            submitLabel={
+              mode === "edit" ? "Salvar alterações" : "Salvar transação"
+            }
+            className="border-t border-slate-200 dark:border-slate-800"
+            cancelClassName="border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:hover:text-white"
+            submitClassName="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400"
+          />
         </form>
       </DialogContent>
     </Dialog>

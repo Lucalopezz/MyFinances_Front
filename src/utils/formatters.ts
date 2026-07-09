@@ -5,6 +5,29 @@ export const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
+export const formatSignedCurrency = (
+  value: number,
+  sign?: "+" | "-",
+): string => {
+  return sign ? `${sign} ${formatCurrency(value)}` : formatCurrency(value);
+};
+
+export const formatShortDate = (value?: string | Date): string => {
+  if (!value) return "-";
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+};
+
 export const formatPercentage = (value = 0): string => {
   return new Intl.NumberFormat("pt-BR", {
     maximumFractionDigits: 1,

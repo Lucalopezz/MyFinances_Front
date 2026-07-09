@@ -1,13 +1,14 @@
 "use client";
 
-import { Pencil, Calendar, DollarSign, Wallet } from "lucide-react";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Calendar, Wallet } from "lucide-react";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { WishListInterface } from "@/models/wishlist.model";
-import { DeleteButton } from "@/components/transaction/delete-button";
 import { useDeleteWish } from "@/hooks/queries/useWishlist";
-import Link from "next/link";
+import { MobileListCard } from "@/components/common/mobile-list-card";
+import { ResponsiveList } from "@/components/common/responsive-list";
+import { RowActions } from "@/components/common/row-actions";
+import { StatusBadge } from "@/components/common/status-badge";
+import { formatCurrency, formatShortDate } from "@/utils/formatters";
 
 interface WishListProps {
   wishListItems: WishListInterface[];
@@ -21,41 +22,27 @@ export function WishList({
   const { deleteWish } = useDeleteWish();
 
   return (
-    <>
-      {/* Versão Desktop (tabela) */}
-      <div className="hidden md:block border rounded-lg shadow-sm border-gray-300 dark:border-gray-700">
-        <div className="max-h-[calc(100vh-300px)] overflow-y-auto bg-gray-50 dark:bg-gray-900">
-          <Table>
-            <TableBody>
-              {wishListItems.map((item) => (
-                <DesktopWishListRow
-                  key={item.id || `${item.name}-${item.desiredValue}`}
-                  item={item}
-                  editUrlPrefix={editUrlPrefix}
-                  deleteAction={deleteWish}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {/* Versão Mobile (cards) */}
-      <div className="md:hidden space-y-3">
-        {wishListItems.map((item) => (
-          <MobileWishListCard
-            key={item.id || `${item.name}-${item.desiredValue}`}
-            item={item}
-            editUrlPrefix={editUrlPrefix}
-            deleteAction={deleteWish}
-          />
-        ))}
-      </div>
-    </>
+    <ResponsiveList
+      items={wishListItems}
+      getKey={getWishKey}
+      renderDesktopRow={(item) => (
+        <DesktopWishListRow
+          item={item}
+          editUrlPrefix={editUrlPrefix}
+          deleteAction={deleteWish}
+        />
+      )}
+      renderMobileCard={(item) => (
+        <MobileWishListCard
+          item={item}
+          editUrlPrefix={editUrlPrefix}
+          deleteAction={deleteWish}
+        />
+      )}
+    />
   );
 }
 
-// Componente para linha da tabela (desktop)
 function DesktopWishListRow({
   item,
   editUrlPrefix,
@@ -65,14 +52,8 @@ function DesktopWishListRow({
   editUrlPrefix: string;
   deleteAction: (id: string) => Promise<void>;
 }) {
-  const itemId =
-    item.id || encodeURIComponent(`${item.name}-${item.desiredValue}`);
-  const targetDate = new Date(item.targetDate);
-  const isTargetDatePassed = targetDate < new Date();
-  const progressPercentage =
-    item.desiredValue > 0
-      ? Math.min(Math.round((item.savedAmount / item.desiredValue) * 100), 100)
-      : 0;
+  const itemId = getWishEditId(item);
+  const progressPercentage = getProgressPercentage(item);
 
   return (
     <TableRow className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -80,47 +61,32 @@ function DesktopWishListRow({
         {item.name}
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap text-blue-600 dark:text-blue-400 font-medium">
-        R$ {item.desiredValue.toFixed(2)}
+        {formatCurrency(item.desiredValue)}
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap text-green-600 dark:text-green-400">
-        R$ {item.savedAmount.toFixed(2)}
-        <div className="w-24 h-2 bg-gray-200 rounded-full mt-1">
-          <div
-            className="h-2 bg-green-500 rounded-full"
-            style={{ width: `${progressPercentage}%` }}
-          />
-        </div>
-        <span className="text-xs text-gray-500">{progressPercentage}%</span>
+        <WishProgress
+          savedAmount={item.savedAmount}
+          progressPercentage={progressPercentage}
+          compact
+        />
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">
-        {targetDate.toLocaleDateString()}
+        {formatShortDate(item.targetDate)}
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
-        {isTargetDatePassed ? (
-          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
-            Prazo expirado
-          </Badge>
-        ) : (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-            Dentro do prazo
-          </Badge>
-        )}
+        <WishDeadlineBadge item={item} />
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
-        <div className="flex space-x-2 items-center">
-          <Link href={`${editUrlPrefix}/${itemId}`}>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Pencil className="h-4 w-4" />
-            </Button>
-          </Link>
-          <DeleteButton id={item.id} deleteAction={deleteAction} />
-        </div>
+        <RowActions
+          editHref={`${editUrlPrefix}/${itemId}`}
+          deleteId={item.id}
+          deleteAction={deleteAction}
+        />
       </TableCell>
     </TableRow>
   );
 }
 
-// Componente para card mobile
 function MobileWishListCard({
   item,
   editUrlPrefix,
@@ -130,73 +96,99 @@ function MobileWishListCard({
   editUrlPrefix: string;
   deleteAction: (id: string) => Promise<void>;
 }) {
-  const itemId =
-    item.id || encodeURIComponent(`${item.name}-${item.desiredValue}`);
-  const targetDate = new Date(item.targetDate);
-  const isTargetDatePassed = targetDate < new Date();
-  const progressPercentage =
-    item.desiredValue > 0
-      ? Math.min(Math.round((item.savedAmount / item.desiredValue) * 100), 100)
-      : 0;
+  const itemId = getWishEditId(item);
+  const progressPercentage = getProgressPercentage(item);
 
   return (
-    <div className="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 dark:border-gray-700">
-      <div className="flex justify-between items-start">
-        <div>
-          <div className="font-medium text-gray-900 dark:text-gray-100">
-            {item.name}
-          </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center">
-            <Calendar className="h-4 w-4 mr-1" />
-            Meta: {targetDate.toLocaleDateString()}
-          </div>
-        </div>
-        <div className="text-lg font-semibold text-blue-600 dark:text-blue-400 flex items-center">
-          <DollarSign className="h-4 w-4 mr-1" />
-          R$ {item.desiredValue.toFixed(2)}
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <div className="flex items-center">
-          <Wallet className="h-4 w-4 mr-1 text-green-600" />
-          <span className="text-sm text-green-600 dark:text-green-400 font-medium">
-            Economizado: R$ {item.savedAmount.toFixed(2)}
-          </span>
-        </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full mt-1">
-          <div
-            className="h-2 bg-green-500 rounded-full"
-            style={{ width: `${progressPercentage}%` }}
-          />
-        </div>
-        <div className="text-xs text-gray-500 mt-1">
-          {progressPercentage}% do objetivo
-        </div>
-      </div>
-
-      <div className="mt-3 flex justify-between items-center">
-        <div>
-          {isTargetDatePassed ? (
-            <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
-              Prazo expirado
-            </Badge>
-          ) : (
-            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-              Dentro do prazo
-            </Badge>
-          )}
-        </div>
-
-        <div className="flex space-x-2">
-          <Link href={`${editUrlPrefix}/${itemId}`}>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Pencil className="h-4 w-4" />
-            </Button>
-          </Link>
-          <DeleteButton id={item.id} deleteAction={deleteAction} />
-        </div>
-      </div>
-    </div>
+    <MobileListCard
+      title={item.name}
+      meta={
+        <span className="flex items-center">
+          <Calendar className="mr-1 h-4 w-4" />
+          Meta: {formatShortDate(item.targetDate)}
+        </span>
+      }
+      amount={formatCurrency(item.desiredValue)}
+      amountClassName="text-blue-600 dark:text-blue-400"
+      footerLeft={<WishDeadlineBadge item={item} />}
+      actions={
+        <RowActions
+          editHref={`${editUrlPrefix}/${itemId}`}
+          deleteId={item.id}
+          deleteAction={deleteAction}
+        />
+      }
+    >
+      <WishProgress
+        savedAmount={item.savedAmount}
+        progressPercentage={progressPercentage}
+      />
+    </MobileListCard>
   );
+}
+
+function WishProgress({
+  savedAmount,
+  progressPercentage,
+  compact = false,
+}: {
+  savedAmount: number;
+  progressPercentage: number;
+  compact?: boolean;
+}) {
+  return (
+    <>
+      <div className="flex items-center">
+        {!compact ? <Wallet className="mr-1 h-4 w-4 text-green-600" /> : null}
+        <span className="text-sm font-medium text-green-600 dark:text-green-400">
+          {compact
+            ? formatCurrency(savedAmount)
+            : `Economizado: ${formatCurrency(savedAmount)}`}
+        </span>
+      </div>
+      <div
+        className={
+          compact
+            ? "mt-1 h-2 w-24 rounded-full bg-gray-200"
+            : "mt-1 h-2 w-full rounded-full bg-gray-200"
+        }
+      >
+        <div
+          className="h-2 rounded-full bg-green-500"
+          style={{ width: `${progressPercentage}%` }}
+        />
+      </div>
+      <div className="mt-1 text-xs text-gray-500">
+        {compact
+          ? `${progressPercentage}%`
+          : `${progressPercentage}% do objetivo`}
+      </div>
+    </>
+  );
+}
+
+function WishDeadlineBadge({ item }: { item: WishListInterface }) {
+  return isWishTargetDatePassed(item) ? (
+    <StatusBadge tone="red">Prazo expirado</StatusBadge>
+  ) : (
+    <StatusBadge tone="green">Dentro do prazo</StatusBadge>
+  );
+}
+
+function getProgressPercentage(item: WishListInterface) {
+  return item.desiredValue > 0
+    ? Math.min(Math.round((item.savedAmount / item.desiredValue) * 100), 100)
+    : 0;
+}
+
+function isWishTargetDatePassed(item: WishListInterface) {
+  return new Date(item.targetDate) < new Date();
+}
+
+function getWishEditId(item: WishListInterface) {
+  return item.id || encodeURIComponent(`${item.name}-${item.desiredValue}`);
+}
+
+function getWishKey(item: WishListInterface) {
+  return item.id || `${item.name}-${item.desiredValue}`;
 }
