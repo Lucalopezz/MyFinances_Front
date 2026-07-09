@@ -120,6 +120,7 @@ Regras importantes:
 - Use Tailwind CSS e `cn` de `src/lib/utils.ts` para composicao de classes quando necessario.
 - Use `lucide-react` para icones.
 - Preserve suporte a tema claro/escuro fornecido pelos providers existentes.
+- Em `/login` e `/register`, preserve o layout publico com navbar simples e sem acoes de usuario logado. O fundo da pagina deve seguir o tema selecionado, mas o card do formulario deve manter o padrao estabelecido: `bg-white dark:bg-[#1F2937]`, texto principal `text-[#1F2937] dark:text-white` e textos auxiliares `text-[#6B7280] dark:text-gray-400`.
 - Para graficos, siga o uso atual de Recharts.
 - Adicione estados de loading, vazio e erro quando criar telas ou blocos que dependam da API.
 
@@ -172,7 +173,5 @@ Quando um endpoint mudar:
 Execute validacoes proporcionais a mudanca:
 
 - Mudanca pequena de texto/documentacao: revise o arquivo alterado.
-- Mudanca de tipo, schema, action ou componente: rode `npm run build` quando possivel.
-- Mudanca de estilo ou tela: teste visualmente em `npm run dev` quando possivel.
+- Não precisa ficar rodando `npm run build` quando não necessario.
 - Mudanca em autenticacao, middleware ou API: revise `docs/authentication.md` e `docs/api-routes.md` e valide o fluxo afetado.
-
