@@ -30,9 +30,9 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center pb-60">
-      <div className="bg-white dark:bg-[#1F2937] p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-[#1F2937] dark:text-white mb-6">
+    <div className="flex w-full flex-1 items-center justify-center">
+      <div className="w-full max-w-md rounded-lg bg-card p-8 shadow-md text-card-foreground">
+        <h2 className="mb-6 text-2xl font-bold text-card-foreground">
           Criar Conta
         </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -68,9 +68,9 @@ export default function RegisterPage() {
             )}
           </Button>
         </form>
-        <p className="mt-4 text-sm text-[#6B7280] dark:text-gray-400">
+        <p className="mt-4 text-sm text-muted-foreground">
           Já tem conta?{" "}
-          <Link href="/login" className="text-[#3B82F6] hover:underline">
+          <Link href="/login" className="text-blue-500 hover:underline">
             Faça login
           </Link>
         </p>
