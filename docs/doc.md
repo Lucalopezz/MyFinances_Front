@@ -167,7 +167,11 @@ Controla despesas recorrentes, vencimento, status de pagamento e atualização d
 
 ### Comparativo
 
-Exibe análises comparativas de receitas, despesas e saldo por período.
+Exibe a análise dos seis meses até o mês atual, com receitas, despesas, saldo,
+taxa de economia, maior categoria de gasto, melhor e pior mês e variação do
+saldo em relação aos seis meses anteriores. O detalhamento de despesas por
+categoria é agregado no servidor a partir de todas as páginas de transações,
+sem expor o token no browser.
 
 ### Configurações
 

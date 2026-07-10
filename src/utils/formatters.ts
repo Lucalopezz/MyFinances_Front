@@ -47,10 +47,12 @@ export const formatMonthLabel = (value?: string): string => {
     return "Mês atual";
   }
 
-  return new Intl.DateTimeFormat("pt-BR", {
+  const label = new Intl.DateTimeFormat("pt-BR", {
     month: "long",
     year: "numeric",
   }).format(date);
+
+  return label.charAt(0).toUpperCase() + label.slice(1);
 };
 
 export const formatDateRange = (start?: string, end?: string): string => {

@@ -733,6 +733,12 @@ Resposta:
 
 Retorna o comparativo mensal do período.
 
+No comparativo semestral, o front consulta essa rota para os seis meses até o
+mês atual. Também consulta `GET /dashboard` para os totais do semestre atual e
+dos seis meses anteriores. Como a API ainda não possui uma rota de gastos por
+categoria, o front pagina `GET /transactions` no servidor e agrega apenas as
+transações `EXPENSE` pertencentes ao semestre atual.
+
 Entrada via query params:
 
 ```json

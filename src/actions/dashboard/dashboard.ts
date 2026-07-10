@@ -4,8 +4,14 @@ import type {
   FinancialSummary,
   MonthlyComparisonDto,
   MonthlyComparisonResponse,
+  CategorySpending,
+  ComparativeBlock,
+  SemesterComparisonData,
+  SemesterPeriod,
+  SemesterSummary,
   SixMonthComparisonItem,
 } from "@/models/dashboard.model";
+import type { PaginatedTransactions } from "@/models/transaction.model";
 import { unstable_noStore as noStore } from "next/cache";
 
 const MONTH_PARAM_PATTERN = /^\d{4}-\d{2}$/;
@@ -67,6 +73,250 @@ function getComparisonPeriod(month?: string) {
   return {
     startDate: formatDateParam(start),
     endDate: formatDateParam(end),
+  };
+}
+
+function getSemesterPeriods(): {
+  current: SemesterPeriod;
+  previous: SemesterPeriod;
+} {
+  const now = new Date();
+  const currentStart = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const currentEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const previousStart = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  const previousEnd = new Date(now.getFullYear(), now.getMonth() - 5, 0);
+
+  return {
+    current: {
+      start: formatDateParam(currentStart),
+      end: formatDateParam(currentEnd),
+    },
+    previous: {
+      start: formatDateParam(previousStart),
+      end: formatDateParam(previousEnd),
+    },
+  };
+}
+
+function success<T>(data: T): ComparativeBlock<T> {
+  return { data, error: null };
+}
+
+function failure<T>(message: string): ComparativeBlock<T> {
+  return { data: null, error: message };
+}
+
+function toNumber(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+async function fetchSemesterSummary(
+  backendUrl: string,
+  token: string,
+  period: SemesterPeriod,
+): Promise<ComparativeBlock<SemesterSummary>> {
+  try {
+    const searchParams = new URLSearchParams({
+      startDate: period.start,
+      endDate: period.end,
+    });
+    const response = await fetch(`${backendUrl}/dashboard?${searchParams}`, {
+      headers: createJsonHeaders(token),
+      cache: "no-store",
+      next: { tags: ["dashboard", "sixMonthComparison"] },
+    });
+
+    if (!response.ok) {
+      return failure("Não foi possível carregar os indicadores do semestre.");
+    }
+
+    const data: FinancialSummary = await response.json();
+    const totalIncomes = toNumber(data.totalIncomes);
+    const totalExpenses = toNumber(data.totalExpenses);
+    const balance = toNumber(data.balance);
+    const apiEconomyRate =
+      typeof data.economyRate === "number" && Number.isFinite(data.economyRate)
+        ? data.economyRate
+        : null;
+
+    return success({
+      totalIncomes,
+      totalExpenses,
+      balance,
+      economyRate:
+        apiEconomyRate ??
+        (totalIncomes > 0 ? (balance / totalIncomes) * 100 : 0),
+      highestSpendingCategory: data.highestSpendingCategory ?? null,
+      period,
+    });
+  } catch {
+    return failure("Não foi possível carregar os indicadores do semestre.");
+  }
+}
+
+async function fetchMonthlyComparisonForPeriod(
+  backendUrl: string,
+  token: string,
+  period: SemesterPeriod,
+): Promise<ComparativeBlock<MonthlyComparisonResponse>> {
+  try {
+    const searchParams = new URLSearchParams({
+      startDate: period.start,
+      endDate: period.end,
+    });
+    const response = await fetch(
+      `${backendUrl}/dashboard/monthly-comparison?${searchParams}`,
+      {
+        headers: createJsonHeaders(token),
+        cache: "no-store",
+        next: { tags: ["monthlyComparison", "sixMonthComparison"] },
+      },
+    );
+
+    if (!response.ok) {
+      return failure("Não foi possível carregar a evolução mensal.");
+    }
+
+    const payload = await response.json();
+    const months = Array.isArray(payload) ? payload : payload.months;
+
+    if (!Array.isArray(months)) {
+      return failure("A API retornou um comparativo mensal inválido.");
+    }
+
+    return success({
+      months,
+      bestMonth: Array.isArray(payload) ? null : (payload.bestMonth ?? null),
+      worstMonth: Array.isArray(payload) ? null : (payload.worstMonth ?? null),
+      period,
+    });
+  } catch {
+    return failure("Não foi possível carregar a evolução mensal.");
+  }
+}
+
+async function fetchTransactionsPage(
+  backendUrl: string,
+  token: string,
+  page: number,
+): Promise<PaginatedTransactions> {
+  const searchParams = new URLSearchParams({
+    page: String(page),
+    limit: "50",
+  });
+  const response = await fetch(`${backendUrl}/transactions?${searchParams}`, {
+    headers: createJsonHeaders(token),
+    cache: "no-store",
+    next: { tags: ["transactions", "sixMonthComparison"] },
+  });
+
+  if (!response.ok) {
+    throw new Error("transactions-request-failed");
+  }
+
+  return response.json();
+}
+
+async function fetchCategorySpending(
+  backendUrl: string,
+  token: string,
+  period: SemesterPeriod,
+): Promise<ComparativeBlock<CategorySpending[]>> {
+  try {
+    const firstPage = await fetchTransactionsPage(backendUrl, token, 1);
+    const totalPages = Math.max(1, toNumber(firstPage.meta?.totalPages));
+    // Fetch remaining pages in parallel
+    // It can be optimized by using a single endpoint that returns all transactions for the period, but for now we will fetch all pages in parallel.
+    const remainingPages = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, index) =>
+        fetchTransactionsPage(backendUrl, token, index + 2),
+      ),
+    );
+    const transactions = [firstPage, ...remainingPages].flatMap(
+      (page) => page.data,
+    );
+    const totals = new Map<string, number>();
+
+    for (const transaction of transactions) {
+      const transactionDate = transaction.date.slice(0, 10);
+
+      if (
+        transaction.type !== "EXPENSE" ||
+        transactionDate < period.start ||
+        transactionDate > period.end
+      ) {
+        continue;
+      }
+
+      totals.set(
+        transaction.category,
+        (totals.get(transaction.category) ?? 0) + toNumber(transaction.value),
+      );
+    }
+
+    const totalExpenses = Array.from(totals.values()).reduce(
+      (total, value) => total + value,
+      0,
+    );
+    const categories = Array.from(totals, ([category, total]) => ({
+      category,
+      total,
+      percentage: totalExpenses > 0 ? (total / totalExpenses) * 100 : 0,
+    })).sort((a, b) => b.total - a.total);
+
+    return success(categories);
+  } catch {
+    return failure("Não foi possível carregar os gastos por categoria.");
+  }
+}
+
+export async function getSemesterComparison(): Promise<SemesterComparisonData> {
+  noStore();
+
+  const periods = getSemesterPeriods();
+  const token = await getServerToken();
+
+  if (!token) {
+    const sessionError = "Sua sessão expirou. Entre novamente.";
+    return {
+      currentSummary: failure(sessionError),
+      previousSummary: failure(sessionError),
+      monthlyComparison: failure(sessionError),
+      categorySpending: failure(sessionError),
+      balancePercentageChange: null,
+      currentPeriod: periods.current,
+      previousPeriod: periods.previous,
+    };
+  }
+
+  const backendUrl = getServerBackendUrl();
+  const [currentSummary, previousSummary, monthlyComparison, categorySpending] =
+    await Promise.all([
+      fetchSemesterSummary(backendUrl, token, periods.current),
+      fetchSemesterSummary(backendUrl, token, periods.previous),
+      fetchMonthlyComparisonForPeriod(backendUrl, token, periods.current),
+      fetchCategorySpending(backendUrl, token, periods.current),
+    ]);
+  const currentBalance = currentSummary.data?.balance;
+  const previousBalance = previousSummary.data?.balance;
+  const balancePercentageChange =
+    currentBalance === undefined || previousBalance === undefined
+      ? null
+      : previousBalance === 0
+        ? currentBalance === 0
+          ? 0
+          : null
+        : ((currentBalance - previousBalance) / Math.abs(previousBalance)) *
+          100;
+
+  return {
+    currentSummary,
+    previousSummary,
+    monthlyComparison,
+    categorySpending,
+    balancePercentageChange,
+    currentPeriod: periods.current,
+    previousPeriod: periods.previous,
   };
 }
 
@@ -179,9 +429,10 @@ export async function getMonthlyComparison(
     return {
       ...emptyComparison,
       ...data,
-      months: Array.isArray(data.months) && data.months.length
-        ? data.months
-        : emptyComparison.months,
+      months:
+        Array.isArray(data.months) && data.months.length
+          ? data.months
+          : emptyComparison.months,
     };
   } catch (error) {
     return emptyComparison;
