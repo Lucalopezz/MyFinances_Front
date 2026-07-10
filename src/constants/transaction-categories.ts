@@ -64,6 +64,14 @@ export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
 export type TransactionCategory = IncomeCategory | ExpenseCategory;
 
+export const FIXED_EXPENSE_CATEGORIES = [
+  "UTILITIES",
+  "SUBSCRIPTIONS",
+  "HOUSING",
+] as const satisfies readonly ExpenseCategory[];
+
+export type FixedExpenseCategory = (typeof FIXED_EXPENSE_CATEGORIES)[number];
+
 export const TRANSACTION_CATEGORIES = [
   ...INCOME_CATEGORIES,
   ...EXPENSE_CATEGORIES,

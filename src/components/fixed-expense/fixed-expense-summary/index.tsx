@@ -44,10 +44,7 @@ export function FixedExpenseSummary({
         ))}
       </div>
 
-      <FixedExpenseList
-        fixedExpenses={currentFixedExpenses}
-        editUrlPrefix="/fixed-expenses/edit"
-      />
+      <FixedExpenseList fixedExpenses={currentFixedExpenses} />
     </div>
   );
 }

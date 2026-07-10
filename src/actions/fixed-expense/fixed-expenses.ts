@@ -1,6 +1,9 @@
 "use server";
 
-import { FixedExpense } from "@/models/fixed-expense.model";
+import type {
+  FixedExpense,
+  FixedExpensePaymentResult,
+} from "@/models/fixed-expense.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import { unstable_noStore as noStore } from "next/cache";
@@ -12,8 +15,7 @@ export async function createFixedExpense(
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
-    return false;
+    throw new Error("Não autorizado - sessão não encontrada");
   }
 
   try {
@@ -27,13 +29,18 @@ export async function createFixedExpense(
       if (response.status === 401) {
         console.error("Não autorizado - token inválido ou expirado");
       }
-      throw new Error(`Falha ao criar despesa fixa: ${response.statusText}`);
+
+      const message = await readApiErrorMessage(
+        response,
+        `Falha ao criar despesa fixa: ${response.statusText}`,
+      );
+      throw new Error(message);
     }
 
     return true;
   } catch (error) {
     console.error("Erro ao criar despesa fixa:", error);
-    return false;
+    throw error;
   }
 }
 
@@ -112,8 +119,7 @@ export async function updateFixedExpense(
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
-    return null;
+    throw new Error("Não autorizado - sessão não encontrada");
   }
 
   try {
@@ -130,16 +136,19 @@ export async function updateFixedExpense(
       } else if (response.status === 404) {
         console.error("Despesa fixa não encontrada");
       }
-      throw new Error(
+
+      const message = await readApiErrorMessage(
+        response,
         `Falha ao atualizar despesa fixa: ${response.statusText}`,
       );
+      throw new Error(message);
     }
 
     const data: FixedExpense = await response.json();
     return data;
   } catch (error) {
     console.error("Erro ao atualizar despesa fixa:", error);
-    return null;
+    throw error;
   }
 }
 
@@ -178,46 +187,67 @@ export async function deleteFixedExpense(
 
 export async function markFixedExpenseAsPaid(
   id: string,
-  currentDueDate: string,
-): Promise<boolean> {
+  isPaid: boolean,
+): Promise<FixedExpensePaymentResult> {
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
-    return false;
+    throw new Error("Não autorizado - sessão não encontrada");
   }
 
-  try {
-    const currentDate = new Date(currentDueDate);
-    const nextMonth = new Date(currentDate);
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
+  const response = await fetch(`${backendUrl}/fixed-expenses/${id}/payment`, {
+    method: "PATCH",
+    headers: createJsonHeaders(token),
+    body: JSON.stringify({
+      isPaid,
+    }),
+  });
 
-    const updateData = {
-      isPaid: true,
-      dueDate: nextMonth.toISOString(),
-    };
-
-    const response = await fetch(`${backendUrl}/fixed-expenses/${id}`, {
-      method: "PATCH",
-      headers: createJsonHeaders(token),
-      body: JSON.stringify(updateData),
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      } else if (response.status === 404) {
-        console.error("Despesa fixa não encontrada");
-      }
-      throw new Error(
-        `Falha ao marcar despesa como paga: ${response.statusText}`,
-      );
+  if (!response.ok) {
+    if (response.status === 401) {
+      console.error("Não autorizado - token inválido ou expirado");
+    } else if (response.status === 404) {
+      console.error("Despesa fixa não encontrada");
     }
 
-    return true;
-  } catch (error) {
-    console.error("Erro ao marcar despesa como paga:", error);
-    return false;
+    const fallback =
+      response.status === 409
+        ? "A API impediu a criação de uma transação duplicada para esta despesa fixa neste ciclo."
+        : `Falha ao atualizar pagamento da despesa fixa: ${response.statusText}`;
+    const message = await readApiErrorMessage(response, fallback);
+    throw new Error(message);
   }
+
+  const data = await response.json();
+  return normalizePaymentResult(data);
+}
+
+async function readApiErrorMessage(response: Response, fallback: string) {
+  try {
+    const data = await response.json();
+    return (
+      data?.message ||
+      data?.error ||
+      data?.details ||
+      fallback
+    );
+  } catch {
+    return fallback;
+  }
+}
+
+function normalizePaymentResult(data: unknown): FixedExpensePaymentResult {
+  const payload = data as {
+    fixedExpense?: FixedExpense;
+    expense?: FixedExpense;
+    transaction?: FixedExpensePaymentResult["transaction"];
+  } & FixedExpense;
+
+  const fixedExpense = payload.fixedExpense ?? payload.expense ?? payload;
+
+  return {
+    fixedExpense,
+    transaction: payload.transaction ?? fixedExpense.paidTransaction ?? null,
+  };
 }

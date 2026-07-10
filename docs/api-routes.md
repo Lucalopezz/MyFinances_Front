@@ -522,6 +522,8 @@ Entrada:
 }
 ```
 
+Use `isPaid: false` para desmarcar o pagamento. Nesse caso, a API remove a transação criada automaticamente para essa despesa fixa.
+
 Resposta:
 
 ```json

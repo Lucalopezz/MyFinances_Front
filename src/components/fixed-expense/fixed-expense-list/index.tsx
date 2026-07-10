@@ -1,6 +1,7 @@
 "use client";
 
-import { FixedExpense } from "@/models/fixed-expense.model";
+import { useState } from "react";
+import type { FixedExpense } from "@/models/fixed-expense.model";
 import { TableCell, TableRow } from "@/components/ui/table";
 import {
   useDeleteFixedExpense,
@@ -10,17 +11,16 @@ import { MobileListCard } from "@/components/common/mobile-list-card";
 import { ResponsiveList } from "@/components/common/responsive-list";
 import { RowActions } from "@/components/common/row-actions";
 import { StatusBadge } from "@/components/common/status-badge";
+import { Dialog } from "@/components/ui/dialog";
+import { FixedExpenseDialog } from "@/components/fixed-expense/fixed-expense-dialog";
+import { CATEGORY_LABELS } from "@/constants/transaction-categories";
 import { formatCurrency, formatShortDate } from "@/utils/formatters";
 
 interface FixedExpenseListProps {
   fixedExpenses: FixedExpense[];
-  editUrlPrefix?: string;
 }
 
-export function FixedExpenseList({
-  fixedExpenses,
-  editUrlPrefix = "/fixed-expenses/edit",
-}: FixedExpenseListProps) {
+export function FixedExpenseList({ fixedExpenses }: FixedExpenseListProps) {
   const { deleteFixedExpense } = useDeleteFixedExpense();
   const { markAsPaid } = useMarkFixedExpenseAsPaid();
 
@@ -31,7 +31,6 @@ export function FixedExpenseList({
       renderDesktopRow={(expense) => (
         <DesktopFixedExpenseRow
           expense={expense}
-          editUrlPrefix={editUrlPrefix}
           deleteAction={deleteFixedExpense}
           markAsPaidAction={markAsPaid}
         />
@@ -39,7 +38,6 @@ export function FixedExpenseList({
       renderMobileCard={(expense) => (
         <MobileFixedExpenseCard
           expense={expense}
-          editUrlPrefix={editUrlPrefix}
           deleteAction={deleteFixedExpense}
           markAsPaidAction={markAsPaid}
         />
@@ -50,20 +48,16 @@ export function FixedExpenseList({
 
 function DesktopFixedExpenseRow({
   expense,
-  editUrlPrefix,
   deleteAction,
   markAsPaidAction,
 }: {
   expense: FixedExpense;
-  editUrlPrefix: string;
   deleteAction: (id: string) => Promise<void>;
   markAsPaidAction: (payload: {
     id: string;
-    dueDate: string;
-  }) => Promise<boolean>;
+    isPaid: boolean;
+  }) => Promise<unknown>;
 }) {
-  const expenseId = getFixedExpenseEditId(expense);
-
   return (
     <TableRow className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
       <TableCell className="py-4 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">
@@ -75,6 +69,9 @@ function DesktopFixedExpenseRow({
       <TableCell className="py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">
         {formatShortDate(expense.dueDate)}
       </TableCell>
+      <TableCell className="py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">
+        {getCategoryLabel(expense.category)}
+      </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
         <StatusBadge tone="blue">{expense.recurrence}</StatusBadge>
       </TableCell>
@@ -84,7 +81,6 @@ function DesktopFixedExpenseRow({
       <TableCell className="py-4 whitespace-nowrap">
         <FixedExpenseActions
           expense={expense}
-          editHref={`${editUrlPrefix}/${expenseId}`}
           deleteAction={deleteAction}
           markAsPaidAction={markAsPaidAction}
         />
@@ -95,20 +91,16 @@ function DesktopFixedExpenseRow({
 
 function MobileFixedExpenseCard({
   expense,
-  editUrlPrefix,
   deleteAction,
   markAsPaidAction,
 }: {
   expense: FixedExpense;
-  editUrlPrefix: string;
   deleteAction: (id: string) => Promise<void>;
   markAsPaidAction: (payload: {
     id: string;
-    dueDate: string;
-  }) => Promise<boolean>;
+    isPaid: boolean;
+  }) => Promise<unknown>;
 }) {
-  const expenseId = getFixedExpenseEditId(expense);
-
   return (
     <MobileListCard
       title={expense.name}
@@ -116,15 +108,19 @@ function MobileFixedExpenseCard({
       amount={formatCurrency(expense.amount)}
       amountClassName="text-red-600 dark:text-red-400"
       footerLeft={
-        <div className="flex items-center space-x-2">
-          <StatusBadge tone="blue">{expense.recurrence}</StatusBadge>
-          <FixedExpensePaymentBadge expense={expense} />
+        <div className="flex min-w-0 flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge tone="blue">{expense.recurrence}</StatusBadge>
+            <StatusBadge tone="blue">
+              {getCategoryLabel(expense.category)}
+            </StatusBadge>
+            <FixedExpensePaymentBadge expense={expense} />
+          </div>
         </div>
       }
       actions={
         <FixedExpenseActions
           expense={expense}
-          editHref={`${editUrlPrefix}/${expenseId}`}
           deleteAction={deleteAction}
           markAsPaidAction={markAsPaidAction}
         />
@@ -135,30 +131,40 @@ function MobileFixedExpenseCard({
 
 function FixedExpenseActions({
   expense,
-  editHref,
   deleteAction,
   markAsPaidAction,
 }: {
   expense: FixedExpense;
-  editHref: string;
   deleteAction: (id: string) => Promise<void>;
   markAsPaidAction: (payload: {
     id: string;
-    dueDate: string;
-  }) => Promise<boolean>;
+    isPaid: boolean;
+  }) => Promise<unknown>;
 }) {
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
   return (
-    <RowActions
-      editHref={editHref}
-      deleteId={expense.id}
-      deleteAction={deleteAction}
-      markAsPaidDisabled={expense.isPaid || !expense.id}
-      markAsPaidTitle={expense.isPaid ? "Já pago" : "Marcar como pago"}
-      onMarkAsPaid={() =>
-        expense.id &&
-        markAsPaidAction({ id: expense.id, dueDate: expense.dueDate })
-      }
-    />
+    <>
+      <RowActions
+        onEdit={() => setIsEditOpen(true)}
+        editDisabled={!expense.id}
+        deleteId={expense.id}
+        deleteAction={deleteAction}
+        markAsPaidActive={expense.isPaid}
+        markAsPaidDisabled={!expense.id}
+        markAsPaidTitle={
+          expense.isPaid ? "Desmarcar como pago" : "Marcar como pago"
+        }
+        onMarkAsPaid={() =>
+          expense.id &&
+          markAsPaidAction({ id: expense.id, isPaid: !expense.isPaid })
+        }
+      />
+
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <FixedExpenseDialog setOpen={setIsEditOpen} fixedExpense={expense} />
+      </Dialog>
+    </>
   );
 }
 
@@ -170,10 +176,10 @@ function FixedExpensePaymentBadge({ expense }: { expense: FixedExpense }) {
   );
 }
 
-function getFixedExpenseEditId(expense: FixedExpense) {
-  return expense.id || encodeURIComponent(`${expense.name}-${expense.amount}`);
-}
-
 function getFixedExpenseKey(expense: FixedExpense) {
   return expense.id || `${expense.name}-${expense.amount}`;
+}
+
+function getCategoryLabel(category: FixedExpense["category"]) {
+  return CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS] ?? category;
 }

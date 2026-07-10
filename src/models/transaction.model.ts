@@ -10,6 +10,9 @@ export type Transaction = {
   category: string;
   description: string;
   type: TransactionType;
+  createdAt?: string;
+  updatedAt?: string;
+  userId?: string;
 };
 
 export type TransactionFormValues = {

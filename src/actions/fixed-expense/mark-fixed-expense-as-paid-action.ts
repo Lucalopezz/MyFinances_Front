@@ -8,7 +8,7 @@ type MarkFixedExpenseAsPaidPayload =
   | FormData
   | {
       id: string;
-      dueDate: string;
+      isPaid: boolean;
     };
 
 function isFormData(
@@ -21,17 +21,20 @@ export async function markFixedExpenseAsPaidAction(
   payload: MarkFixedExpenseAsPaidPayload,
 ) {
   const id = isFormData(payload) ? (payload.get("id") as string) : payload.id;
-  const dueDate = isFormData(payload)
-    ? (payload.get("dueDate") as string)
-    : payload.dueDate;
-  const success = await markFixedExpenseAsPaid(id, dueDate);
+  const isPaid = isFormData(payload)
+    ? payload.get("isPaid") === "true"
+    : payload.isPaid;
 
-  if (!success) {
-    throw new Error("Falha ao marcar despesa como paga");
+  if (!id) {
+    throw new Error("ID da despesa fixa não fornecido");
   }
 
+  const result = await markFixedExpenseAsPaid(id, isPaid);
+
   revalidateTag("fixed-expenses");
+  revalidateTag("fixed-expense");
   revalidateTag("transactions");
+  revalidateTag("transaction");
   revalidateTag("dashboard");
   revalidateTag("monthlyComparison");
   revalidateTag("sixMonthComparison");
@@ -40,5 +43,5 @@ export async function markFixedExpenseAsPaidAction(
   revalidatePath("/");
   revalidatePath("/comparative");
 
-  return true;
+  return result;
 }
