@@ -11,7 +11,7 @@ async function fetchNotification(): Promise<NotificationInterface[]> {
     return await getNotifications();
   } catch (error) {
     if (error instanceof Error) throw error;
-    throw new Error("Erro ao buscar dados do dashboard");
+    throw new Error("Não foi possível carregar as notificações.");
   }
 }
 
@@ -31,7 +31,7 @@ export function useMarkAsRead() {
         return await markNotificationAsRead(id);
       } catch (error) {
         if (error instanceof Error) throw error;
-        throw new Error("Erro ao editar");
+        throw new Error("Não foi possível atualizar a notificação.");
       }
     },
     onSuccess: () => {

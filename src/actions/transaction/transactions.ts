@@ -4,6 +4,10 @@ import type { Transaction } from "@/models/transaction.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import { unstable_noStore as noStore } from "next/cache";
+import {
+  createApiError,
+  createRequestError,
+} from "@/lib/api-error";
 
 export async function createTransaction(
   transaction: Omit<Transaction, "id">,
@@ -11,10 +15,7 @@ export async function createTransaction(
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
-  if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
-    return null;
-  }
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
     const response = await fetch(`${backendUrl}/transactions`, {
@@ -23,17 +24,18 @@ export async function createTransaction(
       body: JSON.stringify(transaction),
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      }
-      throw new Error(`Falha ao criar transação: ${response.statusText}`);
-    }
+    if (!response.ok)
+      throw await createApiError(response, {
+        context: "POST /transactions",
+        fallback: "Não foi possível criar a transação.",
+      });
 
     return await response.json();
   } catch (error) {
-    console.error("Erro ao criar transação:", error);
-    return null;
+    throw createRequestError(error, {
+      context: "POST /transactions",
+      fallback: "Não foi possível criar a transação.",
+    });
   }
 }
 
@@ -109,10 +111,7 @@ export async function updateTransaction(
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
-  if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
-    return null;
-  }
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
     const response = await fetch(`${backendUrl}/transactions/${id}`, {
@@ -122,20 +121,19 @@ export async function updateTransaction(
       next: { tags: ["transaction"] },
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      } else if (response.status === 404) {
-        console.error("Transação não encontrada");
-      }
-      throw new Error(`Falha ao atualizar transação: ${response.statusText}`);
-    }
+    if (!response.ok)
+      throw await createApiError(response, {
+        context: `PATCH /transactions/${id}`,
+        fallback: "Não foi possível atualizar a transação.",
+      });
 
     const data: Transaction = await response.json();
     return data;
   } catch (error) {
-    console.error("Erro ao atualizar transação:", error);
-    return null;
+    throw createRequestError(error, {
+      context: `PATCH /transactions/${id}`,
+      fallback: "Não foi possível atualizar a transação.",
+    });
   }
 }
 
@@ -145,10 +143,7 @@ export async function deleteTransaction(
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
-  if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
-    return false;
-  }
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
     const response = await fetch(`${backendUrl}/transactions/${id}`, {
@@ -156,18 +151,17 @@ export async function deleteTransaction(
       headers: createJsonHeaders(token),
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      } else if (response.status === 404) {
-        console.error("Transação não encontrada");
-      }
-      throw new Error(`Falha ao deletar transação: ${response.statusText}`);
-    }
+    if (!response.ok)
+      throw await createApiError(response, {
+        context: `DELETE /transactions/${id}`,
+        fallback: "Não foi possível excluir a transação.",
+      });
 
     return true;
   } catch (error) {
-    console.error("Erro ao deletar transação:", error);
-    return false;
+    throw createRequestError(error, {
+      context: `DELETE /transactions/${id}`,
+      fallback: "Não foi possível excluir a transação.",
+    });
   }
 }

@@ -4,15 +4,16 @@ import { NewWish, WishListInterface } from "@/models/wishlist.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import { unstable_noStore as noStore } from "next/cache";
+import {
+  createApiError,
+  createRequestError,
+} from "@/lib/api-error";
 
 export async function createWish(data: NewWish): Promise<boolean> {
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
-  if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
-    return false;
-  }
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
     const response = await fetch(`${backendUrl}/wishlist`, {
@@ -21,17 +22,18 @@ export async function createWish(data: NewWish): Promise<boolean> {
       body: JSON.stringify(data),
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      }
-      throw new Error(`Falha ao criar item de desejo: ${response.statusText}`);
-    }
+    if (!response.ok)
+      throw await createApiError(response, {
+        context: "POST /wishlist",
+        fallback: "Não foi possível adicionar o item à lista de desejos.",
+      });
 
     return true;
   } catch (error) {
-    console.error("Erro ao criar item de desejo:", error);
-    return false;
+    throw createRequestError(error, {
+      context: "POST /wishlist",
+      fallback: "Não foi possível adicionar o item à lista de desejos.",
+    });
   }
 }
 
@@ -70,10 +72,7 @@ export async function deleteWish(id: string | undefined): Promise<boolean> {
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
-  if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
-    return false;
-  }
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
     const response = await fetch(`${backendUrl}/wishlist/${id}`, {
@@ -81,19 +80,18 @@ export async function deleteWish(id: string | undefined): Promise<boolean> {
       headers: createJsonHeaders(token),
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      } else if (response.status === 404) {
-        console.error("Item não encontrado");
-      }
-      throw new Error(`Falha ao deletar item: ${response.statusText}`);
-    }
+    if (!response.ok)
+      throw await createApiError(response, {
+        context: `DELETE /wishlist/${id}`,
+        fallback: "Não foi possível excluir o item da lista de desejos.",
+      });
 
     return true;
   } catch (error) {
-    console.error("Erro ao deletar item:", error);
-    return false;
+    throw createRequestError(error, {
+      context: `DELETE /wishlist/${id}`,
+      fallback: "Não foi possível excluir o item da lista de desejos.",
+    });
   }
 }
 
@@ -143,10 +141,7 @@ export async function updateWish(
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
-  if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
-    return null;
-  }
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
     const formattedWishData = {
@@ -163,21 +158,18 @@ export async function updateWish(
       next: { tags: ["wishlist"] },
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      } else if (response.status === 404) {
-        console.error("Item de desejo não encontrado");
-      }
-      throw new Error(
-        `Falha ao atualizar item de desejo: ${response.statusText}`,
-      );
-    }
+    if (!response.ok)
+      throw await createApiError(response, {
+        context: `PATCH /wishlist/${id}`,
+        fallback: "Não foi possível atualizar o item da lista de desejos.",
+      });
 
     const data: WishListInterface = await response.json();
     return data;
   } catch (error) {
-    console.error("Erro ao atualizar item de desejo:", error);
-    return null;
+    throw createRequestError(error, {
+      context: `PATCH /wishlist/${id}`,
+      fallback: "Não foi possível atualizar o item da lista de desejos.",
+    });
   }
 }

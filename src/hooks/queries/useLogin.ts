@@ -17,7 +17,11 @@ export const useLogin = () => {
       router.refresh();
       toast.success("Login realizado com sucesso!");
     } catch (error) {
-      toast.error("Ocorreu um erro ao fazer login");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível entrar agora. Tente novamente.",
+      );
     } finally {
       setLoading(false);
     }

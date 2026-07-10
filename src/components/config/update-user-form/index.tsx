@@ -45,8 +45,12 @@ export default function UpdateUserForm({ user }: UpdateUserFormProps) {
     try {
       await updateUserAction(data);
       toast.success("Usuário atualizado com sucesso!");
-    } catch {
-      toast.error("Erro ao atualizar usuário");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar seus dados.",
+      );
     }
   };
 

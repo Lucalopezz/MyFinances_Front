@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Bell } from "lucide-react";
+import toast from "react-hot-toast";
 import {
   Popover,
   PopoverContent,
@@ -44,7 +45,11 @@ export const NotificationButton = () => {
     try {
       await markAsRead(id);
     } catch (error) {
-      console.error("Erro ao marcar notificação como lida:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar a notificação.",
+      );
     }
   }
 

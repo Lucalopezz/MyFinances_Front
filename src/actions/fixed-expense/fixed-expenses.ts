@@ -7,6 +7,10 @@ import type {
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import { unstable_noStore as noStore } from "next/cache";
+import {
+  createApiError,
+  createRequestError,
+} from "@/lib/api-error";
 
 export async function createFixedExpense(
   fixedExpense: Omit<FixedExpense, "id">,
@@ -15,7 +19,7 @@ export async function createFixedExpense(
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    throw new Error("Não autorizado - sessão não encontrada");
+    throw new Error("Sua sessão expirou. Entre novamente.");
   }
 
   try {
@@ -25,22 +29,18 @@ export async function createFixedExpense(
       body: JSON.stringify(fixedExpense),
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      }
-
-      const message = await readApiErrorMessage(
-        response,
-        `Falha ao criar despesa fixa: ${response.statusText}`,
-      );
-      throw new Error(message);
-    }
+    if (!response.ok)
+      throw await createApiError(response, {
+        context: "POST /fixed-expenses",
+        fallback: "Não foi possível criar a despesa fixa.",
+      });
 
     return true;
   } catch (error) {
-    console.error("Erro ao criar despesa fixa:", error);
-    throw error;
+    throw createRequestError(error, {
+      context: "POST /fixed-expenses",
+      fallback: "Não foi possível criar a despesa fixa.",
+    });
   }
 }
 
@@ -119,7 +119,7 @@ export async function updateFixedExpense(
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    throw new Error("Não autorizado - sessão não encontrada");
+    throw new Error("Sua sessão expirou. Entre novamente.");
   }
 
   try {
@@ -130,25 +130,19 @@ export async function updateFixedExpense(
       next: { tags: ["fixed-expense"] },
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      } else if (response.status === 404) {
-        console.error("Despesa fixa não encontrada");
-      }
-
-      const message = await readApiErrorMessage(
-        response,
-        `Falha ao atualizar despesa fixa: ${response.statusText}`,
-      );
-      throw new Error(message);
-    }
+    if (!response.ok)
+      throw await createApiError(response, {
+        context: `PATCH /fixed-expenses/${id}`,
+        fallback: "Não foi possível atualizar a despesa fixa.",
+      });
 
     const data: FixedExpense = await response.json();
     return data;
   } catch (error) {
-    console.error("Erro ao atualizar despesa fixa:", error);
-    throw error;
+    throw createRequestError(error, {
+      context: `PATCH /fixed-expenses/${id}`,
+      fallback: "Não foi possível atualizar a despesa fixa.",
+    });
   }
 }
 
@@ -158,10 +152,7 @@ export async function deleteFixedExpense(
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
-  if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
-    return false;
-  }
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
     const response = await fetch(`${backendUrl}/fixed-expenses/${id}`, {
@@ -169,19 +160,18 @@ export async function deleteFixedExpense(
       headers: createJsonHeaders(token),
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      } else if (response.status === 404) {
-        console.error("Despesa fixa não encontrada");
-      }
-      throw new Error(`Falha ao deletar despesa fixa: ${response.statusText}`);
-    }
+    if (!response.ok)
+      throw await createApiError(response, {
+        context: `DELETE /fixed-expenses/${id}`,
+        fallback: "Não foi possível excluir a despesa fixa.",
+      });
 
     return true;
   } catch (error) {
-    console.error("Erro ao deletar despesa fixa:", error);
-    return false;
+    throw createRequestError(error, {
+      context: `DELETE /fixed-expenses/${id}`,
+      fallback: "Não foi possível excluir a despesa fixa.",
+    });
   }
 }
 
@@ -193,7 +183,7 @@ export async function markFixedExpenseAsPaid(
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    throw new Error("Não autorizado - sessão não encontrada");
+    throw new Error("Sua sessão expirou. Entre novamente.");
   }
 
   const response = await fetch(`${backendUrl}/fixed-expenses/${id}/payment`, {
@@ -204,37 +194,17 @@ export async function markFixedExpenseAsPaid(
     }),
   });
 
-  if (!response.ok) {
-    if (response.status === 401) {
-      console.error("Não autorizado - token inválido ou expirado");
-    } else if (response.status === 404) {
-      console.error("Despesa fixa não encontrada");
-    }
-
-    const fallback =
-      response.status === 409
-        ? "A API impediu a criação de uma transação duplicada para esta despesa fixa neste ciclo."
-        : `Falha ao atualizar pagamento da despesa fixa: ${response.statusText}`;
-    const message = await readApiErrorMessage(response, fallback);
-    throw new Error(message);
-  }
+  if (!response.ok)
+    throw await createApiError(response, {
+      context: `PATCH /fixed-expenses/${id}/payment`,
+      fallback:
+        response.status === 409
+          ? "Esta despesa já foi paga neste ciclo."
+          : "Não foi possível atualizar o pagamento da despesa fixa.",
+    });
 
   const data = await response.json();
   return normalizePaymentResult(data);
-}
-
-async function readApiErrorMessage(response: Response, fallback: string) {
-  try {
-    const data = await response.json();
-    return (
-      data?.message ||
-      data?.error ||
-      data?.details ||
-      fallback
-    );
-  } catch {
-    return fallback;
-  }
 }
 
 function normalizePaymentResult(data: unknown): FixedExpensePaymentResult {

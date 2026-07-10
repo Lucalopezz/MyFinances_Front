@@ -34,6 +34,7 @@ export function useCreateTransaction() {
       toast.success("Transação criada com sucesso!");
       invalidateTransactionViews(queryClient);
     },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   return {
@@ -53,6 +54,7 @@ export function useUpdateTransaction() {
       toast.success("Transação atualizada com sucesso!");
       invalidateTransactionViews(queryClient);
     },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   return {

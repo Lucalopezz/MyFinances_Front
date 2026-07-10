@@ -26,6 +26,7 @@ export function useCreateWish() {
       toast.success("Item criado com sucesso!");
       queryClient.invalidateQueries({ queryKey: queryKeys.wishlist.all() });
     },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   return {
@@ -42,6 +43,7 @@ export function useDeleteWish() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.wishlist.all() });
     },
+    onError: (error: Error) => toast.error(error.message),
   });
 
   return {

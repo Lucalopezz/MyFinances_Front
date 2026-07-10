@@ -18,7 +18,7 @@ export function useCreateUser() {
         return await createUserAction(data);
       } catch (error) {
         if (error instanceof Error) throw error;
-        throw new Error("Erro ao criar transição");
+        throw new Error("Não foi possível criar sua conta. Tente novamente.");
       }
     },
     onSuccess: async () => {
@@ -27,7 +27,7 @@ export function useCreateUser() {
       toast.success("Usuário criado com sucesso! Faça o login agora");
     },
     onError: (err: Error) => {
-      setError(err.message || "Algo deu errado");
+      setError(err.message || "Não foi possível criar sua conta. Tente novamente.");
     },
   });
 

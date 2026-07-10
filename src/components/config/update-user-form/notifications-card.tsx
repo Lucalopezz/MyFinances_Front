@@ -69,8 +69,12 @@ export function NotificationsCard({
     try {
       await markAsRead(id);
       toast.success("Notificação marcada como lida");
-    } catch {
-      toast.error("Erro ao atualizar notificação");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar a notificação.",
+      );
     }
   }
 

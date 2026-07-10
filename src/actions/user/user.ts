@@ -2,6 +2,10 @@ import { UpdateUserInput, User } from "@/models/user.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import { unstable_noStore as noStore } from "next/cache";
+import {
+  createApiError,
+  createRequestError,
+} from "@/lib/api-error";
 
 export async function createUser(data: {
   name: string;
@@ -17,14 +21,18 @@ export async function createUser(data: {
       body: JSON.stringify(data),
     });
 
-    if (!response.ok) {
-      throw new Error(`Falha ao criar usuário: ${response.statusText}`);
-    }
+    if (!response.ok)
+      throw await createApiError(response, {
+        context: "POST /user",
+        fallback: "Não foi possível criar sua conta.",
+      });
 
     return await response.json();
   } catch (error) {
-    console.error("Erro ao criar usuário:", error);
-    return null;
+    throw createRequestError(error, {
+      context: "POST /user",
+      fallback: "Não foi possível criar sua conta.",
+    });
   }
 }
 
@@ -63,10 +71,7 @@ export async function updateUser(userData: UpdateUserInput): Promise<boolean> {
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
-  if (!token) {
-    console.error("Não autorizado - sessão não encontrada");
-    return false;
-  }
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
     const response = await fetch(`${backendUrl}/user/update`, {
@@ -76,18 +81,17 @@ export async function updateUser(userData: UpdateUserInput): Promise<boolean> {
       next: { tags: ["users"] },
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      } else if (response.status === 404) {
-        console.error("Usuário não encontrado");
-      }
-      throw new Error(`Falha ao atualizar usuário: ${response.statusText}`);
-    }
+    if (!response.ok)
+      throw await createApiError(response, {
+        context: "PATCH /user/update",
+        fallback: "Não foi possível atualizar seus dados.",
+      });
 
     return true;
   } catch (error) {
-    console.error("Erro ao atualizar usuário:", error);
-    return false;
+    throw createRequestError(error, {
+      context: "PATCH /user/update",
+      fallback: "Não foi possível atualizar seus dados.",
+    });
   }
 }

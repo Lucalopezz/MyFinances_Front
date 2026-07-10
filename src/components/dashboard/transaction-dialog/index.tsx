@@ -121,8 +121,8 @@ export const TransactionDialog = ({
       await onSubmit(payload);
       reset(getInitialValues(transaction));
       onOpenChange(false);
-    } catch (error) {
-      console.error("Erro ao salvar transação:", error);
+    } catch {
+      // A mutation exibe a mensagem pública normalizada pela camada da API.
     }
   };
 

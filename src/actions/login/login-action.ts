@@ -7,6 +7,7 @@ import {
   createJsonHeaders,
   getServerBackendUrl,
 } from "@/lib/backend";
+import { createApiError, createRequestError } from "@/lib/api-error";
 
 type LoginPayload =
   | FormData
@@ -32,16 +33,32 @@ export async function loginAction(payload: LoginPayload) {
   const password = getLoginField(payload, "password");
   const backendUrl = getServerBackendUrl();
 
-  const response = await fetch(`${backendUrl}/auth`, {
-    method: "POST",
-    headers: createJsonHeaders(),
-    body: JSON.stringify({ email, password }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${backendUrl}/auth`, {
+      method: "POST",
+      headers: createJsonHeaders(),
+      body: JSON.stringify({ email, password }),
+    });
+  } catch (error) {
+    throw createRequestError(error, {
+      context: "POST /auth",
+      fallback: "Não foi possível entrar agora. Tente novamente.",
+    });
+  }
+
+  if (!response.ok) {
+    throw await createApiError(response, {
+      context: "POST /auth",
+      fallback: "E-mail ou senha inválidos.",
+    });
+  }
 
   const data = await response.json();
 
-  if (!response.ok || !data?.accessToken) {
-    throw new Error(data?.message ?? "Credenciais inválidas");
+  if (!data?.accessToken) {
+    console.error("[API] POST /auth returned a response without accessToken");
+    throw new Error("Não foi possível entrar agora. Tente novamente.");
   }
 
   (await cookies()).set({
