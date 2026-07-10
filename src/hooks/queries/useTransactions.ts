@@ -7,7 +7,7 @@ import { createTransactionAction } from "@/actions/transaction/create-transactio
 import { deleteTransactionAction } from "@/actions/transaction/delete-transaction-action";
 import { getTransactions } from "@/actions/transaction/transactions";
 import { updateTransactionAction } from "@/actions/transaction/update-transaction-action";
-import type { Transaction } from "@/models/transaction.model";
+import type { PaginatedTransactions } from "@/models/transaction.model";
 import { queryKeys } from "@/hooks/queries/query-keys";
 
 function invalidateTransactionViews(
@@ -17,10 +17,13 @@ function invalidateTransactionViews(
   queryClient.invalidateQueries({ queryKey: ["dashboard"] });
 }
 
-export function useTransactions(initialData?: Transaction[]) {
+export function useTransactions(
+  page: number,
+  initialData?: PaginatedTransactions,
+) {
   return useQuery({
-    queryKey: queryKeys.transactions.all(),
-    queryFn: getTransactions,
+    queryKey: queryKeys.transactions.page(page),
+    queryFn: () => getTransactions(page),
     initialData,
   });
 }

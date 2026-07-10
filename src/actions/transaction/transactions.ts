@@ -1,6 +1,9 @@
 "use server";
 
-import type { Transaction } from "@/models/transaction.model";
+import type {
+  PaginatedTransactions,
+  Transaction,
+} from "@/models/transaction.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import { unstable_noStore as noStore } from "next/cache";
@@ -39,18 +42,40 @@ export async function createTransaction(
   }
 }
 
-export async function getTransactions(): Promise<Transaction[]> {
+const TRANSACTIONS_PER_PAGE = 50;
+
+function emptyTransactionsPage(page: number): PaginatedTransactions {
+  return {
+    data: [],
+    meta: {
+      page,
+      limit: TRANSACTIONS_PER_PAGE,
+      total: 0,
+      totalPages: 0,
+    },
+  };
+}
+
+export async function getTransactions(
+  page = 1,
+): Promise<PaginatedTransactions> {
   noStore();
+
+  const normalizedPage = Number.isInteger(page) && page > 0 ? page : 1;
 
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    return [];
+    return emptyTransactionsPage(normalizedPage);
   }
 
   try {
-    const response = await fetch(`${backendUrl}/transactions`, {
+    const searchParams = new URLSearchParams({
+      page: String(normalizedPage),
+      limit: String(TRANSACTIONS_PER_PAGE),
+    });
+    const response = await fetch(`${backendUrl}/transactions?${searchParams}`, {
       headers: createJsonHeaders(token),
       cache: "no-store",
       next: { tags: ["transactions"] },
@@ -60,13 +85,13 @@ export async function getTransactions(): Promise<Transaction[]> {
       if (response.status === 401) {
         console.error("Não autorizado - sessão expirada");
       }
-      return [];
+      return emptyTransactionsPage(normalizedPage);
     }
 
     return await response.json();
   } catch (error) {
-    console.error("Erro:", error);
-    return [];
+    console.error("Erro ao buscar transações:", error);
+    return emptyTransactionsPage(normalizedPage);
   }
 }
 

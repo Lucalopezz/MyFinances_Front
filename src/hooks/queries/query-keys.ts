@@ -17,6 +17,7 @@ export const queryKeys = {
   },
   transactions: {
     all: () => ["transactions"],
+    page: (page: number) => ["transactions", "page", page],
     detail: (id: string) => ["transactions", id],
   },
   user: {

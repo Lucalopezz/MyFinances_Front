@@ -154,26 +154,42 @@ Resposta:
 
 ### `GET /transactions`
 
-Lista as transações do usuário.
+Lista as transações do usuário com paginação.
 
-Entrada: não possui body.
+Query params opcionais:
+
+- `page`: página solicitada (inteiro positivo; padrão: `1`).
+- `limit`: quantidade de itens por página (inteiro positivo; padrão: `20`).
+
+O front-end solicita `limit=50`. A paginação é feita pela API, enquanto os
+filtros da listagem são aplicados localmente somente aos itens da página atual.
+Para períodos que não estejam integralmente na página carregada, a interface
+oferece a opção de exportação em PDF (integração ainda não implementada).
 
 Resposta:
 
 ```json
-[
-  {
-    "id": "64f000000000000000000010",
-    "value": 120.5,
-    "date": "2026-07-06T00:00:00.000Z",
-    "category": "FOOD",
-    "description": "Mercado",
-    "type": "EXPENSE",
-    "createdAt": "2026-07-06T12:00:00.000Z",
-    "updatedAt": "2026-07-06T12:00:00.000Z",
-    "userId": "64f000000000000000000001"
+{
+  "data": [
+    {
+      "id": "64f000000000000000000010",
+      "value": 120.5,
+      "date": "2026-07-06T00:00:00.000Z",
+      "category": "FOOD",
+      "description": "Mercado",
+      "type": "EXPENSE",
+      "createdAt": "2026-07-06T12:00:00.000Z",
+      "updatedAt": "2026-07-06T12:00:00.000Z",
+      "userId": "64f000000000000000000001"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 50,
+    "total": 248,
+    "totalPages": 5
   }
-]
+}
 ```
 
 ### `GET /transactions/:id`

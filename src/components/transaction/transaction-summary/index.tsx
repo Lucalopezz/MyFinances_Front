@@ -1,30 +1,36 @@
 "use client";
 import { useState } from "react";
 import { TransactionDialog } from "@/components/dashboard/transaction-dialog";
-import type { Transaction } from "@/models/transaction.model";
+import type {
+  PaginatedTransactions,
+  Transaction,
+} from "@/models/transaction.model";
 import { useCreateTransaction } from "@/hooks/queries/useCreateTransaction";
 import SummaryCard from "@/components/summary-card";
 import { formatCurrency } from "@/utils/formatters";
 import { useTransactions } from "@/hooks/queries/useTransactions";
 
 interface TransactionSummaryProps {
-  transactions: Transaction[];
+  transactions: PaginatedTransactions;
+  page: number;
   onTransactionAdded?: (transaction: Transaction) => void;
 }
 
 export function TransactionSummary({
   transactions,
+  page,
   onTransactionAdded,
 }: TransactionSummaryProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { createTransactionAsync, isLoading } = useCreateTransaction();
-  const { data: currentTransactions = [] } = useTransactions(transactions);
+  const { data: currentTransactions } = useTransactions(page, transactions);
+  const pageTransactions = currentTransactions?.data ?? [];
 
-  const totalIncome = currentTransactions
+  const totalIncome = pageTransactions
     .filter((t) => t.type === "INCOME")
     .reduce((sum, t) => sum + t.value, 0);
 
-  const totalExpense = currentTransactions
+  const totalExpense = pageTransactions
     .filter((t) => t.type === "EXPENSE")
     .reduce((sum, t) => sum + t.value, 0);
 
@@ -69,7 +75,12 @@ export function TransactionSummary({
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Resumo Financeiro</h2>
+        <div>
+          <h2 className="text-2xl font-bold">Últimas Transações</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Calculado sobre as 50 últimas transações.
+          </p>
+        </div>
         <TransactionDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}

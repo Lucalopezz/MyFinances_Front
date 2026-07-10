@@ -15,6 +15,18 @@ export type Transaction = {
   userId?: string;
 };
 
+export type TransactionPaginationMeta = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type PaginatedTransactions = {
+  data: Transaction[];
+  meta: TransactionPaginationMeta;
+};
+
 export type TransactionFormValues = {
   type: TransactionType;
   value: number;
