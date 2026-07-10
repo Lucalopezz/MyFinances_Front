@@ -167,6 +167,7 @@ Quando um endpoint mudar:
 - Antes de criar uma nova abstracao, verifique se ja existe algo semelhante.
 - Se encontrar documentacao desatualizada, atualize junto com a mudanca.
 - Se nao conseguir validar algo por falta de API, dependencia ou ambiente, informe isso claramente.
+- Siga o padrao de tratamento de erros e mensagens de feedback ja existentes.
 
 ## Antes de Finalizar
 
