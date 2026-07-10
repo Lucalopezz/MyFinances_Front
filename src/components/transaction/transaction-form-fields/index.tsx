@@ -8,7 +8,6 @@ import type {
   UseFormSetValue,
 } from "react-hook-form";
 import { Controller, useWatch } from "react-hook-form";
-import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,6 +26,7 @@ import {
   type TransactionCategory,
 } from "@/constants/transaction-categories";
 import type { TransactionFormValues } from "@/models/transaction.model";
+import { parseDateOnly, toDateInputValue } from "@/utils/date";
 
 type TransactionFormFieldsProps = {
   control: Control<TransactionFormValues>;
@@ -178,9 +178,9 @@ export function TransactionFormFields({
               <Input
                 id="date"
                 type="date"
-                value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
+                value={field.value ? toDateInputValue(field.value) : ""}
                 onChange={(event) =>
-                  field.onChange(new Date(event.target.value))
+                  field.onChange(parseDateOnly(event.target.value))
                 }
                 className={cn(
                   "border-slate-300 bg-white text-slate-900 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100",

@@ -212,8 +212,8 @@ export async function getSixMonthComparison(): Promise<
     const endDate = new Date(targetYear, targetMonth + 1, 0);
 
     return {
-      startDate: startDate.toISOString().split("T")[0],
-      endDate: endDate.toISOString().split("T")[0],
+      startDate: formatDateParam(startDate),
+      endDate: formatDateParam(endDate),
       label: new Date(targetYear, targetMonth, 1).toLocaleDateString("pt-BR", {
         month: "short",
         year: "numeric",

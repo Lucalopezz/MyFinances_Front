@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getWish } from "@/actions/wishlist/wishlist";
 import { updateWishAction } from "@/actions/wishlist/update-wish-action";
 import type { WishListInterface } from "@/models/wishlist.model";
+import { toDateInputValue } from "@/utils/date";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -43,7 +44,7 @@ export default async function EditWishPage({
   }
 
   const formattedDate = wish.targetDate
-    ? new Date(wish.targetDate).toISOString().split("T")[0]
+    ? toDateInputValue(wish.targetDate)
     : "";
 
   return (

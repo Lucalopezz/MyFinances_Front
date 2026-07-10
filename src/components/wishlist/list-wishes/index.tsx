@@ -9,6 +9,7 @@ import { ResponsiveList } from "@/components/common/responsive-list";
 import { RowActions } from "@/components/common/row-actions";
 import { StatusBadge } from "@/components/common/status-badge";
 import { formatCurrency, formatShortDate } from "@/utils/formatters";
+import { toDateInputValue } from "@/utils/date";
 
 interface WishListProps {
   wishListItems: WishListInterface[];
@@ -182,7 +183,7 @@ function getProgressPercentage(item: WishListInterface) {
 }
 
 function isWishTargetDatePassed(item: WishListInterface) {
-  return new Date(item.targetDate) < new Date();
+  return toDateInputValue(item.targetDate) < toDateInputValue(new Date());
 }
 
 function getWishEditId(item: WishListInterface) {

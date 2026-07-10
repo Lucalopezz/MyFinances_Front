@@ -8,6 +8,7 @@ import {
   createApiError,
   createRequestError,
 } from "@/lib/api-error";
+import { toDateInputValue } from "@/utils/date";
 
 export async function createWish(data: NewWish): Promise<boolean> {
   const token = await getServerToken();
@@ -19,7 +20,10 @@ export async function createWish(data: NewWish): Promise<boolean> {
     const response = await fetch(`${backendUrl}/wishlist`, {
       method: "POST",
       headers: createJsonHeaders(token),
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        targetDate: toDateInputValue(data.targetDate),
+      }),
     });
 
     if (!response.ok)
@@ -147,7 +151,7 @@ export async function updateWish(
     const formattedWishData = {
       name: wishData.name,
       desiredValue: wishData.desiredValue,
-      targetDate: new Date(wishData.targetDate),
+      targetDate: wishData.targetDate,
       savedAmount: wishData.savedAmount,
     };
 

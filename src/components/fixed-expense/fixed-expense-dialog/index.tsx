@@ -37,6 +37,7 @@ import {
   FIXED_EXPENSE_CATEGORIES,
 } from "@/constants/transaction-categories";
 import type { FixedExpense } from "@/models/fixed-expense.model";
+import { toDateInputValue } from "@/utils/date";
 
 interface FixedExpenseDialogProps {
   setOpen: (open: boolean) => void;
@@ -59,8 +60,8 @@ function getInitialValues(fixedExpense?: FixedExpense): FormData {
     amount: fixedExpense?.amount ?? 0,
     category: fixedExpense?.category ?? "UTILITIES",
     dueDate: fixedExpense?.dueDate
-      ? new Date(fixedExpense.dueDate).toISOString().split("T")[0]
-      : tomorrow.toISOString().split("T")[0],
+      ? toDateInputValue(fixedExpense.dueDate)
+      : toDateInputValue(tomorrow),
     recurrence: fixedExpense?.recurrence ?? "MONTHLY",
   };
 }

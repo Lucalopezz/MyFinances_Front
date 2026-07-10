@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { NewWish, WishSchema } from "@/models/wishlist.model";
 import { DialogFormActions } from "@/components/common/dialog-form-actions";
+import { parseDateOnly } from "@/utils/date";
 
 type WishDialogProps = {
   open: boolean;
@@ -120,7 +121,7 @@ export const WishDialog = ({
                 id="targetDate"
                 type="date"
                 {...register("targetDate", {
-                  setValueAs: (v) => new Date(v),
+                  setValueAs: (v) => parseDateOnly(v),
                 })}
                 className={cn(
                   "bg-[#364152] border-none text-white",

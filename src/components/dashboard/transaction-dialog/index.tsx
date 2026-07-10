@@ -26,6 +26,7 @@ import type {
   Transaction,
   TransactionFormValues,
 } from "@/models/transaction.model";
+import { parseDateOnly } from "@/utils/date";
 
 export type { Transaction } from "@/models/transaction.model";
 
@@ -56,7 +57,7 @@ function getInitialValues(transaction?: Transaction): TransactionFormValues {
   return {
     type,
     value: transaction?.value ?? 0,
-    date: transaction?.date ? new Date(transaction.date) : new Date(),
+    date: transaction?.date ? parseDateOnly(transaction.date) : new Date(),
     category: categories.includes(category as TransactionCategory)
       ? (category as TransactionCategory)
       : fallbackCategory,

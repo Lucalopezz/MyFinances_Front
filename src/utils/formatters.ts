@@ -1,3 +1,5 @@
+import { parseDateOnly } from "@/utils/date";
+
 export const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -15,7 +17,7 @@ export const formatSignedCurrency = (
 export const formatShortDate = (value?: string | Date): string => {
   if (!value) return "-";
 
-  const date = value instanceof Date ? value : new Date(value);
+  const date = value instanceof Date ? value : parseDateOnly(value);
 
   if (Number.isNaN(date.getTime())) {
     return "-";
