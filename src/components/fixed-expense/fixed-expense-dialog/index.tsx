@@ -52,13 +52,15 @@ const formSchema = z.object({
 });
 
 function getInitialValues(fixedExpense?: FixedExpense): FormData {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
   return {
     name: fixedExpense?.name ?? "",
     amount: fixedExpense?.amount ?? 0,
     category: fixedExpense?.category ?? "UTILITIES",
     dueDate: fixedExpense?.dueDate
       ? new Date(fixedExpense.dueDate).toISOString().split("T")[0]
-      : new Date().toISOString().split("T")[0],
+      : tomorrow.toISOString().split("T")[0],
     recurrence: fixedExpense?.recurrence ?? "MONTHLY",
   };
 }
