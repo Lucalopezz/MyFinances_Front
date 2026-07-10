@@ -41,7 +41,7 @@ export function useMarkAsRead() {
     },
   });
   return {
-    markAsRead: mutation.mutate,
+    markAsRead: mutation.mutateAsync,
     isLoading: mutation.isPending,
   };
 }

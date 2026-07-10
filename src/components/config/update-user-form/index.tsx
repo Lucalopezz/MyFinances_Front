@@ -1,32 +1,35 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { FormInput } from "@/components/form/form-input";
-import { PasswordInput } from "@/components/form/password-input";
-import {
-  UpdateUserInput,
-  updateUserSchema,
-  User,
-} from "@/models/user.model";
+import { useTheme } from "next-themes";
+import { Settings, ShieldCheck } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { updateUserAction } from "@/actions/user/update-user-action";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
 
-interface FormData {
-  name: string;
-  password: string;
-  confirmPassword: string;
-}
+import { Badge } from "@/components/ui/badge";
+import {
+  type UpdateUserInput,
+  updateUserSchema,
+  type User,
+} from "@/models/user.model";
+import { updateUserAction } from "@/actions/user/update-user-action";
+
+import { AccountCard } from "./account-card";
+import { NotificationsCard } from "./notifications-card";
+import { PreferencesCard } from "./preferences-card";
+
 interface UpdateUserFormProps {
   user: User;
 }
 
+const PREFERENCES_STORAGE_KEY = "mf_display_preferences";
+
 export default function UpdateUserForm({ user }: UpdateUserFormProps) {
-  const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [compactMode, setCompactMode] = useState(false);
+  const [showReadNotifications, setShowReadNotifications] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const {
     register,
     handleSubmit,
@@ -42,67 +45,97 @@ export default function UpdateUserForm({ user }: UpdateUserFormProps) {
     try {
       await updateUserAction(data);
       toast.success("Usuário atualizado com sucesso!");
-      router.push("/");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao atualizar usuário");
     }
   };
 
+  useEffect(() => {
+    const preferences = localStorage.getItem(PREFERENCES_STORAGE_KEY);
+
+    if (preferences) {
+      try {
+        const parsed = JSON.parse(preferences) as {
+          compactMode?: boolean;
+          showReadNotifications?: boolean;
+        };
+        setCompactMode(Boolean(parsed.compactMode));
+        setShowReadNotifications(Boolean(parsed.showReadNotifications));
+      } catch {
+        localStorage.removeItem(PREFERENCES_STORAGE_KEY);
+      }
+    }
+
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ compactMode, showReadNotifications }),
+    );
+  }, [compactMode, mounted, showReadNotifications]);
+
   return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-md mx-auto rounded-lg shadow-md p-6 bg-gray-800/60">
-        <div className="flex items-center mb-6">
-          <Link href="/dashboard">
-            <Button variant="ghost" size="icon" className="hover:bg-gray-100">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h1 className="text-xl font-semibold ml-2">Configurações</h1>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <ConfigHeader />
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.95fr)]">
+        <div className="flex flex-col gap-6">
+          <AccountCard
+            errors={errors}
+            handleSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            onSubmit={onSubmit}
+            register={register}
+            user={user}
+          />
+
+          <PreferencesCard
+            compactMode={compactMode}
+            setCompactMode={setCompactMode}
+            setShowReadNotifications={setShowReadNotifications}
+            setTheme={setTheme}
+            showReadNotifications={showReadNotifications}
+            theme={theme}
+          />
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <FormInput
-            label="Nome"
-            register={register("name", {
-              required: "Nome é obrigatório",
-              minLength: { value: 3, message: "Mínimo 3 caracteres" },
-              maxLength: { value: 50, message: "Máximo 50 caracteres" },
-            })}
-            error={errors.name?.message}
-          />
+        <NotificationsCard
+          compactMode={compactMode}
+          showReadNotifications={showReadNotifications}
+        />
+      </div>
+    </div>
+  );
+}
 
-          <PasswordInput
-            label="Nova Senha"
-            register={register("password", {
-              minLength: { value: 8, message: "Mínimo 8 caracteres" },
-              maxLength: { value: 128, message: "Máximo 128 caracteres" },
-            })}
-            error={errors.password?.message}
-          />
-
-          <PasswordInput
-            label="Confirmar Nova Senha"
-            register={register("confirmPassword", {
-              minLength: { value: 8, message: "Mínimo 8 caracteres" },
-              maxLength: { value: 128, message: "Máximo 128 caracteres" },
-            })}
-            error={errors.confirmPassword?.message}
-          />
-
-          <div className="flex justify-end space-x-3 pt-6">
-            <Link href="/dashboard">
-              <Button variant="outline" type="button">
-                Cancelar
-              </Button>
-            </Link>
-            <Button
-              type="submit"
-              className="bg-emerald-600 hover:bg-emerald-700"
-            >
-              Salvar
-            </Button>
-          </div>
-        </form>
+function ConfigHeader() {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+        <Settings className="size-4" />
+        Preferências da conta
+      </div>
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-normal text-gray-900 dark:text-white">
+            Configurações
+          </h1>
+          <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+            Gerencie seus dados de acesso, preferências de exibição e
+            notificações abertas.
+          </p>
+        </div>
+        <Badge
+          variant="outline"
+          className="gap-2 border-blue-200 bg-blue-50 px-3 py-1.5 text-blue-700 dark:border-blue-800/60 dark:bg-blue-800/50 dark:text-blue-300"
+        >
+          <ShieldCheck className="size-3.5 text-blue-600 dark:text-blue-300" />
+          Sessão protegida
+        </Badge>
       </div>
     </div>
   );
