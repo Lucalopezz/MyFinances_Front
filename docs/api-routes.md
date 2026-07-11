@@ -164,7 +164,8 @@ Query params opcionais:
 O front-end solicita `limit=50`. A paginação é feita pela API, enquanto os
 filtros da listagem são aplicados localmente somente aos itens da página atual.
 Para períodos que não estejam integralmente na página carregada, a interface
-oferece a opção de exportação em PDF (integração ainda não implementada).
+oferece a opção de exportação em PDF. A exportação é assíncrona e inclui todas
+as transações do usuário quando nenhum filtro opcional é enviado.
 
 Resposta:
 
@@ -259,6 +260,61 @@ Resposta:
   "message": "Deletado com sucesso!"
 }
 ```
+
+---
+
+## Exports
+
+Todas as rotas de exportação são protegidas.
+
+### `POST /exports/transactions`
+
+Cria uma exportação assíncrona de transações e retorna `202 Accepted`.
+
+Filtros opcionais no body:
+
+```json
+{
+  "startDate": "2026-07-01",
+  "endDate": "2026-07-31",
+  "categoryId": "FOOD",
+  "type": "EXPENSE"
+}
+```
+
+Quando nenhum filtro é enviado, todas as transações do usuário são incluídas.
+A resposta deve identificar a exportação criada, por exemplo:
+
+```json
+{
+  "id": "export-id",
+  "status": "PENDING",
+  "progress": 0
+}
+```
+
+### `GET /exports/status`
+
+Consulta o status, o progresso e um eventual erro seguro da exportação mais
+recente do usuário autenticado.
+
+Resposta esperada:
+
+```json
+{
+  "id": "export-id",
+  "status": "PROCESSING",
+  "progress": 50,
+  "error": null
+}
+```
+
+Os status usados pelo front são `PENDING`, `PROCESSING`, `COMPLETED` e
+`FAILED`.
+
+### `GET /exports/:id/download`
+
+Baixa o PDF da exportação quando o status for `COMPLETED`.
 
 ---
 

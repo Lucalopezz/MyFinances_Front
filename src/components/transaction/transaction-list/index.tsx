@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { FileDown, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 import type {
   PaginatedTransactions,
@@ -33,6 +33,7 @@ import { MobileListCard } from "@/components/common/mobile-list-card";
 import { ResponsiveList } from "@/components/common/responsive-list";
 import { StatusBadge } from "@/components/common/status-badge";
 import { formatShortDate, formatSignedCurrency } from "@/utils/formatters";
+import { TransactionExport } from "../transaction-export";
 
 interface TransactionListProps {
   transactions: PaginatedTransactions;
@@ -95,18 +96,11 @@ export function TransactionList({ transactions, page }: TransactionListProps) {
             página.
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Caso queira ver todas as transações, exporte o relatório em PDF (em breve).
+            A exportação em PDF inclui todas as suas transações, não apenas as
+            exibidas nesta página.
           </p>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          disabled
-          title="A exportação em PDF estará disponível em breve"
-        >
-          <FileDown aria-hidden="true" />
-          Exportar PDF (em breve)
-        </Button>
+        <TransactionExport />
       </div>
 
       <div className="grid gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900 md:grid-cols-2 xl:grid-cols-5">
