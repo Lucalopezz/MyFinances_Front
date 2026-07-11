@@ -61,7 +61,7 @@ const SummaryCards = ({
     },
     {
       title: "Economia do mês",
-      subtitle: "Taxa retornada pela API",
+      subtitle: "Taxa de economia mensal",
       content: formatPercentage(economyRate),
       className:
         "bg-purple-50 dark:bg-purple-800/50 border-purple-100 dark:border-purple-800/50",
