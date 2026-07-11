@@ -50,6 +50,9 @@ export function TransactionList({ transactions, page }: TransactionListProps) {
     page,
     transactions,
   );
+  const currentPageTransactions = Array.isArray(currentTransactions?.data)
+    ? currentTransactions.data
+    : [];
   const { deleteTransaction } = useDeleteTransaction();
   const hasFilters = Boolean(
     search || type !== "ALL" || category !== "ALL" || startDate || endDate,
@@ -57,7 +60,7 @@ export function TransactionList({ transactions, page }: TransactionListProps) {
   const filteredTransactions = useMemo(() => {
     const normalizedSearch = normalizeSearch(search);
 
-    return currentTransactions.data.filter((transaction) => {
+    return currentPageTransactions.filter((transaction) => {
       const categoryLabel =
         CATEGORY_LABELS[transaction.category as keyof typeof CATEGORY_LABELS] ??
         transaction.category;
@@ -74,7 +77,7 @@ export function TransactionList({ transactions, page }: TransactionListProps) {
         (!endDate || transactionDate <= endDate)
       );
     });
-  }, [category, currentTransactions.data, endDate, search, startDate, type]);
+  }, [category, currentPageTransactions, endDate, search, startDate, type]);
 
   const clearFilters = () => {
     setSearch("");
@@ -206,7 +209,7 @@ export function TransactionList({ transactions, page }: TransactionListProps) {
         className="text-sm text-gray-500 dark:text-gray-400"
         aria-live="polite"
       >
-        {filteredTransactions.length} de {currentTransactions.data.length}{" "}
+        {filteredTransactions.length} de {currentPageTransactions.length}{" "}
         transações exibidas nesta página
       </p>
 

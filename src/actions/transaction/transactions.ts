@@ -56,6 +56,74 @@ function emptyTransactionsPage(page: number): PaginatedTransactions {
   };
 }
 
+function normalizeTransactionsResponse(
+  responseData: unknown,
+  page: number,
+): PaginatedTransactions {
+  if (Array.isArray(responseData)) {
+    return {
+      data: responseData as Transaction[],
+      meta: {
+        page,
+        limit: TRANSACTIONS_PER_PAGE,
+        total: responseData.length,
+        totalPages: responseData.length > 0 ? 1 : 0,
+      },
+    };
+  }
+
+  if (!responseData || typeof responseData !== "object") {
+    return emptyTransactionsPage(page);
+  }
+
+  const response = responseData as {
+    data?: unknown;
+    meta?: {
+      page?: unknown;
+      limit?: unknown;
+      total?: unknown;
+      totalPages?: unknown;
+    };
+  };
+  const data = Array.isArray(response.data)
+    ? (response.data as Transaction[])
+    : [];
+  const limit =
+    typeof response.meta?.limit === "number" &&
+    Number.isInteger(response.meta.limit) &&
+    response.meta.limit > 0
+      ? response.meta.limit
+      : TRANSACTIONS_PER_PAGE;
+  const total =
+    typeof response.meta?.total === "number" &&
+    Number.isInteger(response.meta.total) &&
+    response.meta.total >= 0
+      ? response.meta.total
+      : data.length;
+
+  return {
+    data,
+    meta: {
+      page:
+        typeof response.meta?.page === "number" &&
+        Number.isInteger(response.meta.page) &&
+        response.meta.page > 0
+          ? response.meta.page
+          : page,
+      limit,
+      total,
+      totalPages:
+        typeof response.meta?.totalPages === "number" &&
+        Number.isInteger(response.meta.totalPages) &&
+        response.meta.totalPages >= 0
+          ? response.meta.totalPages
+          : total > 0
+            ? Math.ceil(total / limit)
+            : 0,
+    },
+  };
+}
+
 export async function getTransactions(
   page = 1,
 ): Promise<PaginatedTransactions> {
@@ -88,7 +156,7 @@ export async function getTransactions(
       return emptyTransactionsPage(normalizedPage);
     }
 
-    return await response.json();
+    return normalizeTransactionsResponse(await response.json(), normalizedPage);
   } catch (error) {
     console.error("Erro ao buscar transações:", error);
     return emptyTransactionsPage(normalizedPage);
