@@ -146,6 +146,7 @@ export const TransactionDialog = ({
       <DialogContent
         className={cn(
           "sm:max-w-[680px]",
+          "max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain sm:max-h-[calc(100dvh-4rem)]",
           "border-slate-200 bg-white text-slate-900 shadow-2xl",
           "dark:border-slate-800 dark:bg-slate-950 dark:text-slate-50",
           "rounded-2xl",
