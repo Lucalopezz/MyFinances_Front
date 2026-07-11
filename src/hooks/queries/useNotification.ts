@@ -1,55 +1,47 @@
-import { NotificationInterface } from "@/interfaces/notification.interface";
-import api from "@/utils/api";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import { queryClient } from "../useQueryClient";
+import { NotificationInterface } from "@/models/notification.model";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  getNotifications,
+  markNotificationAsRead,
+} from "@/actions/notification/notifications";
+import { queryKeys } from "@/hooks/queries/query-keys";
 
 async function fetchNotification(): Promise<NotificationInterface[]> {
   try {
-    const response = await api.get<NotificationInterface[]>("/notifications");
-    return response.data;
+    return await getNotifications();
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message);
-    }
-    throw new Error("Erro ao buscar dados do dashboard");
+    if (error instanceof Error) throw error;
+    throw new Error("Não foi possível carregar as notificações.");
   }
 }
 
 export function useGetNotifications() {
   return useQuery<NotificationInterface[], Error>({
-    queryKey: ["notifications"],
+    queryKey: queryKeys.notifications.all(),
     queryFn: () => fetchNotification(),
   });
 }
 
 export function useMarkAsRead() {
+  const queryClient = useQueryClient();
+
   const mutation = useMutation({
     mutationFn: async (id: NotificationInterface["id"]) => {
-      const read = {
-        read: true,
-      };
       try {
-        const response = await api.patch(
-          `/notifications/${id}/mark-as-read`,
-          read,
-        );
-        return response.data;
+        return await markNotificationAsRead(id);
       } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-          throw new Error(error.response.data.message || "Erro ao editar");
-        }
-        throw new Error("Erro ao editar");
+        if (error instanceof Error) throw error;
+        throw new Error("Não foi possível atualizar a notificação.");
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["notifications"],
+        queryKey: queryKeys.notifications.all(),
       });
     },
   });
   return {
-    markAsRead: mutation.mutate,
+    markAsRead: mutation.mutateAsync,
     isLoading: mutation.isPending,
   };
 }

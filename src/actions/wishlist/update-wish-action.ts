@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { updateWish } from "@/services/wishlist.service";
+import { updateWish } from "@/actions/wishlist/wishlist";
 
 export async function updateWishAction(formData: FormData) {
   const id = formData.get("id") as string;

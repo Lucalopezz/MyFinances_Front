@@ -1,15 +1,47 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
-import { markFixedExpenseAsPaid } from "@/services/fixed-expenses.service";
+import { markFixedExpenseAsPaid } from "@/actions/fixed-expense/fixed-expenses";
 
-export async function markFixedExpenseAsPaidAction(formData: FormData) {
-  const id = formData.get("id") as string;
-  const dueDate = formData.get("dueDate") as string;
-  const success = await markFixedExpenseAsPaid(id, dueDate);
+type MarkFixedExpenseAsPaidPayload =
+  | FormData
+  | {
+      id: string;
+      isPaid: boolean;
+    };
 
-  if (success) {
-    revalidatePath("/fixed-expenses");
+function isFormData(
+  payload: MarkFixedExpenseAsPaidPayload,
+): payload is FormData {
+  return typeof (payload as FormData).get === "function";
+}
+
+export async function markFixedExpenseAsPaidAction(
+  payload: MarkFixedExpenseAsPaidPayload,
+) {
+  const id = isFormData(payload) ? (payload.get("id") as string) : payload.id;
+  const isPaid = isFormData(payload)
+    ? payload.get("isPaid") === "true"
+    : payload.isPaid;
+
+  if (!id) {
+    throw new Error("ID da despesa fixa não fornecido");
   }
+
+  const result = await markFixedExpenseAsPaid(id, isPaid);
+
+  revalidateTag("fixed-expenses");
+  revalidateTag("fixed-expense");
+  revalidateTag("transactions");
+  revalidateTag("transaction");
+  revalidateTag("dashboard");
+  revalidateTag("monthlyComparison");
+  revalidateTag("sixMonthComparison");
+  revalidatePath("/fixed-expenses");
+  revalidatePath("/transactions");
+  revalidatePath("/");
+  revalidatePath("/comparative");
+
+  return result;
 }

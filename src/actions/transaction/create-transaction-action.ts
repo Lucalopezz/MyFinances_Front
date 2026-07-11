@@ -2,8 +2,8 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { createTransaction } from "@/services/transactions.service";
-import type { Transaction } from "@/components/transaction/transaction.types";
+import { createTransaction } from "@/actions/transaction/transactions";
+import type { Transaction } from "@/models/transaction.model";
 
 export async function createTransactionAction(transaction: Transaction) {
   const created = await createTransaction(transaction);
@@ -15,7 +15,10 @@ export async function createTransactionAction(transaction: Transaction) {
   revalidateTag("transactions");
   revalidateTag("dashboard");
   revalidateTag("monthlyComparison");
+  revalidateTag("sixMonthComparison");
   revalidatePath("/transactions");
+  revalidatePath("/");
+  revalidatePath("/comparative");
 
   return created;
 }

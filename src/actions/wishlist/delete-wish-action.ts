@@ -1,13 +1,16 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
-import { deleteWish } from "@/services/wishlist.service";
+import { deleteWish } from "@/actions/wishlist/wishlist";
 
 export async function deleteWishAction(id: string | undefined) {
   const success = await deleteWish(id);
 
-  if (success) {
-    revalidatePath("/wishlist");
+  if (!success) {
+    throw new Error("Falha ao excluir item de desejo");
   }
+
+  revalidateTag("wishlist");
+  revalidatePath("/wishlist");
 }

@@ -1,11 +1,10 @@
 import { RegisterFormData } from "@/schemas/auth/register.schema";
-import api from "@/utils/api";
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { createUserAction } from "@/actions/user/create-user-action";
 
 type RegisterDataWithoutConfirm = Omit<RegisterFormData, "confirmPassword">;
 
@@ -16,16 +15,10 @@ export function useCreateUser() {
   const mutation = useMutation({
     mutationFn: async (data: RegisterDataWithoutConfirm) => {
       try {
-        const response = await api.post("/user", data);
-
-        return response.data;
-      } catch (error: any) {
-        if (axios.isAxiosError(error) && error.response) {
-          throw new Error(
-            error.response.data.message || "Erro ao criar transição"
-          );
-        }
-        throw new Error("Erro ao criar transição");
+        return await createUserAction(data);
+      } catch (error) {
+        if (error instanceof Error) throw error;
+        throw new Error("Não foi possível criar sua conta. Tente novamente.");
       }
     },
     onSuccess: async () => {
@@ -34,7 +27,7 @@ export function useCreateUser() {
       toast.success("Usuário criado com sucesso! Faça o login agora");
     },
     onError: (err: Error) => {
-      setError(err.message || "Algo deu errado");
+      setError(err.message || "Não foi possível criar sua conta. Tente novamente.");
     },
   });
 

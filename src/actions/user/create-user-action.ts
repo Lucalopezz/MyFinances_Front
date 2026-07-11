@@ -1,6 +1,6 @@
 "use server";
 
-import { createUser } from "@/services/config.service";
+import { createUser } from "@/actions/user/user";
 
 export async function createUserAction(data: {
   name: string;

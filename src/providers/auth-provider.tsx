@@ -1,57 +1,62 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { logoutAction } from "@/actions/login/logout-action";
-import { setClientAuthToken } from "@/lib/client-auth";
+import { SESSION_EXPIRED_EVENT } from "@/lib/client-auth";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
 interface AuthContextValue {
-  jwt: string | null;
   status: AuthStatus;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({
-  children,
-  initialJwt,
-}: {
-  children: React.ReactNode;
-  initialJwt: string | null;
-}) {
-  const [jwt, setJwt] = useState<string | null>(initialJwt);
-  const [status, setStatus] = useState<AuthStatus>(
-    initialJwt ? "authenticated" : "unauthenticated",
-  );
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [status, setStatus] = useState<AuthStatus>("authenticated");
   const router = useRouter();
+  const pathname = usePathname();
+  const isEndingSessionRef = useRef(false);
 
-  useEffect(() => {
-    setClientAuthToken(jwt);
-  }, [jwt]);
+  const endSession = useCallback(async () => {
+    if (isEndingSessionRef.current) return;
+    if (status === "unauthenticated" && pathname === "/login") return;
 
-  useEffect(() => {
-    setJwt(initialJwt);
-    setStatus(initialJwt ? "authenticated" : "unauthenticated");
-    setClientAuthToken(initialJwt);
-  }, [initialJwt]);
+    isEndingSessionRef.current = true;
+    setStatus("unauthenticated");
 
-  async function logout() {
     try {
       await logoutAction();
     } catch (e) {
       // ignore
     }
-    setJwt(null);
-    setStatus("unauthenticated");
-    setClientAuthToken(null);
-    router.push("/login");
+
+    if (pathname !== "/login") {
+      router.replace("/login");
+    }
+
     router.refresh();
-  }
+    isEndingSessionRef.current = false;
+  }, [pathname, router, status]);
+
+  useEffect(() => {
+    window.addEventListener(SESSION_EXPIRED_EVENT, endSession);
+
+    return () => {
+      window.removeEventListener(SESSION_EXPIRED_EVENT, endSession);
+    };
+  }, [endSession]);
 
   return (
-    <AuthContext.Provider value={{ jwt, status, logout }}>
+    <AuthContext.Provider value={{ status, logout: endSession }}>
       {children}
     </AuthContext.Provider>
   );

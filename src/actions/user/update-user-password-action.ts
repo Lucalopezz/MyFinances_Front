@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { updateUser } from "@/services/config.service";
+import { updateUser } from "@/actions/user/user";
 
 export async function updateUserPasswordAction(data: { password: string }) {
   const updated = await updateUser({ password: data.password } as never);

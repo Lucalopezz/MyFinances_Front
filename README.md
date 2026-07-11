@@ -1,98 +1,87 @@
-# SaaS Controle de Gastos
+# MyFinances Front-end
 
-Uma aplicação full-stack para gerenciamento financeiro pessoal, permitindo que os usuários controlem suas transações, acompanhem itens da wishlist, gerenciem despesas fixas e visualizem dashboards com comparativos mensais e indicadores financeiros.
+Front-end Next.js para gerenciamento financeiro pessoal. A aplicação consome uma API externa para autenticação, transações, wishlist, despesas fixas, dashboard e comparativos financeiros.
 
 ---
 
 ## Funcionalidades
 
-- **Transações:** Criação, atualização, listagem e remoção de transações (entradas/saídas).
-- **Dashboard:** Resumo financeiro com indicadores, gráficos interativos e comparativo mensal.
+- **Autenticação:** Login, cadastro, sessão via cookie HTTP-only e proteção de rotas privadas.
+- **Transações:** Criação, atualização, listagem e remoção de transações.
+- **Dashboard:** Resumo financeiro, indicadores e gráficos.
 - **Wishlist:** Gestão de itens desejados, com acompanhamento do progresso de economia.
-- **Despesas Fixas:** Cadastro e controle de despesas recorrentes (ex.: aluguel), com:
-    - Marcação de pagamento.
-    - Notificações automáticas dias antes do vencimento.
-    - Reset automático para o próximo ciclo após a data de vencimento.
-- **Notificações:** Alertas automáticos para despesas pendentes e vencimentos próximos.
+- **Despesas Fixas:** Cadastro, edição, remoção e marcação de pagamento.
+- **Comparativo:** Visualização comparativa de receitas, despesas e saldo.
+- **Configurações:** Atualização de dados do usuário e senha.
 
 ---
 
 ## Tecnologias Utilizadas
 
-### Back-end
-- **NestJS** – Framework para Node.js.
-- **Prisma** – ORM para o MongoDB.
-- **Zod** – Validação de dados.
-- **@nestjs/schedule** – Tarefas agendadas (para resetar despesas fixas e disparar notificações).
+- **Next.js 15** com App Router.
+- **React 19**.
+- **TypeScript**.
+- **TanStack Query** para cache client-side.
+- **React Hook Form** e **Zod** para formulários e validação.
+- **Tailwind CSS**, **Shadcn/UI** e **Radix UI** para interface.
+- **Recharts** para gráficos.
+- **Server Actions** e `fetch` para comunicação HTTP autenticada.
 
-### Front-end
-- **Next.js** (App Router)
-- **TanStack Query** – Gerenciamento de dados e cache.
-- **React Hook Form** – Manipulação de formulários.
-- **Zod** – Validação de formulários.
-- **Tailwind CSS & Shadcn/UI** – Estilização e componentes UI.
-- **Recharts** – Visualização de gráficos.
+---
+
+## Documentação
+
+A documentação técnica do front-end está em [docs/doc.md](docs/doc.md).
+
+O fluxo de autenticação está descrito em [docs/authentication.md](docs/authentication.md).
+
+Planejamento da próxima versão do front está em [docs/v2.md](docs/v2.md).
 
 ---
 
 ## Estrutura do Projeto
 
 ```plaintext
-├── backend/                # Aplicação NestJS
-│   ├── src/
-│   │   ├── common/         # Filtros, guards, interceptors, pipes
-│   │   ├── modules/        # Módulos por funcionalidade
-│   │   │   ├── auth/       # Módulo de autenticação
-│   │   │   ├── dashboard/  # Módulo do dashboard
-│   │   │   ├── transactions/ # Módulo de transações
-│   │   │   ├── wishlist/   # Módulo da wishlist
-│   │   │   ├── fixed-expenses/ # Módulo de despesas fixas
-│   │   │   ├── notifications/  # Módulo de notificações
-│   │   ├── prisma/         # PrismaService e configurações
-│   │   ├── app.module.ts   # Módulo raiz que importa os demais
-│   │   └── main.ts         # Ponto de entrada da aplicação
-│   ├── prisma/             # Schema Prisma e scripts de seed
-│   └── package.json        # Configurações e dependências do backend
-│
-├── frontend/               # Aplicação Next.js
-│   ├── app/                # Páginas (dashboard, transactions, wishlist, fixed-expenses, auth)
-│   ├── components/         # Componentes compartilhados (Header, Sidebar, UI, Notifications)
-│   ├── hooks/              # Hooks customizados (useUser, useTransactions, etc.)
-│   ├── utils/              # Configurações de API e validações (Zod)
-│   ├── styles/             # Configurações do Tailwind CSS
-│   └── package.json        # Configurações e dependências do frontend
-└── README.md
-````
+├── docs/                 # Documentação técnica e planejamento
+├── public/               # Assets públicos
+├── src/
+│   ├── actions/          # Server Actions
+│   ├── app/              # Rotas do App Router, separadas em (public) e (private)
+│   ├── components/       # Componentes de tela, layout e UI
+│   ├── hooks/            # Hooks e query client
+│   ├── interfaces/       # Tipos de domínio
+│   ├── lib/              # Autenticação, backend e helpers
+│   ├── providers/        # Providers globais
+│   ├── schemas/          # Schemas Zod
+│   ├── services/         # Acesso server-side à API
+│   └── utils/            # Formatadores e utilitários
+├── env.exemple
+└── package.json
+```
+
 ## Instalação
+
 1. Clone o repositório:
+
    ```bash
    git clone https://github.com/Lucalopezz/MyFinances_Front.git
    cd MyFinances_Front
    ```
-2. Instalar dependencias:
+
+2. Instale as dependências:
+
    ```bash
    npm install
    ```
-3. Configurar a API:
-   - Configure seu backend
-   - Adicione o link no `.env` file:
-     ```
-     NEXT_PUBLIC_BACKEND_URL=http://url_da_api
-     ```
-4. Configurar o next auth:
-   - Adicione o link no `.env` file:
-       ```bash
-       NEXTAUTH_SECRET=sua_chave_secreta_aleatoria
-       NEXTAUTH_URL=http://url_da_aplicacao
-       ```
-6. Inicie o servidor:
+
+3. Configure a API no `.env`:
+
+   ```env
+   BACKEND_URL=http://localhost:3001
+   ```
+
+4. Inicie o servidor:
+
    ```bash
    npm run dev
    ```
-
-
-
-
-
-
-

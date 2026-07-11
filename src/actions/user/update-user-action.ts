@@ -2,8 +2,8 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { updateUser } from "@/services/config.service";
-import { UpdateUserInput } from "@/interfaces/user.interface";
+import { updateUser } from "@/actions/user/user";
+import { UpdateUserInput } from "@/models/user.model";
 
 export async function updateUserAction(formData: UpdateUserInput) {
   const payload: Partial<{ name: string; password: string }> = {};

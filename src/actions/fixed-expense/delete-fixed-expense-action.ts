@@ -1,13 +1,16 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
-import { deleteFixedExpense } from "@/services/fixed-expenses.service";
+import { deleteFixedExpense } from "@/actions/fixed-expense/fixed-expenses";
 
 export async function deleteFixedExpenseAction(id: string | undefined) {
   const success = await deleteFixedExpense(id);
 
-  if (success) {
-    revalidatePath("/fixed-expenses");
+  if (!success) {
+    throw new Error("Falha ao excluir despesa fixa");
   }
+
+  revalidateTag("fixed-expenses");
+  revalidatePath("/fixed-expenses");
 }

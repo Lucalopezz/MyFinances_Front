@@ -2,10 +2,11 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { createFixedExpense as createFixedExpenseService } from "@/services/fixed-expenses.service";
-import { FixedExpense } from "@/interfaces/fixed-expense.interface";
+import { createFixedExpense as createFixedExpenseService } from "@/actions/fixed-expense/fixed-expenses";
+import { FixedExpense } from "@/models/fixed-expense.model";
 
 export async function createFixedExpenseAction(data: Omit<FixedExpense, "id">) {
+  console.log("Creating fixed expense with data:", data);
   const success = await createFixedExpenseService(data);
 
   if (!success) {
@@ -14,4 +15,6 @@ export async function createFixedExpenseAction(data: Omit<FixedExpense, "id">) {
 
   revalidateTag("fixed-expenses");
   revalidatePath("/fixed-expenses");
+
+  return true;
 }

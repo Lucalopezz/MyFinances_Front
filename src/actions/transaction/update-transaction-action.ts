@@ -1,25 +1,38 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
-import { updateTransaction } from "@/services/transactions.service";
-import type { Transaction } from "@/components/transaction/transaction.types";
+import { updateTransaction } from "@/actions/transaction/transactions";
+import type { Transaction } from "@/models/transaction.model";
 
-export async function updateTransactionAction(formData: FormData) {
-  const id = formData.get("id") as string;
+type UpdateTransactionPayload =
+  | FormData
+  | {
+      id: string;
+      transaction: Transaction;
+    };
+
+function isFormData(payload: UpdateTransactionPayload): payload is FormData {
+  return typeof (payload as FormData).get === "function";
+}
+
+export async function updateTransactionAction(payload: UpdateTransactionPayload) {
+  const id = isFormData(payload) ? (payload.get("id") as string) : payload.id;
 
   if (!id) {
     throw new Error("ID da transação não fornecido");
   }
 
-  const transactionData = {
-    value: parseFloat(formData.get("value") as string),
-    date: formData.get("date") as string,
-    description: formData.get("description") as string,
-    category: formData.get("category") as string,
-    type: formData.get("type") as Transaction["type"],
-  };
+  const transactionData = isFormData(payload)
+    ? {
+        value: parseFloat(payload.get("value") as string),
+        date: payload.get("date") as string,
+        description: payload.get("description") as string,
+        category: payload.get("category") as string,
+        type: payload.get("type") as Transaction["type"],
+      }
+    : payload.transaction;
 
   const updated = await updateTransaction(id, transactionData);
 
@@ -30,5 +43,14 @@ export async function updateTransactionAction(formData: FormData) {
   revalidateTag("transactions");
   revalidateTag("dashboard");
   revalidateTag("monthlyComparison");
-  redirect("/transactions");
+  revalidateTag("sixMonthComparison");
+  revalidatePath("/transactions");
+  revalidatePath("/");
+  revalidatePath("/comparative");
+
+  if (isFormData(payload)) {
+    redirect("/transactions");
+  }
+
+  return updated;
 }
