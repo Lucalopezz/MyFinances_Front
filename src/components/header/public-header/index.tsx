@@ -12,13 +12,16 @@ const publicLinks = [
   { href: "/register", label: "Criar conta" },
 ];
 
-export function PublicHeader() {
+export function PublicHeader({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   const pathname = usePathname();
+  const links = isAuthenticated
+    ? [{ href: "/dashboard", label: "Meu painel" }]
+    : publicLinks;
 
   return (
     <header className="flex items-center justify-between bg-white p-4 shadow dark:bg-gray-800">
       <Link
-        href="/login"
+        href="/"
         className="text-xl font-bold text-gray-700 dark:text-white"
       >
         MyFinances
@@ -26,7 +29,7 @@ export function PublicHeader() {
 
       <div className="flex items-center gap-2">
         <nav className="flex items-center gap-1" aria-label="Navegacao publica">
-          {publicLinks.map((link) => (
+          {links.map((link) => (
             <Button
               key={link.href}
               asChild

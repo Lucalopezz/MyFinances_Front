@@ -68,7 +68,8 @@ src/
 | --- | --- |
 | `/login` | Autenticação do usuário. |
 | `/register` | Cadastro de usuário. |
-| `/` | Dashboard financeiro. |
+| `/` | Landing page pública do MyFinances. |
+| `/dashboard` | Dashboard financeiro autenticado. |
 | `/transactions` | Listagem, criação, edição e remoção de transações. |
 | `/wishlist` | Listagem e criação de itens desejados. |
 | `/wishlist/edit/[id]` | Edição de item da wishlist. |
@@ -76,6 +77,8 @@ src/
 | `/fixed-expenses/edit/[id]` | Edição de despesa fixa. |
 | `/comparative` | Comparativos financeiros. |
 | `/config` | Configurações do usuário. |
+
+A logo no cabeçalho público e no cabeçalho autenticado sempre direciona para a landing em `/`.
 
 ## Autenticação
 

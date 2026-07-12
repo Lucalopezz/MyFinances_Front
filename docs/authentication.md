@@ -31,8 +31,8 @@ Fluxo:
 2. A action envia `POST /auth` para a API configurada em `BACKEND_URL`.
 3. A API retorna `accessToken`.
 4. A action salva o token no cookie `mf_token`.
-5. O usuario e redirecionado para `/`.
-6. O `middleware.ts` permite a navegacao para `/`.
+5. O usuario e redirecionado para `/dashboard`.
+6. O `middleware.ts` permite a navegacao para `/dashboard`.
 7. O layout `src/app/(private)/layout.tsx` valida o cookie com `requireAuth()` e inicializa o `AuthProvider`.
 
 O cookie e configurado como HTTP-only, entao ele nao pode ser lido diretamente pelo JavaScript do browser. Isso reduz a exposicao do token no client.
@@ -62,10 +62,11 @@ O `middleware.ts` roda antes das rotas da aplicacao.
 
 Rotas publicas:
 
+- `/`
 - `/login`
 - `/register`
 
-Para as demais rotas, o middleware verifica o cookie `mf_token`.
+Para as demais rotas, o middleware verifica o cookie `mf_token`. A landing em `/` continua acessível inclusive com sessão ativa. Usuários autenticados que tentarem acessar `/login` ou `/register` são enviados para `/dashboard`.
 
 Se o cookie nao existir ou se o JWT estiver expirado, o usuario e redirecionado para `/login`. Quando o token esta expirado, o middleware tambem remove o cookie para evitar que a aplicacao continue montando uma sessao invalida.
 

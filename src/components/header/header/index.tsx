@@ -1,5 +1,6 @@
 "use client";
 import useAuth from "@/hooks/useAuth";
+import Link from "next/link";
 import { Menu, LogOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -39,9 +40,9 @@ const MobileMenuButton = ({ onMenuClick }: { onMenuClick: () => void }) => (
 );
 
 const LogoSection = () => (
-  <div className="text-xl font-bold text-gray-700 dark:text-white">
+  <Link href="/" className="text-xl font-bold text-gray-700 dark:text-white">
     MyFinances
-  </div>
+  </Link>
 );
 
 const NavigationActions = ({

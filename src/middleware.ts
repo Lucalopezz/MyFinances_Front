@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/backend";
 import { isJwtExpired } from "@/lib/jwt";
 
-const publicRoutes = ["/login", "/register"];
+const publicRoutes = ["/", "/login", "/register"];
 
 function isPublicRoute(pathname: string) {
   return publicRoutes.some(
@@ -27,8 +27,8 @@ export function middleware(req: NextRequest) {
   const hasValidToken = Boolean(token && !hasExpiredToken);
 
   if (isPublicRoute(pathname)) {
-    if (hasValidToken) {
-      return NextResponse.redirect(new URL("/", req.url));
+    if (pathname !== "/" && hasValidToken) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
     const response = NextResponse.next();

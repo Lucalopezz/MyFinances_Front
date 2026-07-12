@@ -40,7 +40,7 @@ export async function markFixedExpenseAsPaidAction(
   revalidateTag("sixMonthComparison");
   revalidatePath("/fixed-expenses");
   revalidatePath("/transactions");
-  revalidatePath("/");
+  revalidatePath("/dashboard");
   revalidatePath("/comparative");
 
   return result;

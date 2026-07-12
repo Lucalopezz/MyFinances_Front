@@ -7,7 +7,7 @@ export const Sidebar = () => {
   const pathname = usePathname();
 
   const menuItems = [
-    { name: "Dashboard", path: "/" },
+    { name: "Dashboard", path: "/dashboard" },
     { name: "Transações", path: "/transactions" },
     { name: "Wishlist", path: "/wishlist" },
     { name: "Despesas Fixas", path: "/fixed-expenses" },

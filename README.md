@@ -7,6 +7,7 @@ Front-end Next.js para gerenciamento financeiro pessoal. A aplicação consome u
 ## Funcionalidades
 
 - **Autenticação:** Login, cadastro, sessão via cookie HTTP-only e proteção de rotas privadas.
+- **Landing page:** Apresentação pública dos recursos, com demonstrações visuais da interface.
 - **Transações:** Criação, atualização, listagem e remoção de transações.
 - **Dashboard:** Resumo financeiro, indicadores e gráficos.
 - **Wishlist:** Gestão de itens desejados, com acompanhamento do progresso de economia.

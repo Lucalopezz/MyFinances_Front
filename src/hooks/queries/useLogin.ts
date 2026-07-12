@@ -13,7 +13,7 @@ export const useLogin = () => {
     try {
       await loginAction({ email: data.email, password: data.password });
 
-      await router.push("/");
+      await router.push("/dashboard");
       router.refresh();
       toast.success("Login realizado com sucesso!");
     } catch (error) {
