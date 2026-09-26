@@ -10,6 +10,11 @@ Authorization: Bearer <accessToken>
 
 Datas devem ser enviadas como string válida, preferencialmente `YYYY-MM-DD`.
 
+As rotas novas de busca, orçamento, projeção e marcação em lote descritas abaixo
+fazem parte da próxima entrega da API. O frontend ativa cada interface por
+configuração após a publicação da respectiva rota; os contratos antigos seguem
+disponíveis.
+
 ---
 
 ## Auth
@@ -161,11 +166,11 @@ Query params opcionais:
 - `page`: página solicitada (inteiro positivo; padrão: `1`).
 - `limit`: quantidade de itens por página (inteiro positivo; padrão: `20`).
 
-O front-end solicita `limit=50`. A paginação é feita pela API, enquanto os
-filtros da listagem são aplicados localmente somente aos itens da página atual.
-Para períodos que não estejam integralmente na página carregada, a interface
-oferece a opção de exportação em PDF. A exportação é assíncrona e inclui todas
-as transações do usuário quando nenhum filtro opcional é enviado.
+O front-end solicita `limit=50`. No fluxo legado, a paginação é feita pela API
+e os filtros da listagem são aplicados localmente somente à página atual. Após
+ativar `GET /transactions/search`, a listagem usa a busca global por cursor.
+A exportação assíncrona continua independente da listagem e inclui todas as
+transações do usuário quando nenhum filtro opcional é enviado.
 
 Resposta:
 
@@ -192,6 +197,24 @@ Resposta:
   }
 }
 ```
+
+### `GET /transactions/search` (nova)
+
+Busca todo o histórico do usuário em ordem decrescente de data e ID. Recebe
+`cursor` opaco, `limit` (máximo `100`), `startDate`, `endDate`, `type`,
+`category` e `search` opcionais. Datas seguem `YYYY-MM-DD` e são inclusivas.
+Um cursor só pode ser reutilizado com os mesmos filtros e usuário.
+
+```json
+{
+  "data": [{ "id": "64f000000000000000000010", "value": 120.5, "date": "2026-07-06T00:00:00.000Z", "category": "FOOD", "description": "Mercado", "type": "EXPENSE" }],
+  "nextCursor": "cursor-opaco",
+  "hasMore": true
+}
+```
+
+Na última página, `nextCursor` é `null` e `hasMore` é `false`. Esta rota não
+retorna total exato. `GET /transactions` mantém seu contrato paginado atual.
 
 ### `GET /transactions/:id`
 
@@ -278,18 +301,22 @@ Filtros opcionais no body:
   "startDate": "2026-07-01",
   "endDate": "2026-07-31",
   "categoryId": "FOOD",
-  "type": "EXPENSE"
+  "type": "EXPENSE",
+  "format": "PDF"
 }
 ```
 
 Quando nenhum filtro é enviado, todas as transações do usuário são incluídas.
+A opção `format` aceita `PDF` ou `CSV` (padrão `PDF`). Solicitações antigas sem
+`format` continuam gerando PDF.
 A resposta deve identificar a exportação criada, por exemplo:
 
 ```json
 {
   "id": "export-id",
   "status": "PENDING",
-  "progress": 0
+  "progress": 0,
+  "format": "PDF"
 }
 ```
 
@@ -305,7 +332,8 @@ Resposta esperada:
   "id": "export-id",
   "status": "PROCESSING",
   "progress": 50,
-  "error": null
+  "error": null,
+  "format": "PDF"
 }
 ```
 
@@ -314,7 +342,11 @@ Os status usados pelo front são `PENDING`, `PROCESSING`, `COMPLETED` e
 
 ### `GET /exports/:id/download`
 
-Baixa o PDF da exportação quando o status for `COMPLETED`.
+Baixa o PDF ou CSV da exportação quando o status for `COMPLETED`. O formato
+persistido determina o `Content-Type` e o nome do arquivo. CSV usa UTF-8 com
+BOM, cabeçalho `id,date,type,category,description,value`, datas ISO e valores
+numéricos sem formatação local. O armazenamento de arquivos é local e efêmero;
+um download pode deixar de funcionar após reinicialização ou deploy da API.
 
 ---
 
@@ -644,6 +676,36 @@ Resposta:
 
 ---
 
+## Budgets (novo)
+
+Todas as rotas de orçamento são protegidas e isoladas por usuário. `monthKey`
+e o parâmetro `month` seguem `YYYY-MM`; `category` aceita apenas categorias de
+despesa e `limitAmount` deve ser positivo.
+
+- `GET /budgets?month=2026-07`: lista os orçamentos do mês.
+- `POST /budgets`: cria com `{ "monthKey": "2026-07", "category": "FOOD", "limitAmount": 800 }`. A combinação usuário, mês e categoria é única; duplicação retorna `409`.
+- `PATCH /budgets/:id`: altera mês, categoria e/ou limite.
+- `DELETE /budgets/:id`: remove o orçamento.
+- `GET /budgets/summary?month=2026-07`: retorna os orçamentos com gasto e saldo restantes, ou `[]` quando não há orçamentos.
+
+Exemplo de item do resumo:
+
+```json
+{
+  "id": "64f000000000000000000050",
+  "userId": "64f000000000000000000001",
+  "monthKey": "2026-07",
+  "category": "FOOD",
+  "limitAmount": 800,
+  "spentAmount": 650,
+  "remainingAmount": 150,
+  "createdAt": "2026-07-01T00:00:00.000Z",
+  "updatedAt": "2026-07-01T00:00:00.000Z"
+}
+```
+
+---
+
 ## Notifications
 
 Todas as rotas de notificações são protegidas.
@@ -700,6 +762,12 @@ Resposta:
   }
 ]
 ```
+
+### `PATCH /notifications/mark-all-as-read` (nova)
+
+Marca como lidas apenas as notificações não lidas do usuário autenticado.
+Não recebe body. Retorna `{ "count": 3 }`; uma chamada repetida retorna
+`{ "count": 0 }`.
 
 ### `PATCH /notifications/:id/mark-as-read`
 
@@ -782,6 +850,23 @@ Resposta:
     "start": "2026-07-01T00:00:00.000Z",
     "end": "2026-07-31T00:00:00.000Z"
   }
+}
+```
+
+### `GET /dashboard/forecast` (nova)
+
+Projeta o fechamento do mês UTC atual. O saldo real considera transações do
+início do mês até hoje. `pendingFixedExpenses` soma despesas fixas ainda não
+pagas com vencimento até o fim do mês, inclusive vencidas. Despesas já pagas
+não são descontadas novamente. A consulta não cria transações.
+
+```json
+{
+  "month": "2026-07",
+  "currentBalance": 2500,
+  "pendingFixedExpenses": 800,
+  "projectedBalance": 1700,
+  "expenses": [{ "id": "64f000000000000000000030", "name": "Aluguel", "amount": 800, "dueDate": "2026-07-10T00:00:00.000Z" }]
 }
 ```
 

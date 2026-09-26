@@ -27,6 +27,17 @@ Variáveis:
 
 - `BACKEND_URL`: URL da API usada pelo servidor Next em Server Components e Server Actions.
 - `NEXT_PUBLIC_BACKEND_URL`: mantida apenas como fallback legado em `getServerBackendUrl`; novas chamadas autenticadas nao devem depender dela no browser.
+- `TRANSACTION_SEARCH_ENABLED`: ativa a busca global por cursor após publicar `GET /transactions/search`.
+- `DASHBOARD_FORECAST_ENABLED`: mostra a projeção após publicar `GET /dashboard/forecast`.
+- `MONTHLY_BUDGETS_ENABLED`: mostra orçamentos após publicar `/budgets/summary` e as mutações de `/budgets`.
+- `NEXT_PUBLIC_MARK_ALL_AS_READ_ENABLED`: mostra a ação em lote de notificações após publicar `PATCH /notifications/mark-all-as-read`.
+- `NEXT_PUBLIC_CSV_EXPORT_ENABLED`: mostra CSV após publicar o formato novo em `/exports/transactions`.
+
+As cinco opções começam em `false`. Ative cada uma apenas quando a API
+correspondente estiver disponível. As opções `NEXT_PUBLIC_*` são incluídas na
+build do navegador; alterá-las exige uma nova build. Os demais flags são lidos
+no servidor Next. Os endpoints antigos e a exportação PDF continuam operando
+com todas as opções desligadas.
 
 ## Scripts
 
@@ -159,6 +170,10 @@ Exibe resumo financeiro, cards e gráficos. Os dados vêm de endpoints de dashbo
 ### Transações
 
 Permite criar, listar, editar e remover receitas ou despesas. As categorias ficam em `src/constants/transaction-categories.ts`.
+Uma transação pode ser duplicada no formulário de criação com data sugerida de
+hoje, sem alterar o registro original. Quando a busca global é ativada, os
+filtros ficam na URL e a navegação usa cursores; antes disso, permanece a
+listagem paginada existente.
 
 ### Wishlist
 
@@ -167,6 +182,13 @@ Controla objetivos de compra, valor desejado, valor salvo e data alvo.
 ### Despesas Fixas
 
 Controla despesas recorrentes, vencimento, status de pagamento e atualização do próximo ciclo.
+Quando disponível, a projeção do dashboard mostra despesas pendentes sem
+criar transações previstas.
+
+### Orçamentos
+
+Quando disponível, o dashboard permite criar, editar e remover limites mensais
+por categoria de despesa. O gasto é calculado pela API a cada leitura do resumo.
 
 ### Comparativo
 
