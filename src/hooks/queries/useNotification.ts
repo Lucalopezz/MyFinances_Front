@@ -2,6 +2,7 @@ import { NotificationInterface } from "@/models/notification.model";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getNotifications,
+  markAllNotificationsAsRead,
   markNotificationAsRead,
 } from "@/actions/notification/notifications";
 import { queryKeys } from "@/hooks/queries/query-keys";
@@ -13,6 +14,21 @@ async function fetchNotification(): Promise<NotificationInterface[]> {
     if (error instanceof Error) throw error;
     throw new Error("Não foi possível carregar as notificações.");
   }
+}
+
+export function useMarkAllAsRead() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: markAllNotificationsAsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all() });
+    },
+  });
+
+  return {
+    markAllAsRead: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+  };
 }
 
 export function useGetNotifications() {

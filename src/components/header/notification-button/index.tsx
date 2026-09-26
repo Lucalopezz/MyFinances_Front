@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/popover";
 import {
   useGetNotifications,
+  useMarkAllAsRead,
   useMarkAsRead,
 } from "@/hooks/queries/useNotification";
 import {
@@ -31,6 +32,8 @@ const NotificationIcon = ({ type }: { type: NotificationsType }) => {
   }
 };
 
+const MARK_ALL_ENABLED = process.env.NEXT_PUBLIC_MARK_ALL_AS_READ_ENABLED === "true";
+
 export const NotificationButton = () => {
   const {
     data: notifications = [],
@@ -40,6 +43,7 @@ export const NotificationButton = () => {
   } = useGetNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const { markAsRead } = useMarkAsRead();
+  const { markAllAsRead, isLoading: isMarkingAll } = useMarkAllAsRead();
 
   async function handleNotificationClick(id: NotificationInterface["id"]) {
     try {
@@ -54,6 +58,19 @@ export const NotificationButton = () => {
   }
 
   const unreadCount = notifications.filter((notif) => !notif.read).length;
+
+  async function handleMarkAllAsRead() {
+    try {
+      await markAllAsRead();
+      toast.success("Notificações marcadas como lidas.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível marcar todas as notificações como lidas.",
+      );
+    }
+  }
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -73,7 +90,19 @@ export const NotificationButton = () => {
       <PopoverContent className="w-80 p-0" align="end">
         <div className="bg-white dark:bg-gray-800 rounded-md shadow-lg overflow-hidden">
           <div className="p-4 border-b dark:border-gray-700">
-            <h3 className="text-lg font-medium">Notificações</h3>
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-lg font-medium">Notificações</h3>
+              {MARK_ALL_ENABLED && unreadCount > 0 && (
+                <button
+                  type="button"
+                  className="text-xs font-medium text-blue-600 hover:underline disabled:opacity-50 dark:text-blue-400"
+                  onClick={() => void handleMarkAllAsRead()}
+                  disabled={isMarkingAll}
+                >
+                  {isMarkingAll ? "Marcando..." : "Marcar todas como lidas"}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="max-h-96 overflow-y-auto">

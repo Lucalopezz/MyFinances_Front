@@ -58,3 +58,27 @@ export async function markNotificationAsRead(
 
   return response.json();
 }
+
+export async function markAllNotificationsAsRead(): Promise<{ count: number }> {
+  const token = await getServerToken();
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
+
+  const response = await fetch(
+    `${getServerBackendUrl()}/notifications/mark-all-as-read`,
+    {
+      method: "PATCH",
+      headers: createJsonHeaders(token),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw await createApiError(response, {
+      context: "PATCH /notifications/mark-all-as-read",
+      fallback: "Não foi possível marcar todas as notificações como lidas.",
+    });
+  }
+
+  revalidateTag("notifications");
+  return response.json();
+}
