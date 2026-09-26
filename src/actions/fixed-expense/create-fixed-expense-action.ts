@@ -6,7 +6,6 @@ import { createFixedExpense as createFixedExpenseService } from "@/actions/fixed
 import { FixedExpense } from "@/models/fixed-expense.model";
 
 export async function createFixedExpenseAction(data: Omit<FixedExpense, "id">) {
-  console.log("Creating fixed expense with data:", data);
   const success = await createFixedExpenseService(data);
 
   if (!success) {
@@ -14,7 +13,9 @@ export async function createFixedExpenseAction(data: Omit<FixedExpense, "id">) {
   }
 
   revalidateTag("fixed-expenses");
+  revalidateTag("forecast");
   revalidatePath("/fixed-expenses");
+  revalidatePath("/dashboard");
 
   return true;
 }

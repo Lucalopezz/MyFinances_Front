@@ -36,6 +36,8 @@ export async function markFixedExpenseAsPaidAction(
   revalidateTag("transactions");
   revalidateTag("transaction");
   revalidateTag("dashboard");
+  revalidateTag("forecast");
+  revalidateTag("budgets");
   revalidateTag("monthlyComparison");
   revalidateTag("sixMonthComparison");
   revalidatePath("/fixed-expenses");

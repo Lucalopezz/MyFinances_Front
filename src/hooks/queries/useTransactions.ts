@@ -15,6 +15,7 @@ function invalidateTransactionViews(
 ) {
   queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all() });
   queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+  queryClient.invalidateQueries({ queryKey: queryKeys.budgets.all() });
 }
 
 export function useTransactions(

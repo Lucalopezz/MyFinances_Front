@@ -12,5 +12,7 @@ export async function deleteFixedExpenseAction(id: string | undefined) {
   }
 
   revalidateTag("fixed-expenses");
+  revalidateTag("forecast");
   revalidatePath("/fixed-expenses");
+  revalidatePath("/dashboard");
 }

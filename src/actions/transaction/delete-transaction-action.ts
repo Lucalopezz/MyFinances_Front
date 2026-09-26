@@ -13,6 +13,7 @@ export async function deleteTransactionAction(id: string) {
 
   revalidateTag("transactions");
   revalidateTag("dashboard");
+  revalidateTag("budgets");
   revalidateTag("monthlyComparison");
   revalidateTag("sixMonthComparison");
   revalidatePath("/transactions");

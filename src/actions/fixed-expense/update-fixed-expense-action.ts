@@ -42,7 +42,9 @@ export async function updateFixedExpenseAction(
     const updated = await updateFixedExpense(id, fixedExpenseData);
 
     revalidateTag("fixed-expenses");
+    revalidateTag("forecast");
     revalidatePath("/fixed-expenses");
+    revalidatePath("/dashboard");
 
     if (isFormData(payload)) {
       redirect("/fixed-expenses");

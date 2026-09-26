@@ -13,6 +13,19 @@ export interface FinancialSummary {
   };
 }
 
+export interface DashboardForecast {
+  month: string;
+  currentBalance: number;
+  pendingFixedExpenses: number;
+  projectedBalance: number;
+  expenses: Array<{
+    id: string;
+    name: string;
+    amount: number;
+    dueDate: string;
+  }>;
+}
+
 export interface MonthlyComparisonDto {
   month: string;
   totalExpenses: number;

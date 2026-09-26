@@ -25,6 +25,7 @@ function invalidatePaymentViews(queryClient: ReturnType<typeof useQueryClient>) 
   invalidateFixedExpenseViews(queryClient);
   queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all() });
   queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+  queryClient.invalidateQueries({ queryKey: queryKeys.budgets.all() });
   queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary() });
   queryClient.invalidateQueries({
     queryKey: queryKeys.dashboard.monthlyComparison(),
