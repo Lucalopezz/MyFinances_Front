@@ -15,11 +15,14 @@ export type TransactionExportStatusValue =
   | "COMPLETED"
   | "FAILED";
 
+export type TransactionExportFormat = "PDF" | "CSV";
+
 export type TransactionExportStatus = {
   id: string | null;
   status: TransactionExportStatusValue;
   progress: number | null;
   error: string | null;
+  format?: TransactionExportFormat;
 };
 
 type JsonRecord = Record<string, unknown>;
@@ -140,6 +143,7 @@ function normalizeExportStatus(
       record.progress ?? record.percentage ?? record.percent,
     ),
     error: getSafeError(record),
+    format: record.format === "CSV" ? "CSV" : "PDF",
   };
 }
 
@@ -169,7 +173,9 @@ async function readJson(response: Response): Promise<unknown> {
   }
 }
 
-export async function createTransactionExport(): Promise<TransactionExportStatus> {
+export async function createTransactionExport(
+  format: TransactionExportFormat = "PDF",
+): Promise<TransactionExportStatus> {
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();
 
@@ -179,7 +185,7 @@ export async function createTransactionExport(): Promise<TransactionExportStatus
     const response = await fetch(`${backendUrl}/exports/transactions`, {
       method: "POST",
       headers: createJsonHeaders(token),
-      body: JSON.stringify({}),
+      body: JSON.stringify(format === "PDF" ? {} : { format }),
       cache: "no-store",
     });
 
@@ -196,13 +202,14 @@ export async function createTransactionExport(): Promise<TransactionExportStatus
       getIdFromLocation(response.headers.get("location")),
     );
 
-    if (normalized) return normalized;
+    if (normalized) return { ...normalized, format };
 
     return {
       id: getIdFromLocation(response.headers.get("location")),
       status: "PENDING",
       progress: 0,
       error: null,
+      format,
     };
   } catch (error) {
     throw createRequestError(error, {

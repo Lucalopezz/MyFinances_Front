@@ -9,10 +9,11 @@ type DownloadRouteContext = {
 };
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: DownloadRouteContext,
 ) {
   const { id } = await params;
+  const format = new URL(request.url).searchParams.get("format") === "CSV" ? "CSV" : "PDF";
 
   if (!id) {
     return Response.json(
@@ -42,7 +43,7 @@ export async function GET(
     if (!response.ok) {
       const error = await createApiError(response, {
         context: `GET /exports/${id}/download`,
-        fallback: "Não foi possível baixar o PDF da exportação.",
+        fallback: "Não foi possível baixar a exportação.",
       });
 
       return Response.json(
@@ -54,12 +55,13 @@ export async function GET(
     const headers = new Headers();
     headers.set(
       "Content-Type",
-      response.headers.get("content-type") ?? "application/pdf",
+      response.headers.get("content-type") ??
+        (format === "CSV" ? "text/csv; charset=utf-8" : "application/pdf"),
     );
     headers.set(
       "Content-Disposition",
       response.headers.get("content-disposition") ??
-        'attachment; filename="transacoes.pdf"',
+        `attachment; filename="transacoes.${format.toLowerCase()}"`,
     );
 
     const contentLength = response.headers.get("content-length");
@@ -69,7 +71,7 @@ export async function GET(
   } catch (error) {
     const publicError = createRequestError(error, {
       context: `GET /exports/${id}/download`,
-      fallback: "Não foi possível baixar o PDF da exportação.",
+      fallback: "Não foi possível baixar a exportação.",
     });
 
     return Response.json(

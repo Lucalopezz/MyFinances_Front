@@ -14,6 +14,7 @@ import {
   createTransactionExport,
   getTransactionExportStatus,
   type TransactionExportStatus,
+  type TransactionExportFormat,
 } from "@/actions/export/transactions";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +25,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const POLLING_INTERVAL = 2500;
+const CSV_EXPORT_ENABLED = process.env.NEXT_PUBLIC_CSV_EXPORT_ENABLED === "true";
 const DOWNLOADED_EXPORTS_KEY = "myfinances:downloaded-transaction-exports";
 
 function isActiveExport(
@@ -85,6 +94,7 @@ function rememberDownloadedExport(exportId: string): void {
 
 export function TransactionExport() {
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [format, setFormat] = useState<TransactionExportFormat>("PDF");
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -94,7 +104,15 @@ export function TransactionExport() {
 
   const refreshStatus = useCallback(async () => {
     const latestStatus = await getTransactionExportStatus();
-    if (latestStatus) setExportStatus(latestStatus);
+    if (latestStatus) {
+      setExportStatus((current) => ({
+        ...latestStatus,
+        format:
+          current?.id && current.id === latestStatus.id
+            ? current.format ?? latestStatus.format
+            : latestStatus.format,
+      }));
+    }
     return latestStatus;
   }, []);
 
@@ -167,7 +185,7 @@ export function TransactionExport() {
       previousStatus.current !== "COMPLETED" &&
       currentStatus === "COMPLETED"
     ) {
-      toast.success("Seu PDF está pronto para baixar.");
+      toast.success(`Seu ${exportStatus?.format ?? "PDF"} está pronto para baixar.`);
     }
 
     previousStatus.current = currentStatus;
@@ -182,10 +200,11 @@ export function TransactionExport() {
       status: "PENDING",
       progress: 0,
       error: null,
+      format,
     });
 
     try {
-      const createdExport = await createTransactionExport();
+      const createdExport = await createTransactionExport(format);
       setExportStatus(createdExport);
     } catch (error) {
       const message = getErrorMessage(error);
@@ -201,6 +220,7 @@ export function TransactionExport() {
   const isFailed = exportStatus?.status === "FAILED";
   const progress = exportStatus?.progress;
   const exportId = exportStatus?.id;
+  const activeFormat = exportStatus?.format ?? "PDF";
 
   const handleDownload = () => {
     // O download acontece pelo link; ao mesmo tempo, liberamos a criação de
@@ -225,12 +245,12 @@ export function TransactionExport() {
       return (
         <Button type="button" variant="outline" asChild>
           <a
-            href={`/api/exports/transactions/${encodeURIComponent(exportId)}/download`}
-            download="transacoes.pdf"
+            href={`/api/exports/transactions/${encodeURIComponent(exportId)}/download?format=${activeFormat}`}
+            download={`transacoes.${activeFormat.toLowerCase()}`}
             onClick={handleDownload}
           >
             <Download aria-hidden="true" />
-            Baixar PDF
+            Baixar {activeFormat}
           </a>
         </Button>
       );
@@ -239,8 +259,8 @@ export function TransactionExport() {
     if (isCreating || isActiveExport(exportStatus)) {
       const progressLabel =
         progress === null || progress === undefined
-          ? "Gerando PDF..."
-          : `Gerando PDF... ${progress}%`;
+          ? `Gerando ${activeFormat}...`
+          : `Gerando ${activeFormat}... ${progress}%`;
 
       return (
         <Button type="button" variant="outline" disabled>
@@ -257,13 +277,17 @@ export function TransactionExport() {
         onClick={() => setIsConfirmationOpen(true)}
       >
         <FileDown aria-hidden="true" />
-        {isFailed ? "Tentar exportar PDF" : "Exportar PDF"}
+        {isFailed
+          ? CSV_EXPORT_ENABLED ? "Tentar exportar" : "Tentar exportar PDF"
+          : CSV_EXPORT_ENABLED
+            ? "Exportar transações"
+            : "Exportar PDF"}
       </Button>
     );
   };
 
   const helperMessage = isCompleted
-    ? "PDF pronto para baixar."
+    ? `${activeFormat} pronto para baixar.`
     : isFailed
       ? exportStatus.error ?? statusError ?? "A exportação falhou."
       : isActiveExport(exportStatus)
@@ -294,13 +318,31 @@ export function TransactionExport() {
       <Dialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Exportar transações em PDF?</DialogTitle>
+            <DialogTitle>{CSV_EXPORT_ENABLED ? "Exportar transações" : "Exportar transações em PDF?"}</DialogTitle>
             <DialogDescription className="pt-2 leading-relaxed">
               O arquivo terá todas as suas transações, não apenas as exibidas
               nesta página ou pelos filtros atuais. A geração acontece em
               segundo plano e pode demorar um pouco.
             </DialogDescription>
           </DialogHeader>
+
+          {CSV_EXPORT_ENABLED && <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="transaction-export-format">
+              Formato
+            </label>
+            <Select
+              value={format}
+              onValueChange={(value) => setFormat(value as TransactionExportFormat)}
+            >
+              <SelectTrigger id="transaction-export-format" aria-label="Formato da exportação">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PDF">PDF para leitura e impressão</SelectItem>
+                <SelectItem value="CSV">CSV para planilhas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>}
 
           <DialogFooter>
             <Button
