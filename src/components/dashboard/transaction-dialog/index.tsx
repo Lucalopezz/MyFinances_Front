@@ -43,12 +43,15 @@ type TransactionDialogProps = {
   onOpenChange: (open: boolean) => void;
   onSubmit: (transaction: Transaction) => void | Promise<void>;
   loading: boolean;
-  mode?: "create" | "edit";
+  mode?: "create" | "edit" | "duplicate";
   transaction?: Transaction;
   showTrigger?: boolean;
 };
 
-function getInitialValues(transaction?: Transaction): TransactionFormValues {
+function getInitialValues(
+  transaction?: Transaction,
+  mode: "create" | "edit" | "duplicate" = "create",
+): TransactionFormValues {
   const type = transaction?.type ?? TRANSACTION_TYPES.EXPENSE;
   const categories = CATEGORY_BY_TYPE[type] as readonly TransactionCategory[];
   const fallbackCategory = categories[0];
@@ -57,7 +60,10 @@ function getInitialValues(transaction?: Transaction): TransactionFormValues {
   return {
     type,
     value: transaction?.value ?? 0,
-    date: transaction?.date ? parseDateOnly(transaction.date) : new Date(),
+    date:
+      mode === "duplicate" || !transaction?.date
+        ? new Date()
+        : parseDateOnly(transaction.date),
     category: categories.includes(category as TransactionCategory)
       ? (category as TransactionCategory)
       : fallbackCategory,
@@ -85,14 +91,14 @@ export const TransactionDialog = ({
     formState: { errors },
   } = useForm<TransactionFormValues>({
     resolver: zodResolver(TransactionSchema),
-    defaultValues: getInitialValues(transaction),
+    defaultValues: getInitialValues(transaction, mode),
   });
 
   useEffect(() => {
     if (open) {
-      reset(getInitialValues(transaction));
+      reset(getInitialValues(transaction, mode));
     }
-  }, [open, reset, transaction]);
+  }, [open, reset, transaction, mode]);
 
   const currentType = watch("type");
 
@@ -120,7 +126,7 @@ export const TransactionDialog = ({
 
     try {
       await onSubmit(payload);
-      reset(getInitialValues(transaction));
+      reset(getInitialValues(transaction, mode));
       onOpenChange(false);
     } catch {
       // A mutation exibe a mensagem pública normalizada pela camada da API.
@@ -128,11 +134,17 @@ export const TransactionDialog = ({
   };
 
   const title =
-    mode === "edit" ? "Editar transação" : "Adicionar nova transação";
+    mode === "edit"
+      ? "Editar transação"
+      : mode === "duplicate"
+        ? "Duplicar transação"
+        : "Adicionar nova transação";
   const description =
     mode === "edit"
       ? "Atualize os dados abaixo e salve as alterações no mesmo modal."
-      : "Registre receitas e despesas sem sair da página.";
+      : mode === "duplicate"
+        ? "Revise os dados e confirme para criar uma nova transação."
+        : "Registre receitas e despesas sem sair da página.";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
