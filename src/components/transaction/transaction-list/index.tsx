@@ -289,7 +289,7 @@ function normalizeSearch(value: string) {
     .trim();
 }
 
-function DesktopTransactionRow({
+export function DesktopTransactionRow({
   transaction,
   handleDelete,
 }: {
@@ -333,7 +333,7 @@ function DesktopTransactionRow({
   );
 }
 
-function MobileTransactionCard({
+export function MobileTransactionCard({
   transaction,
   handleDelete,
 }: {
@@ -393,7 +393,7 @@ function formatTransactionValue(transaction: Transaction) {
   );
 }
 
-function getTransactionKey(transaction: Transaction) {
+export function getTransactionKey(transaction: Transaction) {
   return (
     transaction.id ||
     `${transaction.date}-${transaction.description}-${transaction.value}`

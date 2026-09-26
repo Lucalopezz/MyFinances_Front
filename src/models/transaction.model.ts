@@ -27,6 +27,20 @@ export type PaginatedTransactions = {
   meta: TransactionPaginationMeta;
 };
 
+export type TransactionSearchFilters = {
+  startDate?: string;
+  endDate?: string;
+  type?: TransactionType;
+  category?: TransactionCategory;
+  search?: string;
+};
+
+export type TransactionSearchPage = {
+  data: Transaction[];
+  nextCursor: string | null;
+  hasMore: boolean;
+};
+
 export type TransactionFormValues = {
   type: TransactionType;
   value: number;
