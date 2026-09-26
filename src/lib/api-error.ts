@@ -72,10 +72,6 @@ export async function createApiError(
   console.error(`[API] ${context} failed`, {
     status: response.status,
     statusText: response.statusText,
-    apiMessage:
-      apiMessage ??
-      (rawBody ? "Resposta não estruturada recebida" : "Sem mensagem"),
-    publicMessage,
   });
 
   return new PublicApiError(publicMessage);
@@ -87,9 +83,7 @@ export function createRequestError(
 ) {
   if (isPublicApiError(error)) return error;
 
-  console.error(`[API] ${context} could not be completed`, {
-    cause: error instanceof Error ? error.message : String(error),
-  });
+  console.error(`[API] ${context} could not be completed`);
 
   return new PublicApiError(fallback);
 }
