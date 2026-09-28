@@ -128,3 +128,7 @@ Isso evita expor o JWT no JavaScript do browser.
 - A autorizacao real continua sendo responsabilidade da API.
 - O token HTTP-only nao deve ser lido diretamente pelo browser nem passado para componentes client-side.
 - Novas chamadas client-side autenticadas devem usar Server Actions em vez de Axios direto.
+
+## Isolamento do cache entre contas
+
+Login bem-sucedido e encerramento de sessão cancelam consultas pendentes e limpam o QueryClient antes da navegação. Isso impede que categorias, regras e outros dados financeiros em memória de uma conta sejam reutilizados pela próxima sessão no mesmo navegador. JWT continua exclusivamente no cookie HTTP-only.
