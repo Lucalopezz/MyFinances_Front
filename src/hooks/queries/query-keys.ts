@@ -1,4 +1,5 @@
 export const queryKeys = {
+  categories: { all: () => ["categories"], rules: () => ["category-rules"] },
   budgets: {
     all: () => ["budgets"],
     month: (month: string) => ["budgets", month],
@@ -22,7 +23,10 @@ export const queryKeys = {
   transactions: {
     all: () => ["transactions"],
     page: (page: number) => ["transactions", "page", page],
-    search: (filters: import("@/models/transaction.model").TransactionSearchFilters, cursor?: string) => ["transactions", "search", filters, cursor ?? ""],
+    search: (
+      filters: import("@/models/transaction.model").TransactionSearchFilters,
+      cursor?: string,
+    ) => ["transactions", "search", filters, cursor ?? ""],
     detail: (id: string) => ["transactions", id],
   },
   user: {
