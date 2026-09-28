@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type {
   Control,
   FieldErrors,
@@ -19,12 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import {
-  CATEGORY_BY_TYPE,
-  CATEGORY_CONFIG,
-  TRANSACTION_TYPES,
-  type TransactionCategory,
-} from "@/constants/transaction-categories";
+import { TRANSACTION_TYPES } from "@/constants/transaction-categories";
+import { CategorySelect } from "@/components/category/category-select";
+import { useCategories } from "@/providers/category-provider";
+import { suggestCategory } from "@/actions/category/categories";
+import { Button } from "@/components/ui/button";
 import type { TransactionFormValues } from "@/models/transaction.model";
 import { parseDateOnly, toDateInputValue } from "@/utils/date";
 
@@ -33,6 +32,8 @@ type TransactionFormFieldsProps = {
   register: UseFormRegister<TransactionFormValues>;
   setValue: UseFormSetValue<TransactionFormValues>;
   errors: FieldErrors<TransactionFormValues>;
+  preservedId?: string;
+  suggest?: boolean;
 };
 
 function FieldMessage({ message }: { message?: string }) {
@@ -48,27 +49,50 @@ export function TransactionFormFields({
   register,
   setValue,
   errors,
+  preservedId,
+  suggest = true,
 }: TransactionFormFieldsProps) {
   const transactionType =
     useWatch({ control, name: "type" }) ?? TRANSACTION_TYPES.EXPENSE;
   const transactionCategory = useWatch({ control, name: "category" });
 
+  const description = useWatch({ control, name: "description" });
+  const { categories: catalog, categoryLabel } = useCategories();
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+  const [suggestionError, setSuggestionError] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   useEffect(() => {
-    const allowedCategories = CATEGORY_BY_TYPE[
-      transactionType
-    ] as readonly TransactionCategory[];
-    const currentCategory = transactionCategory as TransactionCategory;
-
-    if (!allowedCategories.includes(currentCategory)) {
-      setValue("category", allowedCategories[0], {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
+    const current = catalog.find((item) => item.id === transactionCategory);
+    if (
+      current &&
+      (current.type !== transactionType ||
+        (current.archived && current.id !== preservedId))
+    ) {
+      setValue("category", "", { shouldValidate: true });
     }
-  }, [setValue, transactionCategory, transactionType]);
-
-  const categories = CATEGORY_BY_TYPE[transactionType];
+  }, [catalog, transactionCategory, transactionType, preservedId, setValue]);
+  useEffect(() => {
+    setSuggestion(null);
+    setSuggestionError(false);
+    setSuggesting(false);
+    if (!suggest || !description?.trim()) return;
+    let active = true;
+    const timer = setTimeout(async () => {
+      setSuggesting(true);
+      try {
+        const result = await suggestCategory(transactionType, description);
+        if (active) setSuggestion(result.category);
+      } catch {
+        if (active) setSuggestionError(true);
+      } finally {
+        if (active) setSuggesting(false);
+      }
+    }, 400);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [suggest, description, transactionType]);
 
   return (
     <div className="grid gap-5">
@@ -108,34 +132,46 @@ export function TransactionFormFields({
           >
             Categoria
           </Label>
-          <Select
+          <CategorySelect
+            type={transactionType}
             value={transactionCategory ?? ""}
-            onValueChange={(value) =>
-              setValue("category", value as TransactionCategory, {
+            preservedId={preservedId}
+            onChange={(value) =>
+              setValue("category", value, {
                 shouldDirty: true,
                 shouldTouch: true,
                 shouldValidate: true,
               })
             }
-          >
-            <SelectTrigger className="border-slate-300 bg-white text-slate-900 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
-              <SelectValue placeholder="Selecione a categoria" />
-            </SelectTrigger>
-            <SelectContent className="max-h-80 border-slate-200 bg-white text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100">
-              {categories.map((category) => {
-                const { label, icon: Icon } = CATEGORY_CONFIG[category];
-
-                return (
-                  <SelectItem key={category} value={category}>
-                    <span className="flex items-center gap-2">
-                      <Icon className="h-4 w-4 text-blue-600 dark:text-blue-300" />
-                      <span>{label}</span>
-                    </span>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+          />
+          {suggesting && (
+            <p role="status" className="text-xs text-gray-500">
+              Consultando regras...
+            </p>
+          )}
+          {suggestionError && (
+            <p role="status" className="text-xs text-gray-500">
+              Sugestões indisponíveis. Selecione a categoria manualmente.
+            </p>
+          )}
+          {suggestion && suggestion !== transactionCategory && (
+            <div className="text-sm">
+              <p>Sugestão da regra: {categoryLabel(suggestion)}</p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setValue("category", suggestion, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+              >
+                Usar sugestão
+              </Button>
+            </div>
+          )}
           <FieldMessage message={errors.category?.message} />
         </div>
       </div>

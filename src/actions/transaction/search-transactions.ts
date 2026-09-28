@@ -2,7 +2,7 @@
 
 import { unstable_noStore as noStore } from "next/cache";
 
-import { TRANSACTION_CATEGORIES } from "@/constants/transaction-categories";
+import { categoryReferenceSchema } from "@/schemas/category.schema";
 import { createApiError, createRequestError } from "@/lib/api-error";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
@@ -32,10 +32,14 @@ export async function searchTransactions(
   if (filters.type === "INCOME" || filters.type === "EXPENSE") {
     params.set("type", filters.type);
   }
-  if (filters.category && TRANSACTION_CATEGORIES.includes(filters.category)) {
+  if (
+    filters.category &&
+    categoryReferenceSchema.safeParse(filters.category).success
+  ) {
     params.set("category", filters.category);
   }
-  if (filters.search?.trim()) params.set("search", filters.search.trim().slice(0, 100));
+  if (filters.search?.trim())
+    params.set("search", filters.search.trim().slice(0, 100));
 
   try {
     const response = await fetch(

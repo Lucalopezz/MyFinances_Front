@@ -1,11 +1,10 @@
-import type { FixedExpenseCategory } from "@/constants/transaction-categories";
 import type { Transaction } from "@/models/transaction.model";
 
 export interface FixedExpense {
   id?: string;
   name: string;
   amount: number;
-  category: FixedExpenseCategory;
+  category: string;
   dueDate: string;
   recurrence: string;
   isPaid?: boolean;

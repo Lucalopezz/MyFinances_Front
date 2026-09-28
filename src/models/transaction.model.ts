@@ -1,7 +1,4 @@
-import type {
-  TransactionCategory,
-  TransactionType,
-} from "@/constants/transaction-categories";
+import type { TransactionType } from "@/constants/transaction-categories";
 
 export type Transaction = {
   id?: string;
@@ -31,7 +28,7 @@ export type TransactionSearchFilters = {
   startDate?: string;
   endDate?: string;
   type?: TransactionType;
-  category?: TransactionCategory;
+  category?: string;
   search?: string;
 };
 
@@ -45,6 +42,6 @@ export type TransactionFormValues = {
   type: TransactionType;
   value: number;
   date: Date;
-  category: TransactionCategory;
+  category: string;
   description: string;
 };

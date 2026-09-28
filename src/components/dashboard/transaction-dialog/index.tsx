@@ -17,10 +17,9 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
   CATEGORY_BY_TYPE,
-  TRANSACTION_CATEGORIES,
   TRANSACTION_TYPES,
-  type TransactionCategory,
 } from "@/constants/transaction-categories";
+import { categoryReferenceSchema } from "@/schemas/category.schema";
 import { TransactionFormFields } from "@/components/transaction/transaction-form-fields";
 import type {
   Transaction,
@@ -34,7 +33,7 @@ const TransactionSchema = z.object({
   type: z.enum([TRANSACTION_TYPES.EXPENSE, TRANSACTION_TYPES.INCOME]),
   value: z.coerce.number().positive("Valor deve ser positivo"),
   date: z.date(),
-  category: z.enum(TRANSACTION_CATEGORIES),
+  category: categoryReferenceSchema,
   description: z.string().default(""),
 });
 
@@ -53,9 +52,6 @@ function getInitialValues(
   mode: "create" | "edit" | "duplicate" = "create",
 ): TransactionFormValues {
   const type = transaction?.type ?? TRANSACTION_TYPES.EXPENSE;
-  const categories = CATEGORY_BY_TYPE[type] as readonly TransactionCategory[];
-  const fallbackCategory = categories[0];
-  const category = transaction?.category as TransactionCategory | undefined;
 
   return {
     type,
@@ -64,9 +60,7 @@ function getInitialValues(
       mode === "duplicate" || !transaction?.date
         ? new Date()
         : parseDateOnly(transaction.date),
-    category: categories.includes(category as TransactionCategory)
-      ? (category as TransactionCategory)
-      : fallbackCategory,
+    category: transaction?.category ?? CATEGORY_BY_TYPE[type][0],
     description: transaction?.description ?? "",
   };
 }
@@ -86,8 +80,6 @@ export const TransactionDialog = ({
     handleSubmit,
     reset,
     setValue,
-    watch,
-    getValues,
     formState: { errors },
   } = useForm<TransactionFormValues>({
     resolver: zodResolver(TransactionSchema),
@@ -99,23 +91,6 @@ export const TransactionDialog = ({
       reset(getInitialValues(transaction, mode));
     }
   }, [open, reset, transaction, mode]);
-
-  const currentType = watch("type");
-
-  useEffect(() => {
-    const allowedCategories = CATEGORY_BY_TYPE[
-      currentType
-    ] as readonly TransactionCategory[];
-    const currentCategory = getValues("category") as TransactionCategory;
-
-    if (!allowedCategories.includes(currentCategory)) {
-      setValue("category", allowedCategories[0], {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
-    }
-  }, [currentType, getValues, setValue]);
 
   const handleFormSubmit = async (data: TransactionFormValues) => {
     const payload: Transaction = {
@@ -182,6 +157,9 @@ export const TransactionDialog = ({
             register={register}
             setValue={setValue}
             errors={errors}
+            preservedId={mode === "edit" ? transaction?.category : undefined}
+            suggest={mode !== "edit"}
+            key={`${open}-${mode}-${transaction?.id ?? "new"}`}
           />
 
           <DialogFormActions

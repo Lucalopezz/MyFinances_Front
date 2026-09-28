@@ -13,7 +13,7 @@ import { RowActions } from "@/components/common/row-actions";
 import { StatusBadge } from "@/components/common/status-badge";
 import { Dialog } from "@/components/ui/dialog";
 import { FixedExpenseDialog } from "@/components/fixed-expense/fixed-expense-dialog";
-import { CATEGORY_LABELS } from "@/constants/transaction-categories";
+import { useCategories } from "@/providers/category-provider";
 import { formatCurrency, formatShortDate } from "@/utils/formatters";
 
 interface FixedExpenseListProps {
@@ -58,6 +58,7 @@ function DesktopFixedExpenseRow({
     isPaid: boolean;
   }) => Promise<unknown>;
 }) {
+  const { categoryLabel } = useCategories();
   return (
     <TableRow className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
       <TableCell className="py-4 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">
@@ -70,7 +71,7 @@ function DesktopFixedExpenseRow({
         {formatShortDate(expense.dueDate)}
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">
-        {getCategoryLabel(expense.category)}
+        {categoryLabel(expense.category)}
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
         <StatusBadge tone="blue">{expense.recurrence}</StatusBadge>
@@ -101,6 +102,7 @@ function MobileFixedExpenseCard({
     isPaid: boolean;
   }) => Promise<unknown>;
 }) {
+  const { categoryLabel } = useCategories();
   return (
     <MobileListCard
       title={expense.name}
@@ -112,7 +114,7 @@ function MobileFixedExpenseCard({
           <div className="flex flex-wrap items-center gap-2">
             <StatusBadge tone="blue">{expense.recurrence}</StatusBadge>
             <StatusBadge tone="blue">
-              {getCategoryLabel(expense.category)}
+              {categoryLabel(expense.category)}
             </StatusBadge>
             <FixedExpensePaymentBadge expense={expense} />
           </div>
@@ -178,8 +180,4 @@ function FixedExpensePaymentBadge({ expense }: { expense: FixedExpense }) {
 
 function getFixedExpenseKey(expense: FixedExpense) {
   return expense.id || `${expense.name}-${expense.amount}`;
-}
-
-function getCategoryLabel(category: FixedExpense["category"]) {
-  return CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS] ?? category;
 }
