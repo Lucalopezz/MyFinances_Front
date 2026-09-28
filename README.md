@@ -36,7 +36,9 @@ A documentação técnica do front-end está em [docs/doc.md](docs/doc.md).
 
 O fluxo de autenticação está descrito em [docs/authentication.md](docs/authentication.md).
 
-Planejamento da próxima versão do front está em [docs/v2.md](docs/v2.md).
+O plano ativo de evolução está em [Próximos passos](docs/next-steps.md), com escopo e critérios de aceite para API e frontend.
+
+O [planejamento V2](docs/v2.md) e o [plano de implementação anterior](docs/implementation-plan.md) preservam o histórico das rodadas anteriores e apontam para o plano ativo.
 
 ---
 
