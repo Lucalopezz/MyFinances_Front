@@ -165,7 +165,7 @@ Exibe resumo financeiro, cards e gráficos. Os dados vêm de endpoints de dashbo
 
 ### Transações
 
-Permite criar, listar, editar e remover receitas ou despesas. As categorias ficam em `src/constants/transaction-categories.ts`.
+Permite criar, listar, editar e remover receitas ou despesas. O catálogo vem de `GET /categories`; as constantes mantêm apenas compatibilidade com códigos padrão.
 Uma transação pode ser duplicada no formulário de criação com data sugerida de
 hoje, sem alterar o registro original. A busca global é consultada por padrão,
 com filtros na URL e navegação por cursores. Se a API responder `404` para a
@@ -226,3 +226,17 @@ O front depende dos seguintes grupos de endpoints:
 - `/dashboard/monthly-comparison`
 
 Mudanças de contrato nesses endpoints devem ser refletidas nos services, interfaces e formulários correspondentes.
+
+### Categorias e regras — entrega A
+
+O layout privado carrega o catálogo no servidor e o entrega a `CategoryProvider`; atualizações interativas usam React Query com as chaves centralizadas `categories` e `category-rules`. Falha de leitura mantém o catálogo padrão e oferece tentativa novamente, sem impedir a navegação.
+
+Configurações permite criar/editar/arquivar/restaurar categorias com nome, cor e ícone, e criar/editar/ativar/desativar/excluir regras com prioridade e teste de descrição antes de salvar. Formulários usam React Hook Form e Zod em `src/schemas/category.schema.ts`. Catálogo e regras permanecem apenas em memória no navegador.
+
+Seletores de transações, despesas fixas e orçamento usam categorias ativas do tipo correspondente. Ao editar, a referência arquivada original pode ser mantida. Duplicar é novo uso e exige categoria ativa. Filtros e rótulos de listas, dashboard e comparativos incluem arquivadas. O servidor revalida todas as referências.
+
+Novos lançamentos consultam `/categories/resolve` após 400 ms sem digitação e mostram “Usar sugestão”; respostas obsoletas são descartadas. A consulta não substitui a categoria escolhida. Edições não consultam regras. Erro de sugestão mantém o preenchimento manual disponível.
+
+Actions em `src/actions/category/categories.ts` preservam cookie HTTP-only, `no-store` e o tratamento público de erros. Mutações revalidam configurações, transações, despesas fixas, orçamento, dashboard e comparativos, além do catálogo e regras no client. Publicar a API com as novas rotas antes do front. Importação de extratos continua na entrega B.
+
+Login e logout cancelam consultas pendentes e limpam o QueryClient para preservar isolamento do catálogo e das regras entre contas. Evidências e limitações da entrega estão em [Validação da entrega A](delivery-a-validation.md).
