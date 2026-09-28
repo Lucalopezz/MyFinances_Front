@@ -36,12 +36,8 @@ export default async function DashboardPage() {
   const [dashboardData, monthlyComparison, forecast, budgets] = await Promise.all([
     getDashboardSummary(),
     getMonthlyComparison(),
-    process.env.DASHBOARD_FORECAST_ENABLED === "true"
-      ? loadForecast()
-      : Promise.resolve({ data: null, error: null }),
-    process.env.MONTHLY_BUDGETS_ENABLED === "true"
-      ? loadBudgets(budgetMonth)
-      : Promise.resolve({ data: null, error: null }),
+    loadForecast(),
+    loadBudgets(budgetMonth),
   ]);
 
   return (

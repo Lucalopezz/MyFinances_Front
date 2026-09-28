@@ -32,8 +32,6 @@ const NotificationIcon = ({ type }: { type: NotificationsType }) => {
   }
 };
 
-const MARK_ALL_ENABLED = process.env.NEXT_PUBLIC_MARK_ALL_AS_READ_ENABLED === "true";
-
 export const NotificationButton = () => {
   const {
     data: notifications = [],
@@ -92,7 +90,7 @@ export const NotificationButton = () => {
           <div className="p-4 border-b dark:border-gray-700">
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-lg font-medium">Notificações</h3>
-              {MARK_ALL_ENABLED && unreadCount > 0 && (
+              {unreadCount > 0 && (
                 <button
                   type="button"
                   className="text-xs font-medium text-blue-600 hover:underline disabled:opacity-50 dark:text-blue-400"

@@ -34,7 +34,6 @@ import {
 } from "@/components/ui/select";
 
 const POLLING_INTERVAL = 2500;
-const CSV_EXPORT_ENABLED = process.env.NEXT_PUBLIC_CSV_EXPORT_ENABLED === "true";
 const DOWNLOADED_EXPORTS_KEY = "myfinances:downloaded-transaction-exports";
 
 function isActiveExport(
@@ -277,11 +276,7 @@ export function TransactionExport() {
         onClick={() => setIsConfirmationOpen(true)}
       >
         <FileDown aria-hidden="true" />
-        {isFailed
-          ? CSV_EXPORT_ENABLED ? "Tentar exportar" : "Tentar exportar PDF"
-          : CSV_EXPORT_ENABLED
-            ? "Exportar transações"
-            : "Exportar PDF"}
+        {isFailed ? "Tentar exportar" : "Exportar transações"}
       </Button>
     );
   };
@@ -318,7 +313,7 @@ export function TransactionExport() {
       <Dialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{CSV_EXPORT_ENABLED ? "Exportar transações" : "Exportar transações em PDF?"}</DialogTitle>
+            <DialogTitle>Exportar transações</DialogTitle>
             <DialogDescription className="pt-2 leading-relaxed">
               O arquivo terá todas as suas transações, não apenas as exibidas
               nesta página ou pelos filtros atuais. A geração acontece em
@@ -326,7 +321,7 @@ export function TransactionExport() {
             </DialogDescription>
           </DialogHeader>
 
-          {CSV_EXPORT_ENABLED && <div className="space-y-2">
+          <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="transaction-export-format">
               Formato
             </label>
@@ -342,7 +337,7 @@ export function TransactionExport() {
                 <SelectItem value="CSV">CSV para planilhas</SelectItem>
               </SelectContent>
             </Select>
-          </div>}
+          </div>
 
           <DialogFooter>
             <Button

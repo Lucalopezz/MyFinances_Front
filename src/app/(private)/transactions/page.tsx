@@ -44,12 +44,10 @@ export default async function TransactionsPage({
   const filters = parseFilters(params);
   let searchPage: TransactionSearchPage | null = null;
   let searchError: string | undefined;
-  if (process.env.TRANSACTION_SEARCH_ENABLED === "true") {
-    try {
-      searchPage = await searchTransactions(filters);
-    } catch (error) {
-      searchError = error instanceof Error ? error.message : "Não foi possível buscar as transações.";
-    }
+  try {
+    searchPage = await searchTransactions(filters);
+  } catch (error) {
+    searchError = error instanceof Error ? error.message : "Não foi possível buscar as transações.";
   }
   const isSearchAvailable = searchPage !== null || Boolean(searchError);
   const transactions = await getTransactions(isSearchAvailable ? 1 : page);

@@ -10,10 +10,10 @@ Authorization: Bearer <accessToken>
 
 Datas devem ser enviadas como string válida, preferencialmente `YYYY-MM-DD`.
 
-As rotas novas de busca, orçamento, projeção e marcação em lote descritas abaixo
-fazem parte da próxima entrega da API. O frontend ativa cada interface por
-configuração após a publicação da respectiva rota; os contratos antigos seguem
-disponíveis.
+As rotas de busca, orçamento, projeção, marcação em lote e exportação CSV
+descritas abaixo fazem parte da versão 2.1 da API. O frontend usa essas
+integrações por padrão, sem variáveis de ativação; publique o backend com
+suporte a esses contratos antes de publicar o frontend.
 
 ---
 
@@ -167,8 +167,9 @@ Query params opcionais:
 - `limit`: quantidade de itens por página (inteiro positivo; padrão: `20`).
 
 O front-end solicita `limit=50`. No fluxo legado, a paginação é feita pela API
-e os filtros da listagem são aplicados localmente somente à página atual. Após
-ativar `GET /transactions/search`, a listagem usa a busca global por cursor.
+e os filtros da listagem são aplicados localmente somente à página atual.
+A listagem usa `GET /transactions/search` por padrão para busca global por
+cursor, recorrendo ao fluxo legado se a rota responder `404`.
 A exportação assíncrona continua independente da listagem e inclui todas as
 transações do usuário quando nenhum filtro opcional é enviado.
 
