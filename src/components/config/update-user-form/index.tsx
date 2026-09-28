@@ -15,6 +15,7 @@ import {
 } from "@/models/user.model";
 import { updateUserAction } from "@/actions/user/update-user-action";
 
+import { CategoriesSettings } from "../categories";
 import { AccountCard } from "./account-card";
 import { NotificationsCard } from "./notifications-card";
 import { PreferencesCard } from "./preferences-card";
@@ -112,6 +113,7 @@ export default function UpdateUserForm({ user }: UpdateUserFormProps) {
           showReadNotifications={showReadNotifications}
         />
       </div>
+      <CategoriesSettings />
     </div>
   );
 }
