@@ -29,6 +29,7 @@ import {
   getTransactionKey,
 } from "@/components/transaction/transaction-list";
 import { TransactionExport } from "@/components/transaction/transaction-export";
+import { TransactionImport } from "@/components/transaction/transaction-import";
 
 type SearchListProps = {
   filters: TransactionSearchFilters;
@@ -104,7 +105,10 @@ export function TransactionSearchList({
             busca.
           </p>
         </div>
-        <TransactionExport />
+        <div className="flex flex-wrap items-start gap-2">
+          <TransactionImport />
+          <TransactionExport />
+        </div>
       </div>
 
       <form

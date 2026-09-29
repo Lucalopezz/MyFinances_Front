@@ -237,6 +237,19 @@ Seletores de transações, despesas fixas e orçamento usam categorias ativas do
 
 Novos lançamentos consultam `/categories/resolve` após 400 ms sem digitação e mostram “Usar sugestão”; respostas obsoletas são descartadas. A consulta não substitui a categoria escolhida. Edições não consultam regras. Erro de sugestão mantém o preenchimento manual disponível.
 
-Actions em `src/actions/category/categories.ts` preservam cookie HTTP-only, `no-store` e o tratamento público de erros. Mutações revalidam configurações, transações, despesas fixas, orçamento, dashboard e comparativos, além do catálogo e regras no client. Publicar a API com as novas rotas antes do front. Importação de extratos continua na entrega B.
+Actions em `src/actions/category/categories.ts` preservam cookie HTTP-only, `no-store` e o tratamento público de erros. Mutações revalidam configurações, transações, despesas fixas, orçamento, dashboard e comparativos, além do catálogo e regras no client. Publicar a API com as novas rotas antes do front. Importação de extratos usa o mesmo catálogo na entrega B.
 
 Login e logout cancelam consultas pendentes e limpam o QueryClient para preservar isolamento do catálogo e das regras entre contas. Evidências e limitações da entrega estão em [Validação da entrega A](delivery-a-validation.md).
+
+
+### Importação de extratos — entrega B
+
+O botão “Importar” fica ao lado da exportação nas listas de transações (busca global e fallback paginado). Abre um modal responsivo com etapas de arquivo/mapeamento, revisão, confirmação com totais e resultado por linha. CSV permite escolher codificação, delimitador, formato de data/decimal e colunas de valor ou entrada/saída. OFX identifica os campos no servidor.
+
+`src/components/transaction/transaction-import` separa formulário, revisão paginada de 20 linhas e coordenação do modal. O formulário usa React Hook Form/Zod. A revisão mantém erros por linha, respeita categorias ativas por tipo, permite edição individual/em lote e seleção. Duplicatas começam desmarcadas, com aceite explícito antes de selecionar. A confirmação final mostra totais e quantidade de duplicatas autorizadas; envio repetido é bloqueado enquanto há requisição ativa.
+
+As Server Actions de `src/actions/transaction/import-transactions.ts` leem exclusivamente o cookie HTTP-only e encaminham multipart/JSON para a API com `cache: no-store`. JWT nunca chega ao client. Erros `401` encerram a sessão. O limite de Server Actions é 3 MiB para acomodar multipart; o arquivo permanece limitado a 2 MiB no formulário, na action e no backend.
+
+Após qualquer tentativa de confirmação, invalidar transações, dashboard, orçamento, comparativos e wishlist, inclusive quando a resposta se perdeu após uma gravação parcial. O resultado permite consultar o estado e revisar pendências, mantendo importadas bloqueadas. Recálculo pendente da wishlist tem ação própria de repetição.
+
+Arquivo e campos financeiros ficam apenas em memória. O parâmetro `importBatch` guarda apenas o ID opaco do lote no endereço para recuperar a revisão após recarregar a página. Recuperação exige a mesma sessão/autorização no backend; não expõe dados de outro usuário. Fechar o modal mantém a prévia; “Descartar prévia” exige confirmação e apaga o payload temporário sem desfazer transações. Expiração de 24h impede nova confirmação e orienta reenviar o arquivo. Consulte os formatos e contratos em [Rotas da API](api-routes.md).

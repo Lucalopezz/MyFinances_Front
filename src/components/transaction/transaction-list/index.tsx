@@ -31,6 +31,7 @@ import { ResponsiveList } from "@/components/common/responsive-list";
 import { StatusBadge } from "@/components/common/status-badge";
 import { formatShortDate, formatSignedCurrency } from "@/utils/formatters";
 import { TransactionExport } from "../transaction-export";
+import { TransactionImport } from "../transaction-import";
 
 interface TransactionListProps {
   transactions: PaginatedTransactions;
@@ -107,7 +108,10 @@ export function TransactionList({ transactions, page }: TransactionListProps) {
             exibidas nesta página.
           </p>
         </div>
-        <TransactionExport />
+        <div className="flex flex-wrap items-start gap-2">
+          <TransactionImport />
+          <TransactionExport />
+        </div>
       </div>
 
       <div className="grid gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900 md:grid-cols-2 xl:grid-cols-5">
