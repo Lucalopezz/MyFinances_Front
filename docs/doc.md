@@ -78,8 +78,8 @@ src/
 | `/` | Landing page pública do MyFinances. |
 | `/dashboard` | Dashboard financeiro autenticado. |
 | `/transactions` | Listagem, criação, edição e remoção de transações. |
-| `/wishlist` | Listagem e criação de itens desejados. |
-| `/wishlist/edit/[id]` | Edição de item da wishlist. |
+| `/wishlist` | Metas, reservas, distribuição inicial e histórico de compras. |
+| `/wishlist/edit/[id]` | Edição de nome, valor desejado e prazo de meta ativa. |
 | `/fixed-expenses` | Listagem e criação de despesas fixas. |
 | `/fixed-expenses/edit/[id]` | Edição de despesa fixa. |
 | `/comparative` | Comparativos financeiros. |
@@ -250,7 +250,7 @@ O botão “Importar” fica ao lado da exportação nas listas de transações 
 
 As Server Actions de `src/actions/transaction/import-transactions.ts` leem exclusivamente o cookie HTTP-only e encaminham multipart/JSON para a API com `cache: no-store`. JWT nunca chega ao client. Erros `401` encerram a sessão. O limite de Server Actions é 3 MiB para acomodar multipart; o arquivo permanece limitado a 2 MiB no formulário, na action e no backend.
 
-Após qualquer tentativa de confirmação, invalidar transações, dashboard, orçamento, comparativos e wishlist, inclusive quando a resposta se perdeu após uma gravação parcial. O resultado permite consultar o estado e revisar pendências, mantendo importadas bloqueadas. Recálculo pendente da wishlist tem ação própria de repetição.
+Após qualquer tentativa de confirmação, invalidar transações, dashboard, orçamento, comparativos e wishlist, inclusive quando a resposta se perdeu após uma gravação parcial. O resultado permite consultar o estado e revisar pendências, mantendo importadas bloqueadas. Reservas da wishlist não são recalculadas após importação.
 
 Arquivo e campos financeiros ficam apenas em memória. O parâmetro `importBatch` guarda apenas o ID opaco do lote no endereço para recuperar a revisão após recarregar a página. Recuperação exige a mesma sessão/autorização no backend; não expõe dados de outro usuário. Fechar o modal mantém a prévia; “Descartar prévia” exige confirmação e apaga o payload temporário sem desfazer transações. Expiração de 24h impede nova confirmação e orienta reenviar o arquivo. Consulte os formatos e contratos em [Rotas da API](api-routes.md).
 
@@ -264,3 +264,9 @@ A tela inclui calendário com seleção por teclado, agenda por dia (padrão em 
 O card compartilhado `ProjectionCard` apresenta gráfico diário, primeiro dia negativo, saldo-base, premissas e tabela acessível. O dashboard usa a mesma projeção do calendário. Mutações revalidam calendário, transações, dashboard, comparativos e wishlist; a agenda busca novamente ao montar para acompanhar alterações feitas em outras telas.
 
 Contrato, regras de data, implantação e limites estão em [financial-calendar.md](financial-calendar.md). Validação visual em navegador continua pendente quando a sessão não oferece navegador.
+
+## Metas e conclusão de compras — entregas D e E
+
+A wishlist mostra saldos registrado, reservado e livre, progresso individual, sugestão mensal, histórico de movimentos e filtro de compras concluídas. O progresso anual antigo é exibido somente como referência; o usuário distribui reservas com aportes e marca a transição como concluída. Ações de aportar, retirar e concluir usam Server Actions autenticadas e invalidam dados financeiros afetados. A conclusão mostra o vínculo direto em `/transactions/[id]`, gera uma única despesa e sai da lista ativa. O formulário de edição não altera a reserva diretamente.
+
+Datas seguem `YYYY-MM-DD`; valores têm centavos. A interface bloqueia envio repetido enquanto a ação está pendente. O saldo livre pode ficar negativo após despesas posteriores, com aviso sem apagar os aportes. O contrato está em `docs/api-routes.md`.
