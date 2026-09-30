@@ -119,6 +119,7 @@ export async function confirmImport(
   );
   // A lost response may still have committed some lines. Invalidate on every attempt.
   for (const tag of [
+    "calendar",
     "transactions",
     "transaction",
     "dashboard",
@@ -129,6 +130,7 @@ export async function confirmImport(
   ])
     revalidateTag(tag);
   for (const path of [
+    "/calendar",
     "/transactions",
     "/dashboard",
     "/comparative",

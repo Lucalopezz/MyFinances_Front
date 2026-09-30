@@ -61,6 +61,7 @@ function revalidate() {
   ])
     revalidateTag(tag);
   for (const path of [
+    "/calendar",
     "/config",
     "/dashboard",
     "/transactions",

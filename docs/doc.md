@@ -253,3 +253,14 @@ As Server Actions de `src/actions/transaction/import-transactions.ts` leem exclu
 Após qualquer tentativa de confirmação, invalidar transações, dashboard, orçamento, comparativos e wishlist, inclusive quando a resposta se perdeu após uma gravação parcial. O resultado permite consultar o estado e revisar pendências, mantendo importadas bloqueadas. Recálculo pendente da wishlist tem ação própria de repetição.
 
 Arquivo e campos financeiros ficam apenas em memória. O parâmetro `importBatch` guarda apenas o ID opaco do lote no endereço para recuperar a revisão após recarregar a página. Recuperação exige a mesma sessão/autorização no backend; não expõe dados de outro usuário. Fechar o modal mantém a prévia; “Descartar prévia” exige confirmação e apaga o payload temporário sem desfazer transações. Expiração de 24h impede nova confirmação e orienta reenviar o arquivo. Consulte os formatos e contratos em [Rotas da API](api-routes.md).
+
+
+## Calendário financeiro — entrega C
+
+A rota privada `/calendar` recebe dados iniciais via Server Components e atualiza meses/receitas com TanStack Query e Server Actions em `src/actions/calendar`. O cookie HTTP-only não sai do servidor. Navegação da sidebar inclui Calendário e fecha o menu móvel ao navegar.
+
+A tela inclui calendário com seleção por teclado, agenda por dia (padrão em telas pequenas), filtros de receita/despesa/situação, pendências, recorrências com edição/pausa, formulário validado por React Hook Form/Zod e confirmação do valor/data reais. Há estados de carregamento, vazio, erro com tentativa novamente e feedback de sucesso. Suporta temas claro e escuro.
+
+O card compartilhado `ProjectionCard` apresenta gráfico diário, primeiro dia negativo, saldo-base, premissas e tabela acessível. O dashboard usa a mesma projeção do calendário. Mutações revalidam calendário, transações, dashboard, comparativos e wishlist; a agenda busca novamente ao montar para acompanhar alterações feitas em outras telas.
+
+Contrato, regras de data, implantação e limites estão em [financial-calendar.md](financial-calendar.md). Validação visual em navegador continua pendente quando a sessão não oferece navegador.

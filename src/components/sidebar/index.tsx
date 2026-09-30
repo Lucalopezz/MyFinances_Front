@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export const Sidebar = () => {
+export const Sidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
   const pathname = usePathname();
 
   const menuItems = [
     { name: "Dashboard", path: "/dashboard" },
     { name: "Transações", path: "/transactions" },
+    { name: "Calendário", path: "/calendar" },
     { name: "Wishlist", path: "/wishlist" },
     { name: "Despesas Fixas", path: "/fixed-expenses" },
     { name: "Comparativo", path: "/comparative" },
@@ -16,7 +17,7 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-64 dark:bg-[#1F2937] dark:text-white p-4 h-full">
+    <aside className="w-64 bg-white dark:bg-[#1F2937] dark:text-white p-4 h-full">
       <nav>
         <ul>
           {menuItems.map((item) => {
@@ -25,6 +26,7 @@ export const Sidebar = () => {
               <li key={item.name} className="mb-2">
                 <Link
                   href={item.path}
+                  onClick={onNavigate}
                   className={`block py-2 px-4 rounded cursor-pointer ${
                     isActive
                       ? "bg-[#3B82F6] text-white"

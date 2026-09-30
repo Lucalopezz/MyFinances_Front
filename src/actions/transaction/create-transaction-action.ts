@@ -19,6 +19,8 @@ export async function createTransactionAction(transaction: Transaction) {
   revalidateTag("sixMonthComparison");
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+  revalidateTag("calendar");
   revalidatePath("/comparative");
 
   return created;

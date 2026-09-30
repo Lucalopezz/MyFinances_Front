@@ -44,6 +44,8 @@ export async function updateFixedExpenseAction(
     revalidateTag("forecast");
     revalidatePath("/fixed-expenses");
     revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+  revalidateTag("calendar");
 
     if (isFormData(payload)) {
       redirect("/fixed-expenses");

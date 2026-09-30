@@ -29,7 +29,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 isSidebarOpen ? "translate-x-0" : "-translate-x-full"
               }`}
             >
-              <Sidebar />
+              <Sidebar onNavigate={() => setIsSidebarOpen(false)} />
             </div>
 
             {isSidebarOpen && (
@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </>
         )}
 
-        <main className="flex-1 bg-white p-4 md:p-6 dark:bg-gray-700">
+        <main className="min-w-0 flex-1 bg-white p-4 md:p-6 dark:bg-gray-700">
           {children}
         </main>
       </div>
