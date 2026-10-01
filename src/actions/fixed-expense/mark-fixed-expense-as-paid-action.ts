@@ -43,6 +43,8 @@ export async function markFixedExpenseAsPaidAction(
   revalidatePath("/fixed-expenses");
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+  revalidateTag("calendar");
   revalidatePath("/comparative");
 
   return result;

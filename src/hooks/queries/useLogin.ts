@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { LoginFormData } from "@/schemas/auth/login.schema";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -6,6 +7,7 @@ import { loginAction } from "@/actions/login/login-action";
 
 export const useLogin = () => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (data: LoginFormData) => {
@@ -13,6 +15,8 @@ export const useLogin = () => {
     try {
       await loginAction({ email: data.email, password: data.password });
 
+      await queryClient.cancelQueries();
+      queryClient.clear();
       await router.push("/dashboard");
       router.refresh();
       toast.success("Login realizado com sucesso!");

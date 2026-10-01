@@ -17,8 +17,7 @@ export async function updateWishAction(formData: FormData) {
     const wishData = {
       name: formData.get("name") as string,
       desiredValue: parseFloat(formData.get("desiredValue") as string),
-      targetDate: formData.get("targetDate") as string,
-      savedAmount: parseFloat(formData.get("savedAmount") as string),
+      targetDate: (formData.get("targetDate") as string) || null,
     };
 
     const updated = await updateWish(id, wishData);

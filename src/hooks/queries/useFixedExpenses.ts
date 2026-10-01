@@ -8,7 +8,7 @@ import { deleteFixedExpenseAction } from "@/actions/fixed-expense/delete-fixed-e
 import { markFixedExpenseAsPaidAction } from "@/actions/fixed-expense/mark-fixed-expense-as-paid-action";
 import { getFixedExpenses } from "@/actions/fixed-expense/fixed-expenses";
 import { updateFixedExpenseAction } from "@/actions/fixed-expense/update-fixed-expense-action";
-import { CATEGORY_LABELS } from "@/constants/transaction-categories";
+import { useCategories } from "@/providers/category-provider";
 import type {
   FixedExpense,
   FixedExpensePaymentResult,
@@ -21,7 +21,9 @@ function invalidateFixedExpenseViews(
   queryClient.invalidateQueries({ queryKey: queryKeys.fixedExpenses.all() });
 }
 
-function invalidatePaymentViews(queryClient: ReturnType<typeof useQueryClient>) {
+function invalidatePaymentViews(
+  queryClient: ReturnType<typeof useQueryClient>,
+) {
   invalidateFixedExpenseViews(queryClient);
   queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all() });
   queryClient.invalidateQueries({ queryKey: ["dashboard"] });
@@ -100,13 +102,14 @@ export function useUpdateFixedExpense() {
 }
 
 export function useMarkFixedExpenseAsPaid() {
+  const { categoryLabel } = useCategories();
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: ({ id, isPaid }: { id: string; isPaid: boolean }) =>
       markFixedExpenseAsPaidAction({ id, isPaid }),
     onSuccess: (result) => {
-      toast.success(getPaymentSuccessMessage(result));
+      toast.success(getPaymentSuccessMessage(result, categoryLabel));
       invalidatePaymentViews(queryClient);
     },
     onError: (error: Error) => {
@@ -120,7 +123,10 @@ export function useMarkFixedExpenseAsPaid() {
   };
 }
 
-function getPaymentSuccessMessage(result: FixedExpensePaymentResult) {
+function getPaymentSuccessMessage(
+  result: FixedExpensePaymentResult,
+  categoryLabel: (id: string) => string,
+) {
   const transaction = result.transaction;
   const isPaid = result.fixedExpense.isPaid;
 
@@ -129,9 +135,7 @@ function getPaymentSuccessMessage(result: FixedExpensePaymentResult) {
   }
 
   if (transaction) {
-    const category =
-      CATEGORY_LABELS[transaction.category as keyof typeof CATEGORY_LABELS] ??
-      transaction.category;
+    const category = categoryLabel(transaction.category);
 
     return `Despesa paga e transação de ${category} criada.`;
   }

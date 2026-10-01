@@ -36,7 +36,7 @@ export const WishDialog = ({
     defaultValues: {
       name: "",
       desiredValue: 0,
-      targetDate: new Date(),
+      targetDate: null,
     },
   });
 
@@ -121,7 +121,7 @@ export const WishDialog = ({
                 id="targetDate"
                 type="date"
                 {...register("targetDate", {
-                  setValueAs: (v) => parseDateOnly(v),
+                  setValueAs: (v) => v ? parseDateOnly(v) : null,
                 })}
                 className={cn(
                   "bg-[#364152] border-none text-white",

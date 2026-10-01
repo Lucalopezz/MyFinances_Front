@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 import { logoutAction } from "@/actions/login/logout-action";
 import { SESSION_EXPIRED_EVENT } from "@/lib/client-auth";
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("authenticated");
   const router = useRouter();
+  const queryClient = useQueryClient();
   const pathname = usePathname();
   const isEndingSessionRef = useRef(false);
 
@@ -32,6 +34,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     isEndingSessionRef.current = true;
     setStatus("unauthenticated");
+
+    await queryClient.cancelQueries();
+    queryClient.clear();
 
     try {
       await logoutAction();
@@ -45,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     router.refresh();
     isEndingSessionRef.current = false;
-  }, [pathname, router, status]);
+  }, [pathname, router, status, queryClient]);
 
   useEffect(() => {
     window.addEventListener(SESSION_EXPIRED_EVENT, endSession);

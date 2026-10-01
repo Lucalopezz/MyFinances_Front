@@ -21,10 +21,7 @@ import {
 } from "@/components/ui/select";
 
 import { TransactionRowActions } from "../transaction-row-actions";
-import {
-  CATEGORY_LABELS,
-  TRANSACTION_CATEGORIES,
-} from "@/constants/transaction-categories";
+import { useCategories } from "@/providers/category-provider";
 import {
   useDeleteTransaction,
   useTransactions,
@@ -34,6 +31,7 @@ import { ResponsiveList } from "@/components/common/responsive-list";
 import { StatusBadge } from "@/components/common/status-badge";
 import { formatShortDate, formatSignedCurrency } from "@/utils/formatters";
 import { TransactionExport } from "../transaction-export";
+import { TransactionImport } from "../transaction-import";
 
 interface TransactionListProps {
   transactions: PaginatedTransactions;
@@ -41,6 +39,7 @@ interface TransactionListProps {
 }
 
 export function TransactionList({ transactions, page }: TransactionListProps) {
+  const { categories, categoryLabel: labelFor } = useCategories();
   const [search, setSearch] = useState("");
   const [type, setType] = useState("ALL");
   const [category, setCategory] = useState("ALL");
@@ -61,9 +60,7 @@ export function TransactionList({ transactions, page }: TransactionListProps) {
     const normalizedSearch = normalizeSearch(search);
 
     return currentPageTransactions.filter((transaction) => {
-      const categoryLabel =
-        CATEGORY_LABELS[transaction.category as keyof typeof CATEGORY_LABELS] ??
-        transaction.category;
+      const categoryLabel = labelFor(transaction.category);
       const searchableContent = normalizeSearch(
         `${transaction.description} ${categoryLabel}`,
       );
@@ -77,7 +74,15 @@ export function TransactionList({ transactions, page }: TransactionListProps) {
         (!endDate || transactionDate <= endDate)
       );
     });
-  }, [category, currentPageTransactions, endDate, search, startDate, type]);
+  }, [
+    category,
+    currentPageTransactions,
+    endDate,
+    search,
+    startDate,
+    type,
+    labelFor,
+  ]);
 
   const clearFilters = () => {
     setSearch("");
@@ -103,7 +108,10 @@ export function TransactionList({ transactions, page }: TransactionListProps) {
             exibidas nesta página.
           </p>
         </div>
-        <TransactionExport />
+        <div className="flex flex-wrap items-start gap-2">
+          <TransactionImport />
+          <TransactionExport />
+        </div>
       </div>
 
       <div className="grid gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900 md:grid-cols-2 xl:grid-cols-5">
@@ -154,12 +162,13 @@ export function TransactionList({ transactions, page }: TransactionListProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">Todas as categorias</SelectItem>
-              {TRANSACTION_CATEGORIES.map((transactionCategory) => (
+              {categories.map((transactionCategory) => (
                 <SelectItem
-                  key={transactionCategory}
-                  value={transactionCategory}
+                  key={transactionCategory.id}
+                  value={transactionCategory.id}
                 >
-                  {CATEGORY_LABELS[transactionCategory]}
+                  {transactionCategory.name}
+                  {transactionCategory.archived ? " (arquivada)" : ""}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -296,9 +305,7 @@ export function DesktopTransactionRow({
   transaction: Transaction;
   handleDelete: (id: string) => Promise<void>;
 }) {
-  const categoryLabel =
-    CATEGORY_LABELS[transaction.category as keyof typeof CATEGORY_LABELS] ??
-    transaction.category;
+  const categoryLabel = useCategories().categoryLabel(transaction.category);
 
   return (
     <TableRow className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -340,9 +347,7 @@ export function MobileTransactionCard({
   transaction: Transaction;
   handleDelete: (id: string) => Promise<void>;
 }) {
-  const categoryLabel =
-    CATEGORY_LABELS[transaction.category as keyof typeof CATEGORY_LABELS] ??
-    transaction.category;
+  const categoryLabel = useCategories().categoryLabel(transaction.category);
 
   return (
     <MobileListCard

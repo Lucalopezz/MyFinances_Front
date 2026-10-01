@@ -1,5 +1,7 @@
+"use client";
+
 import SummaryCard from "@/components/summary-card";
-import { CATEGORY_LABELS } from "@/constants/transaction-categories";
+import { useCategories } from "@/providers/category-provider";
 import type {
   ComparativeBlock,
   SemesterSummary,
@@ -20,18 +22,11 @@ interface SemesterSummarySectionProps {
   balancePercentageChange: number | null;
 }
 
-function categoryLabel(category?: string) {
-  if (!category) return "Sem despesas";
-
-  return (
-    CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS] ?? category
-  );
-}
-
 export default function SemesterSummarySection({
   summary,
   balancePercentageChange,
 }: SemesterSummarySectionProps) {
+  const { categoryLabel } = useCategories();
   const data = summary.data;
   const hasData = Boolean(
     data &&
@@ -92,7 +87,11 @@ export default function SemesterSummarySection({
       />
       <SummaryCard
         title="Maior categoria de gasto"
-        content={categoryLabel(data.highestSpendingCategory?.category)}
+        content={
+          data.highestSpendingCategory
+            ? categoryLabel(data.highestSpendingCategory.category)
+            : "Sem despesas"
+        }
         subtitle={
           data.highestSpendingCategory
             ? formatCurrency(data.highestSpendingCategory.total)

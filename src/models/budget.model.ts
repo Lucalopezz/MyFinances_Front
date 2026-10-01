@@ -1,10 +1,8 @@
-import type { ExpenseCategory } from "@/constants/transaction-categories";
-
 export interface MonthlyBudget {
   id: string;
   userId: string;
   monthKey: string;
-  category: ExpenseCategory;
+  category: string;
   limitAmount: number;
   createdAt: string;
   updatedAt: string;
@@ -15,4 +13,7 @@ export interface MonthlyBudgetSummary extends MonthlyBudget {
   remainingAmount: number;
 }
 
-export type BudgetInput = Pick<MonthlyBudget, "monthKey" | "category" | "limitAmount">;
+export type BudgetInput = Pick<
+  MonthlyBudget,
+  "monthKey" | "category" | "limitAmount"
+>;

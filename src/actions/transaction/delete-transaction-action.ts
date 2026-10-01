@@ -18,5 +18,7 @@ export async function deleteTransactionAction(id: string) {
   revalidateTag("sixMonthComparison");
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+  revalidateTag("calendar");
   revalidatePath("/comparative");
 }

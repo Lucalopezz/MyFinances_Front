@@ -30,7 +30,7 @@ Variáveis:
 
 Busca global, projeção mensal, orçamentos, marcação de todas as notificações
 como lidas e exportação CSV ficam ativos por padrão, sem variáveis de ativação.
-O backend configurado deve oferecer as rotas da versão 2.1 descritas em
+O backend configurado deve oferecer as rotas da v2.2.0 descritas em
 `docs/api-routes.md`. As antigas variáveis de ativação não são mais utilizadas.
 A exportação PDF continua disponível no seletor de formato. A ação de marcar
 todas como lidas aparece quando há notificações não lidas.
@@ -78,8 +78,10 @@ src/
 | `/` | Landing page pública do MyFinances. |
 | `/dashboard` | Dashboard financeiro autenticado. |
 | `/transactions` | Listagem, criação, edição e remoção de transações. |
-| `/wishlist` | Listagem e criação de itens desejados. |
-| `/wishlist/edit/[id]` | Edição de item da wishlist. |
+| `/wishlist` | Metas, reservas, distribuição inicial e histórico de compras. |
+| `/wishlist/edit/[id]` | Edição de nome, valor desejado e prazo de meta ativa. |
+| `/calendar` | Agenda financeira, receitas recorrentes e projeção diária. |
+| `/cards` | Cartões, limite, compras parceladas e faturas. |
 | `/fixed-expenses` | Listagem e criação de despesas fixas. |
 | `/fixed-expenses/edit/[id]` | Edição de despesa fixa. |
 | `/comparative` | Comparativos financeiros. |
@@ -138,6 +140,9 @@ Tags usadas atualmente:
 - `fixed-expense`
 - `wishlist`
 - `get-user`
+- `categories` e `category-rules`
+- `calendar`
+- `cards`
 
 ## Layout
 
@@ -165,7 +170,7 @@ Exibe resumo financeiro, cards e gráficos. Os dados vêm de endpoints de dashbo
 
 ### Transações
 
-Permite criar, listar, editar e remover receitas ou despesas. As categorias ficam em `src/constants/transaction-categories.ts`.
+Permite criar, listar, editar e remover receitas ou despesas. O catálogo vem de `GET /categories`; as constantes mantêm apenas compatibilidade com códigos padrão.
 Uma transação pode ser duplicada no formulário de criação com data sugerida de
 hoje, sem alterar o registro original. A busca global é consultada por padrão,
 com filtros na URL e navegação por cursores. Se a API responder `404` para a
@@ -226,3 +231,53 @@ O front depende dos seguintes grupos de endpoints:
 - `/dashboard/monthly-comparison`
 
 Mudanças de contrato nesses endpoints devem ser refletidas nos services, interfaces e formulários correspondentes.
+
+### Categorias e regras — entrega A
+
+O layout privado carrega o catálogo no servidor e o entrega a `CategoryProvider`; atualizações interativas usam React Query com as chaves centralizadas `categories` e `category-rules`. Falha de leitura mantém o catálogo padrão e oferece tentativa novamente, sem impedir a navegação.
+
+Configurações permite criar/editar/arquivar/restaurar categorias com nome, cor e ícone, e criar/editar/ativar/desativar/excluir regras com prioridade e teste de descrição antes de salvar. Formulários usam React Hook Form e Zod em `src/schemas/category.schema.ts`. Catálogo e regras permanecem apenas em memória no navegador.
+
+Seletores de transações, despesas fixas e orçamento usam categorias ativas do tipo correspondente. Ao editar, a referência arquivada original pode ser mantida. Duplicar é novo uso e exige categoria ativa. Filtros e rótulos de listas, dashboard e comparativos incluem arquivadas. O servidor revalida todas as referências.
+
+Novos lançamentos consultam `/categories/resolve` após 400 ms sem digitação e mostram “Usar sugestão”; respostas obsoletas são descartadas. A consulta não substitui a categoria escolhida. Edições não consultam regras. Erro de sugestão mantém o preenchimento manual disponível.
+
+Actions em `src/actions/category/categories.ts` preservam cookie HTTP-only, `no-store` e o tratamento público de erros. Mutações revalidam configurações, transações, despesas fixas, orçamento, dashboard e comparativos, além do catálogo e regras no client. Publicar a API com as novas rotas antes do front. Importação de extratos usa o mesmo catálogo na entrega B.
+
+Login e logout cancelam consultas pendentes e limpam o QueryClient para preservar isolamento do catálogo e das regras entre contas. Evidências e limitações da entrega estão em [Validação da entrega A](delivery-a-validation.md).
+
+
+### Importação de extratos — entrega B
+
+O botão “Importar” fica ao lado da exportação nas listas de transações (busca global e fallback paginado). Abre um modal responsivo com etapas de arquivo/mapeamento, revisão, confirmação com totais e resultado por linha. CSV permite escolher codificação, delimitador, formato de data/decimal e colunas de valor ou entrada/saída. OFX identifica os campos no servidor.
+
+`src/components/transaction/transaction-import` separa formulário, revisão paginada de 20 linhas e coordenação do modal. O formulário usa React Hook Form/Zod. A revisão mantém erros por linha, respeita categorias ativas por tipo, permite edição individual/em lote e seleção. Duplicatas começam desmarcadas, com aceite explícito antes de selecionar. A confirmação final mostra totais e quantidade de duplicatas autorizadas; envio repetido é bloqueado enquanto há requisição ativa.
+
+As Server Actions de `src/actions/transaction/import-transactions.ts` leem exclusivamente o cookie HTTP-only e encaminham multipart/JSON para a API com `cache: no-store`. JWT nunca chega ao client. Erros `401` encerram a sessão. O limite de Server Actions é 3 MiB para acomodar multipart; o arquivo permanece limitado a 2 MiB no formulário, na action e no backend.
+
+Após qualquer tentativa de confirmação, invalidar transações, dashboard, orçamento, comparativos e wishlist, inclusive quando a resposta se perdeu após uma gravação parcial. O resultado permite consultar o estado e revisar pendências, mantendo importadas bloqueadas. Reservas da wishlist não são recalculadas após importação.
+
+Arquivo e campos financeiros ficam apenas em memória. O parâmetro `importBatch` guarda apenas o ID opaco do lote no endereço para recuperar a revisão após recarregar a página. Recuperação exige a mesma sessão/autorização no backend; não expõe dados de outro usuário. Fechar o modal mantém a prévia; “Descartar prévia” exige confirmação e apaga o payload temporário sem desfazer transações. Expiração de 24h impede nova confirmação e orienta reenviar o arquivo. Consulte os formatos e contratos em [Rotas da API](api-routes.md).
+
+
+## Calendário financeiro — entrega C
+
+A rota privada `/calendar` recebe dados iniciais via Server Components e atualiza meses/receitas com TanStack Query e Server Actions em `src/actions/calendar`. O cookie HTTP-only não sai do servidor. Navegação da sidebar inclui Calendário e fecha o menu móvel ao navegar.
+
+A tela inclui calendário com seleção por teclado, agenda por dia (padrão em telas pequenas), filtros de receita/despesa/situação, pendências, recorrências com edição/pausa, formulário validado por React Hook Form/Zod e confirmação do valor/data reais. Há estados de carregamento, vazio, erro com tentativa novamente e feedback de sucesso. Suporta temas claro e escuro.
+
+O card compartilhado `ProjectionCard` apresenta gráfico diário, primeiro dia negativo, saldo-base, premissas e tabela acessível. O dashboard usa a mesma projeção do calendário. Mutações revalidam calendário, transações, dashboard, comparativos e wishlist; a agenda busca novamente ao montar para acompanhar alterações feitas em outras telas.
+
+Contrato, regras de data, implantação e limites estão em [financial-calendar.md](financial-calendar.md). Validação visual em navegador continua pendente quando a sessão não oferece navegador.
+
+## Metas e conclusão de compras — entregas D e E
+
+A wishlist mostra saldos registrado, reservado e livre, progresso individual, sugestão mensal, histórico de movimentos e filtro de compras concluídas. O progresso anual antigo é exibido somente como referência; o usuário distribui reservas com aportes e marca a transição como concluída. Ações de aportar, retirar e concluir usam Server Actions autenticadas e invalidam dados financeiros afetados. A conclusão mostra o vínculo direto em `/transactions/[id]`, gera uma única despesa e sai da lista ativa. O formulário de edição não altera a reserva diretamente.
+
+Datas seguem `YYYY-MM-DD`; valores têm centavos. A interface bloqueia envio repetido enquanto a ação está pendente. O saldo livre pode ficar negativo após despesas posteriores, com aviso sem apagar os aportes. O contrato está em `docs/api-routes.md`.
+
+## Cartões de crédito — v2.2.0
+
+A rota privada `/cards` carrega os cartões no servidor e apresenta limite total, em uso e disponível, compras e faturas por competência. Permite cadastrar cartão com dia de fechamento, vencimento e anuidade; registrar compra com categoria e até 60 parcelas; e marcar como paga uma fatura fechada. O formulário de nova despesa também aceita “Crédito”, cartão e número de parcelas, encaminhando a compra para `/cards/:id/purchases`.
+
+As Server Actions em `src/actions/cards/cards.ts` usam o cookie HTTP-only e chamadas sem cache. Após mutações, revalidam cartões, transações, calendário, dashboard, orçamentos e comparativos. Uma compra compromete o limite, mas não aparece como despesa realizada até o pagamento integral da fatura; faturas pendentes entram na projeção do calendário. O contrato HTTP está em [Rotas da API](api-routes.md) e as regras de cálculo e implantação em `docs/credit-cards.md` da API.

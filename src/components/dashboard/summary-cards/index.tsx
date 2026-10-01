@@ -1,10 +1,12 @@
+"use client";
+
 import SummaryCard from "@/components/summary-card";
 import {
   formatCurrency,
   formatMonthLabel,
   formatPercentage,
 } from "@/utils/formatters";
-import { CATEGORY_LABELS } from "@/constants/transaction-categories";
+import { useCategories } from "@/providers/category-provider";
 
 interface SummaryCardsProps {
   balance: number;
@@ -28,11 +30,10 @@ const SummaryCards = ({
   periodStart,
   isLoading,
 }: SummaryCardsProps) => {
+  const { categoryLabel } = useCategories();
   const monthLabel = formatMonthLabel(periodStart);
   const highestSpendingCategoryLabel = highestSpendingCategory?.category
-    ? CATEGORY_LABELS[
-        highestSpendingCategory.category as keyof typeof CATEGORY_LABELS
-      ] ?? highestSpendingCategory.category
+    ? categoryLabel(highestSpendingCategory.category)
     : "Sem despesas no mês";
   const summaryCards = [
     {

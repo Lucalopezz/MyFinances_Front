@@ -93,21 +93,8 @@ export default async function EditWishPage({
                 name="targetDate"
                 type="date"
                 defaultValue={formattedDate}
-                required
               />
             </div>
-          </div>
-
-          <div className="space-y-1">
-            <Label htmlFor="savedAmount">Valor Economizado</Label>
-            <Input
-              id="savedAmount"
-              name="savedAmount"
-              type="number"
-              step="0.01"
-              defaultValue={wish.savedAmount}
-              required
-            />
           </div>
 
           <div className="flex justify-end space-x-3 pt-6">

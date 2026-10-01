@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,26 +17,39 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
   CATEGORY_BY_TYPE,
-  TRANSACTION_CATEGORIES,
   TRANSACTION_TYPES,
-  type TransactionCategory,
 } from "@/constants/transaction-categories";
+import { categoryReferenceSchema } from "@/schemas/category.schema";
 import { TransactionFormFields } from "@/components/transaction/transaction-form-fields";
 import type {
   Transaction,
   TransactionFormValues,
 } from "@/models/transaction.model";
 import { parseDateOnly } from "@/utils/date";
+import { getCards } from "@/actions/cards/cards";
+import type { CreditCard } from "@/models/card.model";
+import { Input } from "@/components/ui/input";
 
 export type { Transaction } from "@/models/transaction.model";
 
-const TransactionSchema = z.object({
-  type: z.enum([TRANSACTION_TYPES.EXPENSE, TRANSACTION_TYPES.INCOME]),
-  value: z.coerce.number().positive("Valor deve ser positivo"),
-  date: z.date(),
-  category: z.enum(TRANSACTION_CATEGORIES),
-  description: z.string().default(""),
-});
+const TransactionSchema = z
+  .object({
+    type: z.enum([TRANSACTION_TYPES.EXPENSE, TRANSACTION_TYPES.INCOME]),
+    value: z.coerce.number().positive("Valor deve ser positivo"),
+    date: z.date(),
+    category: categoryReferenceSchema,
+    description: z.string().default(""),
+    paymentMethod: z.enum(["CASH", "CREDIT"]),
+    cardId: z.string().optional(),
+    installments: z.coerce.number().int().min(1).max(60),
+  })
+  .refine(
+    (value) =>
+      value.type !== "EXPENSE" ||
+      value.paymentMethod !== "CREDIT" ||
+      !!value.cardId,
+    { path: ["cardId"], message: "Selecione um cartão." },
+  );
 
 type TransactionDialogProps = {
   open: boolean;
@@ -53,9 +66,6 @@ function getInitialValues(
   mode: "create" | "edit" | "duplicate" = "create",
 ): TransactionFormValues {
   const type = transaction?.type ?? TRANSACTION_TYPES.EXPENSE;
-  const categories = CATEGORY_BY_TYPE[type] as readonly TransactionCategory[];
-  const fallbackCategory = categories[0];
-  const category = transaction?.category as TransactionCategory | undefined;
 
   return {
     type,
@@ -64,10 +74,11 @@ function getInitialValues(
       mode === "duplicate" || !transaction?.date
         ? new Date()
         : parseDateOnly(transaction.date),
-    category: categories.includes(category as TransactionCategory)
-      ? (category as TransactionCategory)
-      : fallbackCategory,
+    category: transaction?.category ?? CATEGORY_BY_TYPE[type][0],
     description: transaction?.description ?? "",
+    paymentMethod: "CASH",
+    cardId: "",
+    installments: 1,
   };
 }
 
@@ -80,6 +91,7 @@ export const TransactionDialog = ({
   transaction,
   showTrigger = true,
 }: TransactionDialogProps) => {
+  const [cards, setCards] = useState<CreditCard[]>([]);
   const {
     control,
     register,
@@ -87,7 +99,6 @@ export const TransactionDialog = ({
     reset,
     setValue,
     watch,
-    getValues,
     formState: { errors },
   } = useForm<TransactionFormValues>({
     resolver: zodResolver(TransactionSchema),
@@ -99,23 +110,14 @@ export const TransactionDialog = ({
       reset(getInitialValues(transaction, mode));
     }
   }, [open, reset, transaction, mode]);
-
-  const currentType = watch("type");
-
   useEffect(() => {
-    const allowedCategories = CATEGORY_BY_TYPE[
-      currentType
-    ] as readonly TransactionCategory[];
-    const currentCategory = getValues("category") as TransactionCategory;
-
-    if (!allowedCategories.includes(currentCategory)) {
-      setValue("category", allowedCategories[0], {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
-    }
-  }, [currentType, getValues, setValue]);
+    if (open && mode !== "edit")
+      getCards()
+        .then(setCards)
+        .catch(() => setCards([]));
+  }, [open, mode]);
+  const isCredit =
+    watch("paymentMethod") === "CREDIT" && watch("type") === "EXPENSE";
 
   const handleFormSubmit = async (data: TransactionFormValues) => {
     const payload: Transaction = {
@@ -182,7 +184,69 @@ export const TransactionDialog = ({
             register={register}
             setValue={setValue}
             errors={errors}
+            preservedId={mode === "edit" ? transaction?.category : undefined}
+            suggest={mode !== "edit"}
+            key={`${open}-${mode}-${transaction?.id ?? "new"}`}
           />
+          {mode !== "edit" && watch("type") === "EXPENSE" && (
+            <div className="grid gap-4 rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+              <label className="grid gap-2 text-sm font-medium">
+                Forma de pagamento
+                <select
+                  className="h-10 rounded-md border bg-white px-3 dark:bg-slate-900"
+                  {...register("paymentMethod")}
+                >
+                  <option value="CASH">À vista</option>
+                  <option value="CREDIT">Cartão de crédito</option>
+                </select>
+              </label>
+              {isCredit && (
+                <>
+                  <label className="grid gap-2 text-sm font-medium">
+                    Cartão
+                    <select
+                      className="h-10 rounded-md border bg-white px-3 dark:bg-slate-900"
+                      {...register("cardId")}
+                    >
+                      <option value="">Selecione um cartão</option>
+                      {cards.map((card) => (
+                        <option value={card.id} key={card.id}>
+                          {card.name} · disponível{" "}
+                          {new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          }).format(card.available)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {cards.length === 0 && (
+                    <p className="text-sm text-slate-500">
+                      Cadastre um cartão na aba Cartões para usar crédito.
+                    </p>
+                  )}
+                  {errors.cardId && (
+                    <p role="alert" className="text-sm text-red-600">
+                      {errors.cardId.message}
+                    </p>
+                  )}
+                  <label className="grid gap-2 text-sm font-medium">
+                    Número de parcelas
+                    <Input
+                      type="number"
+                      min="1"
+                      max="60"
+                      {...register("installments", { valueAsNumber: true })}
+                    />
+                  </label>
+                  <p className="text-xs text-slate-500">
+                    A compra ocupa o limite agora. O saldo realizado muda quando
+                    a fatura for paga.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
 
           <DialogFormActions
             onCancel={() => onOpenChange(false)}

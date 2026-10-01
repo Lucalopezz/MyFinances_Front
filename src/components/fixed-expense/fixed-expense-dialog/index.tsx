@@ -32,10 +32,8 @@ import {
   useUpdateFixedExpense,
 } from "@/hooks/queries/useFixedExpenses";
 import { DialogFormActions } from "@/components/common/dialog-form-actions";
-import {
-  CATEGORY_CONFIG,
-  FIXED_EXPENSE_CATEGORIES,
-} from "@/constants/transaction-categories";
+import { CategorySelect } from "@/components/category/category-select";
+import { categoryReferenceSchema } from "@/schemas/category.schema";
 import type { FixedExpense } from "@/models/fixed-expense.model";
 import { toDateInputValue } from "@/utils/date";
 
@@ -47,7 +45,7 @@ interface FixedExpenseDialogProps {
 const formSchema = z.object({
   name: z.string().min(3, { message: "Nome deve ter pelo menos 3 caracteres" }),
   amount: z.number().min(0.01, { message: "Valor deve ser maior que zero" }),
-  category: z.enum(FIXED_EXPENSE_CATEGORIES),
+  category: categoryReferenceSchema,
   dueDate: z.string().min(1, { message: "Selecione uma data de vencimento" }),
   recurrence: z.string().min(1, { message: "Selecione a recorrência" }),
 });
@@ -172,20 +170,12 @@ export function FixedExpenseDialog({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Categoria da transação</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a categoria" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {FIXED_EXPENSE_CATEGORIES.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {CATEGORY_CONFIG[category].label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <CategorySelect
+                  type="EXPENSE"
+                  value={field.value}
+                  onChange={field.onChange}
+                  preservedId={fixedExpense?.category}
+                />
                 <FormMessage />
               </FormItem>
             )}

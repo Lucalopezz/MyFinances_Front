@@ -1,6 +1,6 @@
 "use server";
 
-import { NewWish, WishListInterface } from "@/models/wishlist.model";
+import { NewWish, WishListInterface, WishSummary } from "@/models/wishlist.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import { unstable_noStore as noStore } from "next/cache";
@@ -9,6 +9,7 @@ import {
   createRequestError,
 } from "@/lib/api-error";
 import { toDateInputValue } from "@/utils/date";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function createWish(data: NewWish): Promise<boolean> {
   const token = await getServerToken();
@@ -22,7 +23,7 @@ export async function createWish(data: NewWish): Promise<boolean> {
       headers: createJsonHeaders(token),
       body: JSON.stringify({
         ...data,
-        targetDate: toDateInputValue(data.targetDate),
+        targetDate: data.targetDate ? toDateInputValue(data.targetDate) : null,
       }),
     });
 
@@ -138,8 +139,7 @@ export async function updateWish(
   wishData: {
     name: string;
     desiredValue: number;
-    targetDate: string;
-    savedAmount: number;
+    targetDate: string | null;
   },
 ): Promise<WishListInterface | null> {
   const token = await getServerToken();
@@ -152,7 +152,6 @@ export async function updateWish(
       name: wishData.name,
       desiredValue: wishData.desiredValue,
       targetDate: wishData.targetDate,
-      savedAmount: wishData.savedAmount,
     };
 
     const response = await fetch(`${backendUrl}/wishlist/${id}`, {
@@ -176,4 +175,73 @@ export async function updateWish(
       fallback: "Não foi possível atualizar o item da lista de desejos.",
     });
   }
+}
+
+async function wishlistRequest<T>(path: string, method = "GET", body?: unknown): Promise<T> {
+  noStore();
+  const token = await getServerToken();
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
+  const context = `${method} /wishlist${path}`;
+  try {
+    const response = await fetch(`${getServerBackendUrl()}/wishlist${path}`, {
+      method,
+      headers: createJsonHeaders(token),
+      cache: "no-store",
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    if (!response.ok) throw await createApiError(response, {
+      context,
+      fallback: "Não foi possível atualizar a meta.",
+    });
+    return (await response.json()) as T;
+  } catch (error) {
+    throw createRequestError(error, { context, fallback: "Não foi possível atualizar a meta." });
+  }
+}
+
+function revalidateWishlist(purchase = false) {
+  for (const tag of ["wishlist", "dashboard", "forecast", "calendar", "transactions", "transaction", "budgets", "monthlyComparison", "sixMonthComparison"])
+    revalidateTag(tag);
+  for (const path of ["/wishlist", "/dashboard", "/calendar", "/transactions", "/comparative"])
+    revalidatePath(path);
+  if (purchase) revalidatePath("/budgets");
+}
+
+export async function getWishSummary(): Promise<WishSummary> {
+  return wishlistRequest<WishSummary>("/summary");
+}
+
+export async function addWishMovement(id: string, input: {
+  kind: "DEPOSIT" | "WITHDRAWAL";
+  value: number;
+  date: string;
+  note?: string;
+}) {
+  const item = await wishlistRequest<WishListInterface>(`/${encodeURIComponent(id)}/movements`, "POST", input);
+  revalidateWishlist();
+  return item;
+}
+
+export async function settleWishMigration() {
+  const items = await wishlistRequest<WishListInterface[]>("/settle-migration", "POST");
+  revalidateWishlist();
+  return items;
+}
+
+export async function completeWish(id: string, input: {
+  value: number;
+  date: string;
+  category: string;
+  description: string;
+}) {
+  const result = await wishlistRequest<{
+    item: WishListInterface;
+    transaction: { id: string };
+    coveredAmount?: number;
+    releasedAmount?: number;
+    uncoveredAmount?: number;
+    alreadyCompleted: boolean;
+  }>(`/${encodeURIComponent(id)}/complete`, "POST", input);
+  revalidateWishlist(true);
+  return result;
 }

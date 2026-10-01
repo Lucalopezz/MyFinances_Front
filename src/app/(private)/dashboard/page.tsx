@@ -3,16 +3,23 @@ import {
   getDashboardSummary,
   getMonthlyComparison,
 } from "@/actions/dashboard/dashboard";
-import { getDashboardForecast } from "@/actions/dashboard/forecast";
+import { getFinancialCalendar } from "@/actions/calendar/calendar";
+import { currentDay } from "@/components/calendar/calendar-utils";
 import { getBudgetSummary } from "@/actions/budget/budgets";
 
 async function loadForecast() {
   try {
-    return { data: await getDashboardForecast(), error: null };
+    return {
+      data: (await getFinancialCalendar(currentDay().slice(0, 7))).projection,
+      error: null,
+    };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : "Não foi possível carregar a projeção do mês.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Não foi possível carregar a projeção do mês.",
     };
   }
 }
@@ -23,7 +30,10 @@ async function loadBudgets(month: string) {
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : "Não foi possível carregar os orçamentos.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Não foi possível carregar os orçamentos.",
     };
   }
 }
@@ -33,12 +43,13 @@ export const revalidate = 0;
 
 export default async function DashboardPage() {
   const budgetMonth = new Date().toISOString().slice(0, 7);
-  const [dashboardData, monthlyComparison, forecast, budgets] = await Promise.all([
-    getDashboardSummary(),
-    getMonthlyComparison(),
-    loadForecast(),
-    loadBudgets(budgetMonth),
-  ]);
+  const [dashboardData, monthlyComparison, forecast, budgets] =
+    await Promise.all([
+      getDashboardSummary(),
+      getMonthlyComparison(),
+      loadForecast(),
+      loadBudgets(budgetMonth),
+    ]);
 
   return (
     <DashboardContent

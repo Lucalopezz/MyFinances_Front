@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CATEGORY_LABELS } from "@/constants/transaction-categories";
+import { useCategories } from "@/providers/category-provider";
 import type { CategorySpending } from "@/models/dashboard.model";
 import { formatCurrency, formatPercentage } from "@/utils/formatters";
 import {
@@ -24,11 +24,10 @@ export default function CategorySpendingChart({
   data,
   isLoading,
 }: CategorySpendingChartProps) {
+  const { categoryLabel } = useCategories();
   const chartData = data.map((item) => ({
     ...item,
-    name:
-      CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] ??
-      item.category,
+    name: categoryLabel(item.category),
   }));
 
   return (
@@ -42,10 +41,16 @@ export default function CategorySpendingChart({
         {isLoading ? (
           <Skeleton className="h-80 w-full" />
         ) : (
-          <ResponsiveContainer width="100%" height={Math.max(320, data.length * 44)}>
+          <ResponsiveContainer
+            width="100%"
+            height={Math.max(320, data.length * 44)}
+          >
             <BarChart data={chartData} layout="vertical" margin={{ left: 16 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-              <XAxis type="number" tickFormatter={(value) => formatCurrency(Number(value))} />
+              <XAxis
+                type="number"
+                tickFormatter={(value) => formatCurrency(Number(value))}
+              />
               <YAxis dataKey="name" type="category" width={120} />
               <Tooltip
                 formatter={(value, _name, item) => [
@@ -53,7 +58,12 @@ export default function CategorySpendingChart({
                   "Despesas",
                 ]}
               />
-              <Bar dataKey="total" name="Despesas" fill="#EF4444" radius={[0, 4, 4, 0]} />
+              <Bar
+                dataKey="total"
+                name="Despesas"
+                fill="#EF4444"
+                radius={[0, 4, 4, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         )}

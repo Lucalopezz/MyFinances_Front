@@ -16,6 +16,8 @@ export async function createFixedExpenseAction(data: Omit<FixedExpense, "id">) {
   revalidateTag("forecast");
   revalidatePath("/fixed-expenses");
   revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+  revalidateTag("calendar");
 
   return true;
 }

@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import { updateFixedExpense } from "@/actions/fixed-expense/fixed-expenses";
-import type { FixedExpenseCategory } from "@/constants/transaction-categories";
 import type { FixedExpense } from "@/models/fixed-expense.model";
 
 type UpdateFixedExpensePayload =
@@ -33,7 +32,7 @@ export async function updateFixedExpenseAction(
       ? {
           name: payload.get("name") as string,
           amount: parseFloat(payload.get("amount") as string),
-          category: payload.get("category") as FixedExpenseCategory,
+          category: String(payload.get("category") ?? ""),
           dueDate: payload.get("dueDate") as string,
           recurrence: payload.get("recurrence") as string,
         }
@@ -45,6 +44,8 @@ export async function updateFixedExpenseAction(
     revalidateTag("forecast");
     revalidatePath("/fixed-expenses");
     revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+  revalidateTag("calendar");
 
     if (isFormData(payload)) {
       redirect("/fixed-expenses");

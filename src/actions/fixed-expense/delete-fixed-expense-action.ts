@@ -15,4 +15,6 @@ export async function deleteFixedExpenseAction(id: string | undefined) {
   revalidateTag("forecast");
   revalidatePath("/fixed-expenses");
   revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+  revalidateTag("calendar");
 }

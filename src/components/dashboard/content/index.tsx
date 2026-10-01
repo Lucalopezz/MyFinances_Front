@@ -1,4 +1,5 @@
 "use client";
+import type { DailyProjection } from "@/models/calendar.model";
 
 import DashboardHeader from "../dashboard-header";
 import SummaryCards from "../summary-cards";
@@ -6,7 +7,6 @@ import MonthlyComparisonChart from "../monthly-comparison-chart";
 import DashboardActions from "../dashboard-actions";
 import type {
   FinancialSummary,
-  DashboardForecast,
   MonthlyComparisonResponse,
 } from "@/models/dashboard.model";
 import { formatMonthLabel } from "@/utils/formatters";
@@ -17,7 +17,7 @@ import type { MonthlyBudgetSummary } from "@/models/budget.model";
 interface DashboardContentProps {
   dashboardData: FinancialSummary;
   monthlyComparison: MonthlyComparisonResponse;
-  forecast?: DashboardForecast | null;
+  forecast?: DailyProjection | null;
   forecastError?: string | null;
   budgetMonth: string;
   budgets?: MonthlyBudgetSummary[] | null;
@@ -55,9 +55,25 @@ const DashboardContent = ({
       />
 
       {forecast ? <ForecastCard forecast={forecast} /> : null}
-      {forecastError ? <p role="alert" className="mb-6 rounded-lg border border-red-200 p-4 text-sm text-red-700 dark:border-red-900 dark:text-red-300">{forecastError}</p> : null}
-      {budgets ? <BudgetSection initialMonth={budgetMonth} initialData={budgets} /> : null}
-      {budgetError ? <p role="alert" className="mb-6 rounded-lg border border-red-200 p-4 text-sm text-red-700 dark:border-red-900 dark:text-red-300">{budgetError}</p> : null}
+      {forecastError ? (
+        <p
+          role="alert"
+          className="mb-6 rounded-lg border border-red-200 p-4 text-sm text-red-700 dark:border-red-900 dark:text-red-300"
+        >
+          {forecastError}
+        </p>
+      ) : null}
+      {budgets ? (
+        <BudgetSection initialMonth={budgetMonth} initialData={budgets} />
+      ) : null}
+      {budgetError ? (
+        <p
+          role="alert"
+          className="mb-6 rounded-lg border border-red-200 p-4 text-sm text-red-700 dark:border-red-900 dark:text-red-300"
+        >
+          {budgetError}
+        </p>
+      ) : null}
 
       <MonthlyComparisonChart
         data={chartData}

@@ -47,6 +47,8 @@ export async function updateTransactionAction(payload: UpdateTransactionPayload)
   revalidateTag("sixMonthComparison");
   revalidatePath("/transactions");
   revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+  revalidateTag("calendar");
   revalidatePath("/comparative");
 
   if (isFormData(payload)) {

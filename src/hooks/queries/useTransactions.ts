@@ -34,8 +34,12 @@ export function useCreateTransaction() {
 
   const mutation = useMutation({
     mutationFn: createTransactionAction,
-    onSuccess: () => {
-      toast.success("Transação criada com sucesso!");
+    onSuccess: (created) => {
+      toast.success(
+        created.paymentMethod === "CREDIT"
+          ? "Compra registrada no cartão."
+          : "Transação criada com sucesso!",
+      );
       invalidateTransactionViews(queryClient);
     },
     onError: (error: Error) => toast.error(error.message),
