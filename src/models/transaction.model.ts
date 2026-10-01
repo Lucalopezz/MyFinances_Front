@@ -10,6 +10,9 @@ export type Transaction = {
   createdAt?: string;
   updatedAt?: string;
   userId?: string;
+  paymentMethod?: "CASH" | "CREDIT";
+  cardId?: string;
+  installments?: number;
 };
 
 export type TransactionPaginationMeta = {
@@ -44,4 +47,7 @@ export type TransactionFormValues = {
   date: Date;
   category: string;
   description: string;
+  paymentMethod: "CASH" | "CREDIT";
+  cardId?: string;
+  installments: number;
 };

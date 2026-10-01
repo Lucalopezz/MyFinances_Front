@@ -9,6 +9,7 @@ export const Sidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
   const menuItems = [
     { name: "Dashboard", path: "/dashboard" },
     { name: "Transações", path: "/transactions" },
+    { name: "Cartões", path: "/cards" },
     { name: "Calendário", path: "/calendar" },
     { name: "Wishlist", path: "/wishlist" },
     { name: "Despesas Fixas", path: "/fixed-expenses" },

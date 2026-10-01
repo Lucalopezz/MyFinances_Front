@@ -872,3 +872,6 @@ Implementado: `GET /calendar?month=YYYY-MM`, `GET /calendar/incomes`, `POST /cal
 Consulte [contrato completo, exemplos de campos, datas, projeção e implantação](financial-calendar.md). A API retorna agenda mensal, pendências anteriores e linha diária com saldo-base acumulado, impacto das pendências e primeiro dia negativo. Confirmações criam uma única transação criptografada por competência.
 
 O endpoint legado `/dashboard/forecast` é mantido; o novo dashboard do frontend usa `/calendar`. Transações vinculadas a recibos não podem ser editadas/excluídas pelas rotas genéricas; pagamento de despesa pode ser desmarcado pelo fluxo específico.
+## Cartões de crédito
+
+`GET /cards`, `POST /cards`, `GET /cards/:id`, `POST /cards/:id/purchases` e `POST /cards/:id/invoices/:cycle/pay` são chamadas autenticadas por Server Actions em `src/actions/cards/cards.ts`. O contrato completo e as regras de fatura estão em `docs/credit-cards.md` no repositório da API. A compra no crédito não gera transação realizada; o pagamento integral de uma fatura fechada gera uma transação por parcela, preservando as categorias.
