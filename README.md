@@ -1,6 +1,6 @@
 # MyFinances Front-end
 
-Front-end Next.js para gerenciamento financeiro pessoal. A aplicação consome uma API externa para autenticação, transações, wishlist, despesas fixas, dashboard e comparativos financeiros.
+Front-end Next.js para gerenciamento financeiro pessoal. A v2.2.0 reúne as entregas A–E do plano de evolução e cartões de crédito. O simulador de compras (item F) ficou fora desta versão.
 
 ---
 
@@ -8,9 +8,12 @@ Front-end Next.js para gerenciamento financeiro pessoal. A aplicação consome u
 
 - **Autenticação:** Login, cadastro, sessão via cookie HTTP-only e proteção de rotas privadas.
 - **Landing page:** Apresentação pública dos recursos, com demonstrações visuais da interface.
-- **Transações:** Criação, atualização, listagem e remoção de transações.
+- **Transações:** Criação, atualização, busca, importação CSV/OFX e exportação PDF/CSV.
+- **Categorias:** Catálogo personalizado e regras de sugestão automática.
 - **Dashboard:** Resumo financeiro, indicadores e gráficos.
-- **Wishlist:** Gestão de itens desejados, com acompanhamento do progresso de economia.
+- **Calendário:** Receitas recorrentes, despesas previstas, agenda mensal e projeção diária.
+- **Wishlist:** Metas com aportes e retiradas individuais, conclusão de compras e histórico.
+- **Cartões de crédito:** Cadastro, compras parceladas, limite e pagamento integral de faturas.
 - **Despesas Fixas:** Cadastro, edição, remoção e marcação de pagamento.
 - **Comparativo:** Visualização comparativa de receitas, despesas e saldo.
 - **Configurações:** Atualização de dados do usuário e senha.
@@ -36,9 +39,9 @@ A documentação técnica do front-end está em [docs/doc.md](docs/doc.md).
 
 O fluxo de autenticação está descrito em [docs/authentication.md](docs/authentication.md).
 
-O plano ativo de evolução está em [Próximos passos](docs/next-steps.md), com escopo e critérios de aceite para API e frontend.
+O [escopo da v2.2.0](docs/next-steps.md) registra as entregas, validações e a exclusão do simulador. O [contrato HTTP](docs/api-routes.md) e a [documentação técnica](docs/doc.md) descrevem as integrações atuais.
 
-O [planejamento V2](docs/v2.md) e o [plano de implementação anterior](docs/implementation-plan.md) preservam o histórico das rodadas anteriores e apontam para o plano ativo.
+O [planejamento V2](docs/v2.md) e o [plano de implementação anterior](docs/implementation-plan.md) preservam o histórico das rodadas anteriores.
 
 ---
 

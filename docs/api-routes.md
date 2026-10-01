@@ -11,9 +11,9 @@ Authorization: Bearer <accessToken>
 Datas devem ser enviadas como string válida, preferencialmente `YYYY-MM-DD`.
 
 As rotas de busca, orçamento, projeção, marcação em lote e exportação CSV
-descritas abaixo fazem parte da versão 2.1 da API. O frontend usa essas
-integrações por padrão, sem variáveis de ativação; publique o backend com
-suporte a esses contratos antes de publicar o frontend.
+fazem parte da versão 2.1; categorias, importação, calendário, metas e cartões
+compõem a v2.2.0. O frontend usa essas integrações por padrão, sem variáveis
+de ativação. Publique a API e sincronize o schema antes do frontend.
 
 ---
 
@@ -872,6 +872,17 @@ Implementado: `GET /calendar?month=YYYY-MM`, `GET /calendar/incomes`, `POST /cal
 Consulte [contrato completo, exemplos de campos, datas, projeção e implantação](financial-calendar.md). A API retorna agenda mensal, pendências anteriores e linha diária com saldo-base acumulado, impacto das pendências e primeiro dia negativo. Confirmações criam uma única transação criptografada por competência.
 
 O endpoint legado `/dashboard/forecast` é mantido; o novo dashboard do frontend usa `/calendar`. Transações vinculadas a recibos não podem ser editadas/excluídas pelas rotas genéricas; pagamento de despesa pode ser desmarcado pelo fluxo específico.
-## Cartões de crédito
 
-`GET /cards`, `POST /cards`, `GET /cards/:id`, `POST /cards/:id/purchases` e `POST /cards/:id/invoices/:cycle/pay` são chamadas autenticadas por Server Actions em `src/actions/cards/cards.ts`. O contrato completo e as regras de fatura estão em `docs/credit-cards.md` no repositório da API. A compra no crédito não gera transação realizada; o pagamento integral de uma fatura fechada gera uma transação por parcela, preservando as categorias.
+## Cartões de crédito — v2.2.0
+
+Todas as chamadas exigem Bearer JWT, enviado somente no servidor pelas actions em `src/actions/cards/cards.ts`.
+
+| Método e rota | Entrada / resposta |
+| --- | --- |
+| `GET /cards` | Lista cartões com limite, compras e faturas. |
+| `POST /cards` | `{ name, limit, closingDay, dueDay, annualFee }`; cadastra cartão. |
+| `GET /cards/:id` | Detalha cartão, compras e faturas. |
+| `POST /cards/:id/purchases` | `{ description, amount, date, category, installments }`; registra compra sem criar transação realizada. |
+| `POST /cards/:id/invoices/:cycle/pay` | `{ date }`; quita integralmente fatura fechada e cria transações de despesa. Repetir a chamada não duplica a quitação. |
+
+`date` usa `YYYY-MM-DD` e `cycle` usa `YYYY-MM`. A categoria deve ser uma despesa ativa. O retorno do cartão inclui `used`, `available`, `purchases` e `invoices`; cada fatura traz `total`, `annualFee`, `paid`, `paymentDate`, `status` e `lines`. Compras comprometem o limite no ato; faturas pendentes entram na projeção do calendário e o pagamento entra nas transações realizadas. Regras e limites em `docs/credit-cards.md` da API.

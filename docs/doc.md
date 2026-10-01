@@ -30,7 +30,7 @@ Variáveis:
 
 Busca global, projeção mensal, orçamentos, marcação de todas as notificações
 como lidas e exportação CSV ficam ativos por padrão, sem variáveis de ativação.
-O backend configurado deve oferecer as rotas da versão 2.1 descritas em
+O backend configurado deve oferecer as rotas da v2.2.0 descritas em
 `docs/api-routes.md`. As antigas variáveis de ativação não são mais utilizadas.
 A exportação PDF continua disponível no seletor de formato. A ação de marcar
 todas como lidas aparece quando há notificações não lidas.
@@ -80,6 +80,8 @@ src/
 | `/transactions` | Listagem, criação, edição e remoção de transações. |
 | `/wishlist` | Metas, reservas, distribuição inicial e histórico de compras. |
 | `/wishlist/edit/[id]` | Edição de nome, valor desejado e prazo de meta ativa. |
+| `/calendar` | Agenda financeira, receitas recorrentes e projeção diária. |
+| `/cards` | Cartões, limite, compras parceladas e faturas. |
 | `/fixed-expenses` | Listagem e criação de despesas fixas. |
 | `/fixed-expenses/edit/[id]` | Edição de despesa fixa. |
 | `/comparative` | Comparativos financeiros. |
@@ -138,6 +140,9 @@ Tags usadas atualmente:
 - `fixed-expense`
 - `wishlist`
 - `get-user`
+- `categories` e `category-rules`
+- `calendar`
+- `cards`
 
 ## Layout
 
@@ -270,3 +275,9 @@ Contrato, regras de data, implantação e limites estão em [financial-calendar.
 A wishlist mostra saldos registrado, reservado e livre, progresso individual, sugestão mensal, histórico de movimentos e filtro de compras concluídas. O progresso anual antigo é exibido somente como referência; o usuário distribui reservas com aportes e marca a transição como concluída. Ações de aportar, retirar e concluir usam Server Actions autenticadas e invalidam dados financeiros afetados. A conclusão mostra o vínculo direto em `/transactions/[id]`, gera uma única despesa e sai da lista ativa. O formulário de edição não altera a reserva diretamente.
 
 Datas seguem `YYYY-MM-DD`; valores têm centavos. A interface bloqueia envio repetido enquanto a ação está pendente. O saldo livre pode ficar negativo após despesas posteriores, com aviso sem apagar os aportes. O contrato está em `docs/api-routes.md`.
+
+## Cartões de crédito — v2.2.0
+
+A rota privada `/cards` carrega os cartões no servidor e apresenta limite total, em uso e disponível, compras e faturas por competência. Permite cadastrar cartão com dia de fechamento, vencimento e anuidade; registrar compra com categoria e até 60 parcelas; e marcar como paga uma fatura fechada. O formulário de nova despesa também aceita “Crédito”, cartão e número de parcelas, encaminhando a compra para `/cards/:id/purchases`.
+
+As Server Actions em `src/actions/cards/cards.ts` usam o cookie HTTP-only e chamadas sem cache. Após mutações, revalidam cartões, transações, calendário, dashboard, orçamentos e comparativos. Uma compra compromete o limite, mas não aparece como despesa realizada até o pagamento integral da fatura; faturas pendentes entram na projeção do calendário. O contrato HTTP está em [Rotas da API](api-routes.md) e as regras de cálculo e implantação em `docs/credit-cards.md` da API.
