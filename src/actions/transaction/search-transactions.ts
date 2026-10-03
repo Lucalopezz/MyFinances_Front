@@ -9,9 +9,52 @@ import { getServerToken } from "@/lib/serverAuth";
 import type {
   TransactionSearchFilters,
   TransactionSearchPage,
+  TransactionTotals,
 } from "@/models/transaction.model";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function searchParams(filters: TransactionSearchFilters) {
+  const params = new URLSearchParams();
+  if (filters.startDate && DATE_PATTERN.test(filters.startDate))
+    params.set("startDate", filters.startDate);
+  if (filters.endDate && DATE_PATTERN.test(filters.endDate))
+    params.set("endDate", filters.endDate);
+  if (filters.type === "INCOME" || filters.type === "EXPENSE")
+    params.set("type", filters.type);
+  if (
+    filters.category &&
+    categoryReferenceSchema.safeParse(filters.category).success
+  )
+    params.set("category", filters.category);
+  if (filters.search?.trim())
+    params.set("search", filters.search.trim().slice(0, 100));
+  return params;
+}
+
+export async function getTransactionTotals(
+  filters: TransactionSearchFilters,
+): Promise<TransactionTotals> {
+  noStore();
+  const token = await getServerToken();
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
+  const context = "GET /transactions/summary";
+  const fallback = "Não foi possível carregar os totais das transações.";
+  try {
+    const response = await fetch(
+      `${getServerBackendUrl()}/transactions/summary?${searchParams(filters)}`,
+      {
+        headers: createJsonHeaders(token),
+        cache: "no-store",
+      },
+    );
+    if (!response.ok)
+      throw await createApiError(response, { context, fallback });
+    return (await response.json()) as TransactionTotals;
+  } catch (error) {
+    throw createRequestError(error, { context, fallback });
+  }
+}
 
 export async function searchTransactions(
   filters: TransactionSearchFilters = {},
@@ -21,25 +64,9 @@ export async function searchTransactions(
   const token = await getServerToken();
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
-  const params = new URLSearchParams({ limit: "50" });
+  const params = searchParams(filters);
+  params.set("limit", "50");
   if (cursor && cursor.length <= 512) params.set("cursor", cursor);
-  if (filters.startDate && DATE_PATTERN.test(filters.startDate)) {
-    params.set("startDate", filters.startDate);
-  }
-  if (filters.endDate && DATE_PATTERN.test(filters.endDate)) {
-    params.set("endDate", filters.endDate);
-  }
-  if (filters.type === "INCOME" || filters.type === "EXPENSE") {
-    params.set("type", filters.type);
-  }
-  if (
-    filters.category &&
-    categoryReferenceSchema.safeParse(filters.category).success
-  ) {
-    params.set("category", filters.category);
-  }
-  if (filters.search?.trim())
-    params.set("search", filters.search.trim().slice(0, 100));
 
   try {
     const response = await fetch(

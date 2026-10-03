@@ -17,6 +17,13 @@ de ativação. Publique a API e sincronize o schema antes do frontend.
 
 ---
 
+## Health
+
+`GET /health` é público e retorna `{ "status": "ok" }`, sem consultar dados do usuário.
+A landing faz uma chamada assíncrona a `/api/health` no Next, que encaminha para
+a API com `BACKEND_URL`, sem cache, credenciais ou conteúdo de resposta no browser.
+Falhas são ignoradas pela interface e não atrasam a renderização da página.
+
 ## Auth
 
 ### `POST /auth`
@@ -166,10 +173,9 @@ Query params opcionais:
 - `page`: página solicitada (inteiro positivo; padrão: `1`).
 - `limit`: quantidade de itens por página (inteiro positivo; padrão: `20`).
 
-O front-end solicita `limit=50`. No fluxo legado, a paginação é feita pela API
-e os filtros da listagem são aplicados localmente somente à página atual.
-A listagem usa `GET /transactions/search` por padrão para busca global por
-cursor, recorrendo ao fluxo legado se a rota responder `404`.
+O endpoint legado permanece disponível. A tela de transações usa
+`GET /transactions/search` com 50 itens por página, limitada ao mês selecionado,
+e `GET /transactions/summary` para os totais completos dos mesmos filtros.
 A exportação assíncrona continua independente da listagem e inclui todas as
 transações do usuário quando nenhum filtro opcional é enviado.
 
@@ -216,6 +222,14 @@ Um cursor só pode ser reutilizado com os mesmos filtros e usuário.
 
 Na última página, `nextCursor` é `null` e `hasMore` é `false`. Esta rota não
 retorna total exato. `GET /transactions` mantém seu contrato paginado atual.
+
+### `GET /transactions/summary`
+
+Exige `startDate` e `endDate` válidos e inclusivos (`YYYY-MM-DD`). Aceita os mesmos
+filtros opcionais `type`, `category` e `search` da busca. Retorna
+`{ totalIncome, totalExpense, balance, count }` considerando todos os resultados,
+independentemente da página da lista. O servidor percorre lotes de 100 registros
+com os índices de usuário/data, soma em centavos e retorna apenas os totais.
 
 ### `GET /transactions/:id`
 
@@ -882,6 +896,7 @@ Todas as chamadas exigem Bearer JWT, enviado somente no servidor pelas actions e
 | `GET /cards` | Lista cartões com limite, compras e faturas. |
 | `POST /cards` | `{ name, limit, closingDay, dueDay, annualFee }`; cadastra cartão. |
 | `GET /cards/:id` | Detalha cartão, compras e faturas. |
+| `DELETE /cards/:id` | Remove o cartão da lista preservando compras, recibos e transações. Exige quitação das parcelas e anuidades fechadas; pendências retornam `400`. Retorna `{ message }`. |
 | `POST /cards/:id/purchases` | `{ description, amount, date, category, installments }`; registra compra sem criar transação realizada. |
 | `POST /cards/:id/invoices/:cycle/pay` | `{ date }`; quita integralmente fatura fechada e cria transações de despesa. Repetir a chamada não duplica a quitação. |
 

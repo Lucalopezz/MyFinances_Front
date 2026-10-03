@@ -3,20 +3,16 @@ import type { DailyProjection } from "@/models/calendar.model";
 
 import DashboardHeader from "../dashboard-header";
 import SummaryCards from "../summary-cards";
-import MonthlyComparisonChart from "../monthly-comparison-chart";
 import DashboardActions from "../dashboard-actions";
-import type {
-  FinancialSummary,
-  MonthlyComparisonResponse,
-} from "@/models/dashboard.model";
-import { formatMonthLabel } from "@/utils/formatters";
+import type { FinancialSummary } from "@/models/dashboard.model";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { ForecastCard } from "../forecast-card";
 import { BudgetSection } from "../budget-section";
 import type { MonthlyBudgetSummary } from "@/models/budget.model";
 
 interface DashboardContentProps {
   dashboardData: FinancialSummary;
-  monthlyComparison: MonthlyComparisonResponse;
   forecast?: DailyProjection | null;
   forecastError?: string | null;
   budgetMonth: string;
@@ -26,23 +22,18 @@ interface DashboardContentProps {
 
 const DashboardContent = ({
   dashboardData,
-  monthlyComparison,
   forecast,
   forecastError,
   budgetMonth,
   budgets,
   budgetError,
 }: DashboardContentProps) => {
-  const chartData = monthlyComparison.months.map((month) => ({
-    name: formatMonthLabel(month.month),
-    Receitas: month.totalIncomes,
-    Despesas: month.totalExpenses,
-    Saldo: month.balance,
-  }));
-
   return (
-    <div className="p-4 sm:p-6">
-      <DashboardHeader period={dashboardData.period} />
+    <div className="mx-auto max-w-6xl">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <DashboardHeader period={dashboardData.period} />
+        <DashboardActions />
+      </div>
 
       <SummaryCards
         balance={dashboardData.balance}
@@ -75,13 +66,9 @@ const DashboardContent = ({
         </p>
       ) : null}
 
-      <MonthlyComparisonChart
-        data={chartData}
-        period={monthlyComparison.period}
-        isLoading={false}
-      />
-
-      <DashboardActions />
+      <Button asChild variant="outline">
+        <Link href="/comparative">Ver evolução no comparativo</Link>
+      </Button>
     </div>
   );
 };

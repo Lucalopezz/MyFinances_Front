@@ -18,8 +18,8 @@ export const Sidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
   ];
 
   return (
-    <aside className="w-64 bg-white dark:bg-[#1F2937] dark:text-white p-4 h-full">
-      <nav>
+    <aside className="h-full w-64 overflow-y-auto bg-white p-4 text-slate-900 dark:bg-[#1F2937] dark:text-white">
+      <nav aria-label="Navegação principal">
         <ul>
           {menuItems.map((item) => {
             const isActive = pathname === item.path;
@@ -28,10 +28,11 @@ export const Sidebar = ({ onNavigate }: { onNavigate?: () => void }) => {
                 <Link
                   href={item.path}
                   onClick={onNavigate}
+                  aria-current={isActive ? "page" : undefined}
                   className={`block py-2 px-4 rounded cursor-pointer ${
                     isActive
                       ? "bg-[#3B82F6] text-white"
-                      : "hover:bg-[#3B82F6]/50 dark:hover:bg-[#3B82F6]/30"
+                      : "bg-white text-slate-700 hover:bg-blue-50 hover:text-blue-700 dark:bg-[#1F2937] dark:text-slate-200 dark:hover:bg-blue-950 dark:hover:text-white"
                   }`}
                 >
                   {item.name}

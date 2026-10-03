@@ -9,7 +9,7 @@ interface DashboardHeaderProps {
 
 const DashboardHeader = ({ period }: DashboardHeaderProps) => {
   return (
-    <div className="mb-6">
+    <div>
       <h1 className="text-2xl font-bold text-[#1F2937] dark:text-white">
         Dashboard mensal
       </h1>

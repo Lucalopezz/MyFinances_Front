@@ -17,7 +17,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
   const isAuthenticated = status === "authenticated";
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow p-4 flex items-center justify-between">
+    <header className="bg-white dark:bg-gray-800 shadow p-3 sm:p-4 flex items-center justify-between">
       {isAuthenticated ? (
         <MobileMenuButton onMenuClick={onMenuClick} />
       ) : (
@@ -40,7 +40,7 @@ const MobileMenuButton = ({ onMenuClick }: { onMenuClick: () => void }) => (
 );
 
 const LogoSection = () => (
-  <Link href="/" className="text-xl font-bold text-gray-700 dark:text-white">
+  <Link href="/" className="text-base sm:text-xl font-bold text-gray-700 dark:text-white">
     MyFinances
   </Link>
 );
@@ -57,7 +57,7 @@ const NavigationActions = ({
   };
 
   return (
-    <div className="flex items-center space-x-4">
+    <div className="flex shrink-0 items-center gap-1 sm:gap-4">
       <ThemeToggleButton />
 
       {isAuthenticated && <AuthenticatedActions onLogout={handleLogout} />}

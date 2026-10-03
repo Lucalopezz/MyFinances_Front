@@ -166,15 +166,19 @@ Providers globais:
 
 ### Dashboard
 
-Exibe resumo financeiro, cards e gráficos. Os dados vêm de endpoints de dashboard e comparativo mensal.
+Exibe resumo mensal, projeção e orçamentos. A criação de transações fica no topo,
+com botão de largura inteira no mobile. O gráfico de evolução fica na tela de
+comparativo, acessível por um link, sem repetir a consulta na dashboard.
 
 ### Transações
 
 Permite criar, listar, editar e remover receitas ou despesas. O catálogo vem de `GET /categories`; as constantes mantêm apenas compatibilidade com códigos padrão.
 Uma transação pode ser duplicada no formulário de criação com data sugerida de
-hoje, sem alterar o registro original. A busca global é consultada por padrão,
-com filtros na URL e navegação por cursores. Se a API responder `404` para a
-busca, a tela mantém a listagem paginada existente como fallback.
+hoje, sem alterar o registro original. A tela abre no mês atual de São Paulo e
+permite navegar entre meses ou escolher o mês diretamente. Tipo, categoria e
+busca ficam na URL. A lista usa cursores em páginas de 50 itens dentro do mês;
+os cards usam `/transactions/summary`, somando todos os resultados dos mesmos
+filtros em lotes no servidor. Mutações invalidam a lista e os totais.
 
 ### Wishlist
 
@@ -277,6 +281,10 @@ A wishlist mostra saldos registrado, reservado e livre, progresso individual, su
 Datas seguem `YYYY-MM-DD`; valores têm centavos. A interface bloqueia envio repetido enquanto a ação está pendente. O saldo livre pode ficar negativo após despesas posteriores, com aviso sem apagar os aportes. O contrato está em `docs/api-routes.md`.
 
 ## Cartões de crédito — v2.2.0
+
+Remover cartão abre uma confirmação e chama `DELETE /cards/:id`. A API arquiva
+o cartão, preserva pagamentos e exige quitar parcelas e anuidades fechadas.
+Cartões removidos saem também do seletor de novas despesas no crédito.
 
 A rota privada `/cards` carrega os cartões no servidor e apresenta limite total, em uso e disponível, compras e faturas por competência. Permite cadastrar cartão com dia de fechamento, vencimento e anuidade; registrar compra com categoria e até 60 parcelas; e marcar como paga uma fatura fechada. O formulário de nova despesa também aceita “Crédito”, cartão e número de parcelas, encaminhando a compra para `/cards/:id/purchases`.
 

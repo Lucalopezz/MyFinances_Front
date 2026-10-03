@@ -30,23 +30,17 @@ import {
 } from "@/components/transaction/transaction-list";
 import { TransactionExport } from "@/components/transaction/transaction-export";
 import { TransactionImport } from "@/components/transaction/transaction-import";
+import { transactionMonthUrl } from "@/lib/transaction-month";
 
 type SearchListProps = {
+  month: string;
   filters: TransactionSearchFilters;
   initialPage: TransactionSearchPage | null;
   initialError?: string;
 };
 
-function buildUrl(filters: TransactionSearchFilters) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(filters)) {
-    if (value) params.set(key, value);
-  }
-  const query = params.toString();
-  return query ? `/transactions?${query}` : "/transactions";
-}
-
 export function TransactionSearchList({
+  month,
   filters,
   initialPage,
   initialError,
@@ -77,10 +71,12 @@ export function TransactionSearchList({
 
   function submitFilters(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push(buildUrl(draft));
+    router.push(transactionMonthUrl(month, draft));
   }
 
-  const hasFilters = Object.values(filters).some(Boolean);
+  const hasFilters = Boolean(
+    filters.type || filters.category || filters.search,
+  );
   const message = isError
     ? error instanceof Error
       ? error.message
@@ -97,8 +93,8 @@ export function TransactionSearchList({
             Transações
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Busque em todo o histórico. Os filtros ficam no endereço para você
-            compartilhar a consulta.
+            Busque nas transações do mês selecionado. Os totais incluem todas as
+            páginas.
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             A exportação inclui todas as transações e é independente desta
@@ -113,9 +109,9 @@ export function TransactionSearchList({
 
       <form
         onSubmit={submitFilters}
-        className="grid gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900 md:grid-cols-2 xl:grid-cols-5"
+        className="grid gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900 md:grid-cols-3"
       >
-        <label className="md:col-span-2 xl:col-span-1">
+        <label>
           <span className="mb-1 block text-xs font-medium">Buscar</span>
           <span className="relative block">
             <Search
@@ -180,33 +176,18 @@ export function TransactionSearchList({
             </SelectContent>
           </Select>
         </div>
-        <label>
-          <span className="mb-1 block text-xs font-medium">Data inicial</span>
-          <Input
-            type="date"
-            value={draft.startDate ?? ""}
-            max={draft.endDate}
-            onChange={(event) => updateFilter("startDate", event.target.value)}
-          />
-        </label>
-        <label>
-          <span className="mb-1 block text-xs font-medium">Data final</span>
-          <Input
-            type="date"
-            value={draft.endDate ?? ""}
-            min={draft.startDate}
-            onChange={(event) => updateFilter("endDate", event.target.value)}
-          />
-        </label>
-        <div className="flex gap-2 md:col-span-2 xl:col-span-5">
+        <div className="flex flex-wrap gap-2 md:col-span-3">
           <Button type="submit">Aplicar filtros</Button>
           {hasFilters && (
             <Button
               type="button"
               variant="ghost"
               onClick={() => {
-                setDraft({});
-                router.push("/transactions");
+                setDraft({
+                  startDate: filters.startDate,
+                  endDate: filters.endDate,
+                });
+                router.push(transactionMonthUrl(month));
               }}
             >
               <X aria-hidden="true" /> Limpar filtros

@@ -69,6 +69,14 @@ export async function createCard(input: CardInput) {
   refresh();
   return result;
 }
+export async function removeCard(id: string) {
+  const result = await request<{ message: string }>(
+    `/${encodeURIComponent(id)}`,
+    "DELETE",
+  );
+  refresh();
+  return result;
+}
 export async function createCardPurchase(id: string, input: CardPurchaseInput) {
   const result = await request<{ id: string }>(
     `/${encodeURIComponent(id)}/purchases`,

@@ -1,12 +1,18 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CreditCard as CreditCardIcon, Plus, ReceiptText } from "lucide-react";
+import {
+  CreditCard as CreditCardIcon,
+  Plus,
+  ReceiptText,
+  Trash2,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import {
   createCard,
   createCardPurchase,
   payCardInvoice,
+  removeCard,
 } from "@/actions/cards/cards";
 import type {
   CreditCard,
@@ -37,7 +43,10 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
   const router = useRouter();
   const [cards, setCards] = useState(initialCards);
   const [selectedId, setSelectedId] = useState(initialCards[0]?.id ?? "");
-  const [dialog, setDialog] = useState<"card" | "purchase" | null>(null);
+  const [dialog, setDialog] = useState<"card" | "purchase" | "remove" | null>(
+    null,
+  );
+  const [cardToRemove, setCardToRemove] = useState<CreditCard | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [cardForm, setCardForm] = useState<CardInput>({
@@ -113,6 +122,30 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
       toast.success("Fatura paga.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível pagar.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function confirmRemoval() {
+    if (!cardToRemove || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await removeCard(cardToRemove.id);
+      setCards((current) =>
+        current.filter((card) => card.id !== cardToRemove.id),
+      );
+      setSelectedId("");
+      setDialog(null);
+      setCardToRemove(null);
+      router.refresh();
+      toast.success("Cartão removido. Histórico de pagamentos preservado.");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível remover o cartão.",
+      );
     } finally {
       setBusy(false);
     }
@@ -196,15 +229,30 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
                   Fecha dia {selected.closingDay} · vence dia {selected.dueDay}{" "}
                   · anuidade {formatCurrency(selected.annualFee)}
                 </p>
-                <Button
-                  onClick={() => {
-                    setError("");
-                    setDialog("purchase");
-                  }}
-                >
-                  <Plus className="mr-2 size-4" />
-                  Compra no crédito
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    disabled={busy}
+                    className="text-red-600 dark:text-red-400"
+                    onClick={() => {
+                      setError("");
+                      setCardToRemove(selected);
+                      setDialog("remove");
+                    }}
+                  >
+                    <Trash2 /> Remover cartão
+                  </Button>
+                  <Button
+                    disabled={busy}
+                    onClick={() => {
+                      setError("");
+                      setDialog("purchase");
+                    }}
+                  >
+                    <Plus className="mr-2 size-4" />
+                    Compra no crédito
+                  </Button>
+                </div>
               </div>
               <section className="space-y-3">
                 <h2 className="flex items-center gap-2 text-xl font-semibold">
@@ -281,6 +329,51 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
           )}
         </>
       )}
+      <Dialog
+        open={dialog === "remove"}
+        onOpenChange={(open) => {
+          if (!open && !busy) {
+            setDialog(null);
+            setCardToRemove(null);
+          }
+        }}
+      >
+        <DialogContent className="bg-white text-slate-900 dark:bg-slate-900 dark:text-white">
+          <DialogHeader>
+            <DialogTitle>Remover {cardToRemove?.name}?</DialogTitle>
+            <DialogDescription>
+              O cartão deixará de aparecer na lista e não poderá receber novas
+              compras. Os pagamentos já registrados serão preservados. Quite
+              todas as compras parceladas e faturas de anuidade fechadas antes
+              de remover.
+            </DialogDescription>
+          </DialogHeader>
+          {error && (
+            <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => {
+                setDialog(null);
+                setCardToRemove(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-red-600 text-white hover:bg-red-700"
+              disabled={busy}
+              onClick={() => void confirmRemoval()}
+            >
+              {busy ? "Removendo..." : "Remover cartão"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog
         open={dialog === "card"}
         onOpenChange={(open) => !open && setDialog(null)}

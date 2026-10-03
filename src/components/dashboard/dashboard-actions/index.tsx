@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { TransactionDialog } from "../transaction-dialog";
 import type { Transaction } from "@/models/transaction.model";
 import { useCreateTransaction } from "@/hooks/queries/useCreateTransaction";
@@ -16,25 +15,14 @@ const DashboardActions = () => {
   };
 
   return (
-    <>
-      <div className="mt-6 flex justify-center sm:justify-start">
-        <TransactionDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          loading={isLoading}
-          onSubmit={handleAddTransaction}
-        />
-      </div>
-
-      <div className="mt-4 flex justify-center sm:justify-start">
-        <Badge
-          variant="outline"
-          className="text-emerald-600 border-emerald-600"
-        >
-          Status: Ativo
-        </Badge>
-      </div>
-    </>
+    <div className="flex shrink-0 [&_button]:w-full sm:[&_button]:w-auto">
+      <TransactionDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        loading={isLoading}
+        onSubmit={handleAddTransaction}
+      />
+    </div>
   );
 };
 

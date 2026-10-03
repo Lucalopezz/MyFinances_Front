@@ -1,8 +1,5 @@
 import DashboardContent from "@/components/dashboard/content";
-import {
-  getDashboardSummary,
-  getMonthlyComparison,
-} from "@/actions/dashboard/dashboard";
+import { getDashboardSummary } from "@/actions/dashboard/dashboard";
 import { getFinancialCalendar } from "@/actions/calendar/calendar";
 import { currentDay } from "@/components/calendar/calendar-utils";
 import { getBudgetSummary } from "@/actions/budget/budgets";
@@ -43,18 +40,15 @@ export const revalidate = 0;
 
 export default async function DashboardPage() {
   const budgetMonth = new Date().toISOString().slice(0, 7);
-  const [dashboardData, monthlyComparison, forecast, budgets] =
-    await Promise.all([
-      getDashboardSummary(),
-      getMonthlyComparison(),
-      loadForecast(),
-      loadBudgets(budgetMonth),
-    ]);
+  const [dashboardData, forecast, budgets] = await Promise.all([
+    getDashboardSummary(),
+    loadForecast(),
+    loadBudgets(budgetMonth),
+  ]);
 
   return (
     <DashboardContent
       dashboardData={dashboardData}
-      monthlyComparison={monthlyComparison}
       forecast={forecast.data}
       forecastError={forecast.error}
       budgetMonth={budgetMonth}

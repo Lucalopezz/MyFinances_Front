@@ -23,6 +23,9 @@ export const queryKeys = {
   transactions: {
     all: () => ["transactions"],
     page: (page: number) => ["transactions", "page", page],
+    totals: (
+      filters: import("@/models/transaction.model").TransactionSearchFilters,
+    ) => ["transactions", "totals", filters],
     search: (
       filters: import("@/models/transaction.model").TransactionSearchFilters,
       cursor?: string,

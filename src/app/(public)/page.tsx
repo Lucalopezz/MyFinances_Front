@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   BarChart3,
@@ -78,6 +78,9 @@ const features = [
 ];
 
 export default function LandingPage() {
+  useEffect(() => {
+    void fetch("/api/health", { cache: "no-store" }).catch(() => {});
+  }, []);
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
   const [isWishDialogOpen, setIsWishDialogOpen] = useState(false);
   const [feedback, setFeedback] = useState("");

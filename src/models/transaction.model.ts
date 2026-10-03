@@ -41,6 +41,13 @@ export type TransactionSearchPage = {
   hasMore: boolean;
 };
 
+export type TransactionTotals = {
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
+  count: number;
+};
+
 export type TransactionFormValues = {
   type: TransactionType;
   value: number;
