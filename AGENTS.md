@@ -22,10 +22,13 @@ Stack principal:
 Leia estes arquivos antes de alterar fluxos relacionados:
 
 - `README.md`: resumo do projeto, stack, instalacao e estrutura geral.
+- `docs/README.md`: indice de referencias atuais, guias e registros historicos.
+- `docs/features.md`: escopo aprovado e funcionalidades implementadas.
+- `CHANGELOG.md`: mudancas por versao.
 - `docs/doc.md`: documentacao tecnica do front-end, rotas, cache, autenticacao e convencoes.
 - `docs/api-routes.md`: contrato atual da API. Siga este padrao ao criar ou alterar integracoes.
 - `docs/authentication.md`: fluxo de login, logout, cookie HTTP-only, middleware e protecao de rotas.
-- `docs/v2.md`: planejamento de melhorias. Use como contexto, nao como especificacao ja implementada.
+- `docs/v2.md`, `docs/implementation-plan.md` e `docs/next-steps.md`: planejamento historico. Use como contexto; o estado atual esta em `docs/features.md` e nos contratos tecnicos.
 - `env.exemple`: variaveis esperadas para rodar o projeto.
 
 Nao duplique essas documentacoes dentro deste arquivo. Use este guia como orientacao operacional e a documentacao acima como fonte de verdade.
@@ -62,7 +65,7 @@ Principais diretorios:
 - `src/schemas`: schemas Zod para formularios.
 - `src/constants`: constantes de dominio.
 - `src/utils`: formatadores e utilitarios.
-- `docs`: documentacao tecnica e planejamento.
+- `docs`: referencias tecnicas, guias e historico de planejamento/validacao.
 
 Use o alias `@/*` para imports internos.
 

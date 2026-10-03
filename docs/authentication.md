@@ -1,6 +1,6 @@
 # Autenticacao
 
-Este documento explica como a autenticacao funciona no front-end do MyFinances.
+Este documento explica como a autenticacao funciona no front-end do MyFinances. Consulte também o [índice da documentação](README.md) e o [contrato HTTP](api-routes.md).
 
 ## Visao Geral
 
@@ -70,8 +70,6 @@ Para as demais rotas, o middleware verifica o cookie `mf_token`. A landing em `/
 
 Se o cookie nao existir ou se o JWT estiver expirado, o usuario e redirecionado para `/login`. Quando o token esta expirado, o middleware tambem remove o cookie para evitar que a aplicacao continue montando uma sessao invalida.
 
-Se um usuario autenticado tentar acessar `/login` ou `/register`, o middleware redireciona para `/`.
-
 ## Token Expirado
 
 A aplicacao trata token expirado em tres lugares:
@@ -112,8 +110,6 @@ Fluxo:
 
 Chamadas server-side usam `fetch` com o token lido por `getServerToken`.
 
-Chamadas server-side usam `fetch` com o token lido por `getServerToken`.
-
 Chamadas iniciadas por componentes client-side que dependem de autenticacao devem chamar Server Actions. A action roda no servidor, le o cookie HTTP-only `mf_token` e repassa a chamada ao backend com:
 
 ```http
@@ -127,7 +123,7 @@ Isso evita expor o JWT no JavaScript do browser.
 - O middleware nao valida assinatura do JWT; ele apenas verifica o campo `exp` para evitar sessoes claramente vencidas no front-end.
 - A autorizacao real continua sendo responsabilidade da API.
 - O token HTTP-only nao deve ser lido diretamente pelo browser nem passado para componentes client-side.
-- Novas chamadas client-side autenticadas devem usar Server Actions em vez de Axios direto.
+- Chamadas iniciadas no client que dependem de autenticação devem usar Server Actions.
 
 ## Isolamento do cache entre contas
 

@@ -1,10 +1,12 @@
-# Próximos passos do MyFinances
+# Registro de evolução — v2.2.0
 
-Atualizado em 01/10/2026 para o escopo da v2.2.0.
+> Documento histórico da rodada de evolução, registrado até 01/10/2026. O escopo aprovado está implementado; consulte o [escopo atual](features.md) e o [histórico de versões](../CHANGELOG.md). Os checklists e limites abaixo preservam as evidências disponíveis naquela data e não representam uma lista atual de funcionalidades por implementar.
+
+Este registro foi mantido nos repositórios da API e do frontend durante a rodada. O [plano anterior](implementation-plan.md) e o [planejamento original da V2](v2.md) também são referências históricas.
+
+## Situação registrada em 01/10/2026
 
 Status da v2.2.0: entregas A e B implementadas e validadas localmente; C implementada e validada funcionalmente, com revisão visual pendente; D e E implementadas, com validação funcional em banco pendente. A funcionalidade de cartões de crédito também foi implementada. O item F (simulador de compras) foi retirado do escopo da v2.2.0 por decisão de produto. Publicação e sincronização do schema no ambiente de destino não foram verificadas nesta documentação; consulte os guias de implantação de cada domínio.
-
-Este registro de escopo é mantido em `docs/next-steps.md` nos repositórios da API e do frontend. Atualizações devem ser replicadas nas duas cópias. O [plano anterior](implementation-plan.md) e o [planejamento V2](v2.md) permanecem como referências históricas.
 
 ## Objetivo
 
@@ -29,7 +31,7 @@ A numeração original foi preservada na coluna de origem. As dependências regi
 | E | Pedido adicional | Concluir compra da wishlist | D para consumir/liberar reservas individuais; reutiliza criação de transação |
 | Cartões | Pedido adicional | Cartões de crédito, compras parceladas, limite e faturas | Calendário e transações para previsão e pagamento |
 
-As entregas incluídas têm API, interface e documentação. A gestão de cartões desta versão cobre cadastro, compras, parcelas e pagamento integral de faturas; seus limites estão em `docs/credit-cards.md` da API. Contas bancárias e carteiras não integram este escopo.
+As entregas incluídas têm API, interface e documentação. A gestão de cartões desta versão cobre cadastro, compras, parcelas e pagamento integral de faturas; seus limites estão no [guia de cartões da API](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/credit-cards.md). Contas bancárias e carteiras não integram este escopo.
 
 ## A — Categorias personalizadas e regras automáticas
 
@@ -220,7 +222,7 @@ Implementação no código em 30/09/2026: despesa e consumo/liberação atômico
 
 ## Cartões de crédito — pedido adicional
 
-Cadastro de cartões com limite, fechamento, vencimento e anuidade; compras à vista ou parceladas; faturas por ciclo; pagamento integral de fatura fechada e previsão no calendário. Compras comprometem o limite no ato, mas só geram despesas realizadas no pagamento da fatura. Contrato HTTP em [Rotas da API](api-routes.md); regras e limites em `docs/credit-cards.md` da API.
+Cadastro de cartões com limite, fechamento, vencimento e anuidade; compras à vista ou parceladas; faturas por ciclo; pagamento integral de fatura fechada e previsão no calendário. Compras comprometem o limite no ato, mas só geram despesas realizadas no pagamento da fatura. Contrato HTTP em [Rotas da API](api-routes.md); regras e limites no [guia de cartões da API](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/credit-cards.md).
 
 ## F — Simulador de compras (retirado da v2.2.0)
 

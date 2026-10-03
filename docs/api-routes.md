@@ -1,5 +1,7 @@
 # Rotas da API
 
+Contrato HTTP consumido pelo frontend. Consulte o [índice da documentação](README.md) para os guias de domínio e o [changelog](../CHANGELOG.md) para o histórico de versões.
+
 Base local: `http://localhost:3001`
 
 Rotas protegidas exigem:
@@ -10,10 +12,8 @@ Authorization: Bearer <accessToken>
 
 Datas devem ser enviadas como string válida, preferencialmente `YYYY-MM-DD`.
 
-As rotas de busca, orçamento, projeção, marcação em lote e exportação CSV
-fazem parte da versão 2.1; categorias, importação, calendário, metas e cartões
-compõem a v2.2.0. O frontend usa essas integrações por padrão, sem variáveis
-de ativação. Publique a API e sincronize o schema antes do frontend.
+O frontend usa as integrações documentadas por padrão, sem variáveis de
+ativação. Publique a API e sincronize o schema antes do frontend.
 
 ---
 
@@ -205,7 +205,7 @@ Resposta:
 }
 ```
 
-### `GET /transactions/search` (nova)
+### `GET /transactions/search`
 
 Busca todo o histórico do usuário em ordem decrescente de data e ID. Recebe
 `cursor` opaco, `limit` (máximo `100`), `startDate`, `endDate`, `type`,
@@ -365,7 +365,7 @@ um download pode deixar de funcionar após reinicialização ou deploy da API.
 
 ---
 
-## Wishlist — metas e compras (entregas D e E)
+## Wishlist — metas e compras
 
 Todas as rotas exigem autenticação e isolam dados pelo usuário. Valores monetários usam BRL em duas casas decimais; datas de entrada usam `YYYY-MM-DD` em UTC. `targetDate` é opcional (`null`).
 
@@ -578,7 +578,7 @@ Resposta:
 
 ---
 
-## Budgets (novo)
+## Budgets
 
 Todas as rotas de orçamento são protegidas e isoladas por usuário. `monthKey`
 e o parâmetro `month` seguem `YYYY-MM`; `category` aceita apenas categorias de
@@ -665,7 +665,7 @@ Resposta:
 ]
 ```
 
-### `PATCH /notifications/mark-all-as-read` (nova)
+### `PATCH /notifications/mark-all-as-read`
 
 Marca como lidas apenas as notificações não lidas do usuário autenticado.
 Não recebe body. Retorna `{ "count": 3 }`; uma chamada repetida retorna
@@ -755,7 +755,7 @@ Resposta:
 }
 ```
 
-### `GET /dashboard/forecast` (nova)
+### `GET /dashboard/forecast`
 
 Projeta o fechamento do mês UTC atual. O saldo real considera transações do
 início do mês até hoje. `pendingFixedExpenses` soma despesas fixas ainda não
@@ -818,7 +818,7 @@ Resposta:
 }
 ```
 
-## Categorias personalizadas e regras (entrega A)
+## Categorias personalizadas e regras
 
 Todas as rotas abaixo exigem Bearer JWT e usam exclusivamente o usuário autenticado.
 
@@ -842,14 +842,14 @@ Os códigos padrão (`FOOD`, `SALARY` etc.) permanecem válidos. Categorias pers
 
 Arquivamento impede novos lançamentos, novas associações de orçamento/despesa fixa e novos pagamentos com essa categoria. Edições de transações e despesas fixas podem manter a mesma categoria arquivada; em orçamento, também é necessário manter o mês. Para pagar uma despesa fixa arquivada, selecione uma categoria ativa ou restaure a anterior. Busca, relatórios e leituras preservam categorias arquivadas. Regras com destinos arquivados são ignoradas; é possível desativá-las, mas ativação requer destino ativo.
 
-Uma categoria explícita em `/categories/resolve` prevalece sobre todas as regras e também é validada. `POST /transactions` continua exigindo categoria explícita: o formulário oferece a sugestão com “Usar sugestão”. Nenhuma regra altera histórico ou edições automaticamente. O mesmo resolvedor é usado na prévia e na confirmação da importação da entrega B.
+Uma categoria explícita em `/categories/resolve` prevalece sobre todas as regras e também é validada. `POST /transactions` continua exigindo categoria explícita: o formulário oferece a sugestão com “Usar sugestão”. Nenhuma regra altera histórico ou edições automaticamente. O mesmo resolvedor é usado na prévia e na confirmação da importação de extratos.
 
 Transações, busca por código/nome, despesas fixas, orçamentos, dashboard e comparativos aceitam as referências personalizadas. Exportações filtram pelo mesmo identificador em `categoryId`; PDF mostra o nome atual, CSV preserva a coluna `category` com código/ID estável e o cabeçalho existente.
 
 Erros: `400` para categoria inexistente, de outro usuário, incompatível ou arquivada em novo uso; `404` para edição de categoria/regra não pertencente ao usuário; `401` sem autenticação. Respostas nunca incluem campos criptografados.
 
 
-## Importação de extratos — entrega B
+## Importação de extratos
 
 Rotas implementadas, protegidas por Bearer e isoladas por usuário:
 
@@ -879,7 +879,7 @@ Resultado: `results: [{ rowId, status, reason, transactionId }]`, `summary: { im
 Erros globais: `400` opções/layout/linhas inválidos; `401` sessão inválida; `404` lote inexistente ou alheio; `410` confirmação expirada/cancelada; `413` tamanho excedido. Depois da expiração, GET retorna `rows: []` e preserva recibos. Idempotência é por lote/linha; reenvio do arquivo cria outro lote com sugestões de duplicatas. Confirmações simultâneas de lotes distintos não têm restrição única global.
 
 
-## Calendário financeiro e receitas recorrentes (entrega C)
+## Calendário financeiro e receitas recorrentes
 
 Implementado: `GET /calendar?month=YYYY-MM`, `GET /calendar/incomes`, `POST /calendar/incomes`, `PATCH /calendar/incomes/:id` e `POST /calendar/incomes/:id/occurrences/:date/confirm`. Todas as rotas exigem autenticação e isolamento por usuário. Não é criado lançamento por cadastrar ou consultar uma previsão.
 
@@ -887,7 +887,7 @@ Consulte [contrato completo, exemplos de campos, datas, projeção e implantaç�
 
 O endpoint legado `/dashboard/forecast` é mantido; o novo dashboard do frontend usa `/calendar`. Transações vinculadas a recibos não podem ser editadas/excluídas pelas rotas genéricas; pagamento de despesa pode ser desmarcado pelo fluxo específico.
 
-## Cartões de crédito — v2.2.0
+## Cartões de crédito
 
 Todas as chamadas exigem Bearer JWT, enviado somente no servidor pelas actions em `src/actions/cards/cards.ts`.
 
@@ -900,4 +900,4 @@ Todas as chamadas exigem Bearer JWT, enviado somente no servidor pelas actions e
 | `POST /cards/:id/purchases` | `{ description, amount, date, category, installments }`; registra compra sem criar transação realizada. |
 | `POST /cards/:id/invoices/:cycle/pay` | `{ date }`; quita integralmente fatura fechada e cria transações de despesa. Repetir a chamada não duplica a quitação. |
 
-`date` usa `YYYY-MM-DD` e `cycle` usa `YYYY-MM`. A categoria deve ser uma despesa ativa. O retorno do cartão inclui `used`, `available`, `purchases` e `invoices`; cada fatura traz `total`, `annualFee`, `paid`, `paymentDate`, `status` e `lines`. Compras comprometem o limite no ato; faturas pendentes entram na projeção do calendário e o pagamento entra nas transações realizadas. Regras e limites em `docs/credit-cards.md` da API.
+`date` usa `YYYY-MM-DD` e `cycle` usa `YYYY-MM`. A categoria deve ser uma despesa ativa. O retorno do cartão inclui `used`, `available`, `purchases` e `invoices`; cada fatura traz `total`, `annualFee`, `paid`, `paymentDate`, `status` e `lines`. Compras comprometem o limite no ato; faturas pendentes entram na projeção do calendário e o pagamento entra nas transações realizadas. Regras e limites no [guia de cartões da API](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/credit-cards.md).
