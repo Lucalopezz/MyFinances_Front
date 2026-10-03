@@ -10,9 +10,12 @@ import { Button } from "@/components/ui/button";
 import { ForecastCard } from "../forecast-card";
 import { BudgetSection } from "../budget-section";
 import type { MonthlyBudgetSummary } from "@/models/budget.model";
+import type { TransactionTotals } from "@/models/transaction.model";
+import { TotalBalance } from "@/components/financial/total-balance";
 
 interface DashboardContentProps {
   dashboardData: FinancialSummary;
+  totalBalance?: TransactionTotals;
   forecast?: DailyProjection | null;
   forecastError?: string | null;
   budgetMonth: string;
@@ -22,6 +25,7 @@ interface DashboardContentProps {
 
 const DashboardContent = ({
   dashboardData,
+  totalBalance,
   forecast,
   forecastError,
   budgetMonth,
@@ -34,6 +38,8 @@ const DashboardContent = ({
         <DashboardHeader period={dashboardData.period} />
         <DashboardActions />
       </div>
+
+      <TotalBalance initialData={totalBalance} />
 
       <SummaryCards
         balance={dashboardData.balance}

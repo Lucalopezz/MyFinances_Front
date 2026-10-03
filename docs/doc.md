@@ -162,11 +162,23 @@ O layout global fica em `src/app/layout.tsx`.
 
 ### Dashboard
 
-Exibe resumo mensal, projeção e orçamentos. A criação de transações fica no topo,
+Exibe saldo total, resumo mensal, projeção e orçamentos. O saldo total consulta
+`GET /transactions/balance`, soma todo o histórico registrado e não muda com o
+mês ou filtros. Resultado, entradas e saídas do mês usam um painel compacto;
+economia e maior gasto ficam em uma seção expansível de indicadores.
+A criação de transações fica no topo,
 com botão de largura inteira no mobile. O gráfico de evolução fica na tela de
 comparativo, acessível por um link, sem repetir a consulta na dashboard.
 
 ### Transações
+
+O saldo total usa a mesma consulta e chave React Query da dashboard:
+`["transactions", "balance"]`. Mutações que invalidam `transactions` também
+atualizam esse saldo. Leituras usam cookie HTTP-only e `no-store`; falhas exibem
+mensagem com tentativa novamente, sem assumir saldo zero. O resumo do mês
+continua usando os totais de todos os resultados dos filtros, sem depender da
+página. Com filtros ativos, os rótulos indicam resultado, entradas e saídas dos
+resultados filtrados.
 
 Permite criar, listar, editar e remover receitas ou despesas. O catálogo vem de `GET /categories`; as constantes mantêm apenas compatibilidade com códigos padrão.
 Uma transação pode ser duplicada no formulário de criação com data sugerida de

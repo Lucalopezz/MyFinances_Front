@@ -2,6 +2,16 @@
 
 Este arquivo concentra as mudanças por release. O [escopo atual](docs/features.md) e o [índice da documentação](docs/README.md) descrevem a aplicação e suas integrações.
 
+## [v2.2.2](https://github.com/Lucalopezz/MyFinances_Front/tree/v2.2.2) — 03/10/2026
+
+- Saldo total em destaque na dashboard e na listagem mensal de transações, independente do mês e dos filtros.
+- Resultado, entradas e saídas do mês reunidos em um resumo compacto e responsivo; filtros ativos têm rótulos específicos para seus resultados.
+- Economia e maior gasto da dashboard disponíveis em uma seção expansível de indicadores, reduzindo a quantidade de cards na tela.
+- Consulta autenticada do saldo com carregamento, erro, tentativa novamente e atualização após alterações nas transações.
+- Dashboard usa o mês de São Paulo de forma consistente no resumo e nos orçamentos.
+
+Requer a API v2.2.2 com `GET /transactions/balance`.
+
 ## [v2.2.1](https://github.com/Lucalopezz/MyFinances_Front/tree/v2.2.1) — 03/10/2026
 
 ### Documentação

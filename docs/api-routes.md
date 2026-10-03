@@ -231,6 +231,18 @@ filtros opcionais `type`, `category` e `search` da busca. Retorna
 independentemente da página da lista. O servidor percorre lotes de 100 registros
 com os índices de usuário/data, soma em centavos e retorna apenas os totais.
 
+### `GET /transactions/balance`
+
+Protegida. Sem filtros. Retorna `{ totalIncome, totalExpense, balance, count }`
+calculados em centavos sobre todo o histórico do usuário, inclusive transações
+cadastradas com datas futuras. O saldo total na dashboard e na listagem mensal
+consome esta rota e permanece independente do mês, da busca e da paginação.
+
+Reservas da wishlist e previsões de receitas/despesas não alteram esse saldo.
+Compras no cartão geram despesas no pagamento da fatura. O valor reflete os
+lançamentos no aplicativo, sem sincronização bancária. Publique a API v2.2.2
+antes do frontend.
+
 ### `GET /transactions/:id`
 
 Busca uma transação pelo id.

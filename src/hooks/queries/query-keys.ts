@@ -22,6 +22,7 @@ export const queryKeys = {
   },
   transactions: {
     all: () => ["transactions"],
+    balance: () => ["transactions", "balance"],
     page: (page: number) => ["transactions", "page", page],
     totals: (
       filters: import("@/models/transaction.model").TransactionSearchFilters,

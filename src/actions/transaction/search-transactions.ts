@@ -56,6 +56,29 @@ export async function getTransactionTotals(
   }
 }
 
+export async function getTotalBalance(): Promise<TransactionTotals> {
+  noStore();
+  const token = await getServerToken();
+  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
+  const context = "GET /transactions/balance";
+  const fallback = "Não foi possível carregar o saldo total.";
+  try {
+    const response = await fetch(
+      `${getServerBackendUrl()}/transactions/balance`,
+      {
+        headers: createJsonHeaders(token),
+        cache: "no-store",
+        next: { tags: ["transactions"] },
+      },
+    );
+    if (!response.ok)
+      throw await createApiError(response, { context, fallback });
+    return (await response.json()) as TransactionTotals;
+  } catch (error) {
+    throw createRequestError(error, { context, fallback });
+  }
+}
+
 export async function searchTransactions(
   filters: TransactionSearchFilters = {},
   cursor?: string,

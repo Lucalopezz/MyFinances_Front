@@ -16,19 +16,21 @@ import type {
   Transaction,
 } from "@/models/transaction.model";
 import { useCreateTransaction } from "@/hooks/queries/useCreateTransaction";
-import SummaryCard from "@/components/summary-card";
-import { formatCurrency } from "@/utils/formatters";
+import { TotalBalance } from "@/components/financial/total-balance";
+import { PeriodTotals } from "@/components/financial/period-totals";
 
 interface TransactionSummaryProps {
   month: string;
   filters: TransactionSearchFilters;
   initialTotals?: TransactionTotals;
+  initialBalance?: TransactionTotals;
 }
 
 export function TransactionSummary({
   month,
   filters,
   initialTotals,
+  initialBalance,
 }: TransactionSummaryProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { createTransactionAsync, isLoading } = useCreateTransaction();
@@ -49,32 +51,9 @@ export function TransactionSummary({
     if (MONTH_PATTERN.test(value))
       router.push(transactionMonthUrl(value, filters));
   };
-  const summaryCards = [
-    {
-      title: "Saldo",
-      content: formatCurrency(balance),
-      className:
-        "bg-green-50 dark:bg-green-800/50 border-green-100 dark:border-green-800/50",
-      valueClassName:
-        balance >= 0
-          ? "text-green-600 dark:text-green-400"
-          : "text-red-600 dark:text-red-400",
-    },
-    {
-      title: "Entradas",
-      content: formatCurrency(totalIncome),
-      className:
-        "bg-blue-50 dark:bg-blue-800/50 border-blue-100 dark:border-blue-800/50",
-      valueClassName: "text-blue-600 dark:text-blue-400",
-    },
-    {
-      title: "Saídas",
-      content: formatCurrency(totalExpense),
-      className:
-        "bg-red-50 dark:bg-red-800/50 border-red-100 dark:border-red-800/50",
-      valueClassName: "text-red-600 dark:text-red-400",
-    },
-  ];
+  const hasFilters = Boolean(
+    filters.type || filters.category || filters.search,
+  );
 
   const handleTransactionSubmit = async (transaction: Transaction) => {
     await createTransactionAsync(transaction);
@@ -87,8 +66,7 @@ export function TransactionSummary({
         <div>
           <h1 className="text-2xl font-bold">Transações do mês</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Totais de {monthLabel(month)}, considerando todos os resultados dos
-            filtros.
+            Consulte suas movimentações e o resultado de cada mês.
           </p>
         </div>
         <TransactionDialog
@@ -99,36 +77,46 @@ export function TransactionSummary({
         />
       </div>
 
-      <nav className="flex items-end gap-2" aria-label="Navegar por mês">
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Mês anterior"
-          disabled={month === "1000-01"}
-          onClick={() => navigateMonth(shiftMonth(month, -1))}
-        >
-          <ChevronLeft />
-        </Button>
-        <label className="min-w-0">
-          <span className="mb-1 block text-xs font-medium">Mês</span>
-          <Input
-            type="month"
-            min="1000-01"
-            max="9999-12"
-            value={month}
-            onChange={(event) => navigateMonth(event.target.value)}
-          />
-        </label>
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Próximo mês"
-          disabled={month === "9999-12"}
-          onClick={() => navigateMonth(shiftMonth(month, 1))}
-        >
-          <ChevronRight />
-        </Button>
-      </nav>
+      <TotalBalance initialData={initialBalance} />
+
+      <div className="space-y-2">
+        <nav className="flex items-end gap-2" aria-label="Navegar por mês">
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Mês anterior"
+            disabled={month === "1000-01"}
+            onClick={() => navigateMonth(shiftMonth(month, -1))}
+          >
+            <ChevronLeft />
+          </Button>
+          <label className="min-w-0">
+            <span className="mb-1 block text-xs font-medium">Mês</span>
+            <Input
+              type="month"
+              min="1000-01"
+              max="9999-12"
+              value={month}
+              onChange={(event) => navigateMonth(event.target.value)}
+            />
+          </label>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Próximo mês"
+            disabled={month === "9999-12"}
+            onClick={() => navigateMonth(shiftMonth(month, 1))}
+          >
+            <ChevronRight />
+          </Button>
+        </nav>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          {hasFilters ? "Resultados filtrados" : "Resumo"} de{" "}
+          {monthLabel(month)}
+          {hasFilters ? " · considerando os filtros aplicados" : ""}. Os totais
+          incluem todas as páginas.
+        </p>
+      </div>
       {isError ? (
         <div
           role="alert"
@@ -142,11 +130,12 @@ export function TransactionSummary({
       ) : isPending ? (
         <p role="status">Carregando totais do mês...</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {summaryCards.map((card) => (
-            <SummaryCard key={card.title} {...card} />
-          ))}
-        </div>
+        <PeriodTotals
+          balance={balance}
+          income={totalIncome}
+          expense={totalExpense}
+          filtered={hasFilters}
+        />
       )}
     </div>
   );

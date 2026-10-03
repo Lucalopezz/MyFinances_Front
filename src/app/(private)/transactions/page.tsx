@@ -2,6 +2,7 @@ import { TransactionSummary } from "@/components/transaction/transaction-summary
 import { TransactionSearchList } from "@/components/transaction/transaction-search-list";
 import {
   getTransactionTotals,
+  getTotalBalance,
   searchTransactions,
 } from "@/actions/transaction/search-transactions";
 import { categoryReferenceSchema } from "@/schemas/category.schema";
@@ -48,9 +49,10 @@ export default async function TransactionsPage({
       ? requestedMonth
       : currentDay().slice(0, 7);
   const filters = parseFilters(params, month);
-  const [pageResult, totalsResult] = await Promise.allSettled([
+  const [pageResult, totalsResult, balanceResult] = await Promise.allSettled([
     searchTransactions(filters),
     getTransactionTotals(filters),
+    getTotalBalance(),
   ]);
 
   return (
@@ -58,6 +60,9 @@ export default async function TransactionsPage({
       <TransactionSummary
         month={month}
         filters={filters}
+        initialBalance={
+          balanceResult.status === "fulfilled" ? balanceResult.value : undefined
+        }
         initialTotals={
           totalsResult.status === "fulfilled" ? totalsResult.value : undefined
         }

@@ -2,7 +2,7 @@
 
 Interface de gerenciamento financeiro pessoal do MyFinances, construída com Next.js. Consome a [API MyFinances](https://github.com/Lucalopezz/MyFinances_API) para registrar movimentações, acompanhar compromissos e organizar metas.
 
-Versão de referência: **v2.2.1**. Consulte o [histórico de versões](CHANGELOG.md) para conhecer as mudanças de cada release.
+Versão de referência: **v2.2.2**. Consulte o [histórico de versões](CHANGELOG.md) para conhecer as mudanças de cada release.
 
 ## Funcionalidades
 
@@ -11,7 +11,7 @@ Versão de referência: **v2.2.1**. Consulte o [histórico de versões](CHANGELO
 - **Transações:** receitas e despesas, edição, remoção, duplicação pelo formulário, navegação mensal e busca.
 - **Categorias e regras:** catálogo personalizado e sugestões de classificação por descrição.
 - **Importação e exportação:** CSV/OFX com revisão antes de confirmar; relatórios em PDF/CSV.
-- **Dashboard e comparativos:** resumo mensal, indicadores e análise de receitas, despesas e saldo.
+- **Dashboard e comparativos:** saldo total, resumo mensal, indicadores e análise de receitas, despesas e saldo.
 - **Orçamentos:** limites mensais e acompanhamento de gastos por categoria.
 - **Calendário financeiro:** agenda, receitas recorrentes e projeção diária de saldo.
 - **Wishlist:** metas com aportes, retiradas, histórico e conclusão de compras.
