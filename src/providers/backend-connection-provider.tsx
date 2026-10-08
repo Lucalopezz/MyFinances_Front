@@ -132,7 +132,7 @@ export function BackendConnectionProvider({ children }: { children: React.ReactN
     }}>
       {children}
       {showStatus && (
-        <div role="status" aria-live="polite" className="fixed inset-x-3 bottom-4 z-[100] mx-auto flex max-w-lg items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-800 shadow-lg dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
+        <div role="status" aria-live="polite" className="fixed inset-x-3 bottom-4 z-[100] mx-auto flex max-w-lg items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-800 shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-white">
           {state.status === "checking"
             ? <LoaderCircle aria-hidden className="h-5 w-5 shrink-0 animate-spin" />
             : <WifiOff aria-hidden className="h-5 w-5 shrink-0" />}
@@ -142,7 +142,7 @@ export function BackendConnectionProvider({ children }: { children: React.ReactN
                 : "Não foi possível continuar agora. Tente novamente."}
           </p>
           {state.status === "unavailable" && (
-            <Button size="sm" variant="outline" onClick={() => void connection.reconnect()}>
+            <Button size="sm" variant="outline" className="border-gray-300 bg-white text-gray-800 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700" onClick={() => void connection.reconnect()}>
               Tentar novamente
             </Button>
           )}

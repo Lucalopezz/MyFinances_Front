@@ -45,9 +45,9 @@ export default function PrivateError({ reset }: { error: Error; reset: () => voi
   return (
     // Sem rede ou com uma rodada ativa, o botão não inicia uma tentativa extra.
     // Todo texto abaixo permanece simples; erros internos não são renderizados.
-    <div className="mx-auto max-w-xl space-y-4 p-6">
+    <div className="mx-auto max-w-xl space-y-4 p-6 text-gray-800 dark:text-white">
       <h1 className="text-xl font-semibold">Não foi possível carregar esta página</h1>
-      <p role="status" className="text-sm text-slate-600 dark:text-slate-300">
+      <p role="status" className="text-sm text-gray-600 dark:text-gray-300">
         {status === "checking" ? "Esperando o servidor…"
           : "Tente novamente para carregar seus dados."}
       </p>

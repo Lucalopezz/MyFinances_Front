@@ -21,7 +21,10 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("min-h-screen antialiased")}>
+      {/* Durante Suspense, o shell privado ainda não pintou o fundo da página.
+          O body já usa a mesma paleta dos layouts público e privado para evitar
+          um fundo preto enquanto o catálogo ou os dados estão carregando. */}
+      <body className={cn("min-h-screen bg-white text-gray-800 antialiased dark:bg-gray-700 dark:text-white")}>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

@@ -2,6 +2,10 @@
 
 Este arquivo concentra as mudanças por release. O [escopo atual](docs/features.md) e o [índice da documentação](docs/README.md) descrevem a aplicação e suas integrações.
 
+## Não lançado
+
+- Fundo de carregamento, skeleton, mensagens e aviso de conexão alinhados às cores dos temas claro e escuro da aplicação, inclusive antes da montagem do layout privado.
+
 ## [v2.3.0](https://github.com/Lucalopezz/MyFinances_Front/tree/v2.3.0) — 08/10/2026
 
 ### Disponibilidade e sessão

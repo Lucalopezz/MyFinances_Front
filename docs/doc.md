@@ -191,6 +191,10 @@ iniciar o aquecimento enquanto os dados chegam. `loading.tsx` cobre as rotas
 privadas sem skeleton específico; `error.tsx` oferece reconexão e nova leitura,
 inclusive após a recuperação automática do backend.
 
+O `body` já usa o mesmo fundo dos layouts (`bg-white dark:bg-gray-700`) antes
+de o shell montar. O skeleton privado reutiliza `Skeleton` com os cinzas da
+aplicação, e mensagens/avisos de conexão acompanham os temas claro e escuro.
+
 `AppShell` renderiza:
 
 - `Header`
