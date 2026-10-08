@@ -1,5 +1,11 @@
 "use server";
 
+// Transporte compartilhado de login: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
+
 import { cookies } from "next/headers";
 
 import {
@@ -35,7 +41,7 @@ export async function loginAction(payload: LoginPayload) {
 
   let response: Response;
   try {
-    response = await fetch(`${backendUrl}/auth`, {
+    response = await backendFetch(`${backendUrl}/auth`, {
       method: "POST",
       headers: createJsonHeaders(),
       body: JSON.stringify({ email, password }),

@@ -5,7 +5,6 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { getWish } from "@/actions/wishlist/wishlist";
 import { updateWishAction } from "@/actions/wishlist/update-wish-action";
-import type { WishListInterface } from "@/models/wishlist.model";
 import { toDateInputValue } from "@/utils/date";
 
 export const dynamic = "force-dynamic";
@@ -18,19 +17,9 @@ export default async function EditWishPage({
 }) {
   const { id } = await params;
 
-  let wish: WishListInterface | null;
-  try {
-    wish = await getWish(id);
-  } catch (error) {
-    return (
-      <div className="p-4">
-        <p>Erro ao carregar item de desejo</p>
-        <Link href="/wishlist">
-          <Button className="mt-4">Voltar</Button>
-        </Link>
-      </div>
-    );
-  }
+  // getWish distingue 404 (null) de erro de conexão (exceção). Não capturamos
+  // a exceção aqui: error.tsx pode reconectar e tentar a leitura outra vez.
+  const wish = await getWish(id);
 
   if (!wish) {
     return (

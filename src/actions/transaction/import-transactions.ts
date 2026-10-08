@@ -1,5 +1,11 @@
 "use server";
 
+// Transporte compartilhado de importação de extratos: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
+
 import {
   revalidatePath,
   revalidateTag,
@@ -38,7 +44,7 @@ async function send<T>(
     "Não foi possível concluir a importação. Consulte o resultado e tente novamente.";
   try {
     const multipart = body instanceof FormData;
-    const response = await fetch(
+    const response = await backendFetch(
       `${getServerBackendUrl()}/transaction-imports${path}`,
       {
         method,

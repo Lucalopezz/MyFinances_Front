@@ -1,5 +1,11 @@
 "use server";
 
+// Transporte compartilhado de exportações: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
+
 import { unstable_noStore as noStore } from "next/cache";
 
 import {
@@ -105,12 +111,26 @@ function normalizeProgress(value: unknown): number | null {
   return Math.min(100, Math.max(0, Math.round(percentage)));
 }
 
+/**
+ * O status assíncrono pode responder HTTP 200 e conter error de um worker.
+ * Por isso, o filtro de 5xx em createApiError sozinho não cobre este caminho.
+ * Preservamos a existência da falha, mas substituímos seu conteúdo técnico por
+ * uma orientação pública. id/status/progress continuam sendo normalizados à parte.
+ */
 function getSafeError(record: JsonRecord): string | null {
   const error = record.error;
 
-  if (typeof error === "string") return asNonEmptyString(error);
+  if (typeof error === "string") {
+    return asNonEmptyString(error)
+      ? "Não foi possível gerar o arquivo. Tente novamente."
+      : null;
+  }
   if (isRecord(error)) {
-    return asNonEmptyString(error.message) ?? asNonEmptyString(error.error);
+    // Suporta os formatos legados { message } e { error }, sem enviar esses
+    // valores brutos ao browser. Campo ausente/vazio continua representado por null.
+    return asNonEmptyString(error.message) || asNonEmptyString(error.error)
+      ? "Não foi possível gerar o arquivo. Tente novamente."
+      : null;
   }
 
   return null;
@@ -182,7 +202,7 @@ export async function createTransactionExport(
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
-    const response = await fetch(`${backendUrl}/exports/transactions`, {
+    const response = await backendFetch(`${backendUrl}/exports/transactions`, {
       method: "POST",
       headers: createJsonHeaders(token),
       body: JSON.stringify(format === "PDF" ? {} : { format }),
@@ -228,7 +248,7 @@ export async function getTransactionExportStatus(): Promise<TransactionExportSta
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
-    const response = await fetch(`${backendUrl}/exports/status`, {
+    const response = await backendFetch(`${backendUrl}/exports/status`, {
       headers: createJsonHeaders(token),
       cache: "no-store",
     });

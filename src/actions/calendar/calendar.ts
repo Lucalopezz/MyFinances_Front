@@ -1,4 +1,10 @@
 "use server";
+
+// Transporte compartilhado de calendário: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
 import {
   revalidatePath,
   revalidateTag,
@@ -29,7 +35,7 @@ async function request<T>(
   const context = `${method} ${path}`;
   const fallback = "Não foi possível atualizar o calendário. Tente novamente.";
   try {
-    const response = await fetch(`${getServerBackendUrl()}/calendar${path}`, {
+    const response = await backendFetch(`${getServerBackendUrl()}/calendar${path}`, {
       method,
       headers: createJsonHeaders(token),
       cache: "no-store",

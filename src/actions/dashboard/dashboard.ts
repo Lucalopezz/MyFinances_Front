@@ -1,3 +1,9 @@
+// Transporte compartilhado de dashboard e comparativos: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
+import { createApiError, createRequestError } from "@/lib/api-error";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import type {
@@ -120,7 +126,7 @@ async function fetchSemesterSummary(
       startDate: period.start,
       endDate: period.end,
     });
-    const response = await fetch(`${backendUrl}/dashboard?${searchParams}`, {
+    const response = await backendFetch(`${backendUrl}/dashboard?${searchParams}`, {
       headers: createJsonHeaders(token),
       cache: "no-store",
       next: { tags: ["dashboard", "sixMonthComparison"] },
@@ -164,7 +170,7 @@ async function fetchMonthlyComparisonForPeriod(
       startDate: period.start,
       endDate: period.end,
     });
-    const response = await fetch(
+    const response = await backendFetch(
       `${backendUrl}/dashboard/monthly-comparison?${searchParams}`,
       {
         headers: createJsonHeaders(token),
@@ -181,7 +187,9 @@ async function fetchMonthlyComparisonForPeriod(
     const months = Array.isArray(payload) ? payload : payload.months;
 
     if (!Array.isArray(months)) {
-      return failure("A API retornou um comparativo mensal inválido.");
+      // Falha no formato é apresentada como leitura indisponível, sem expor
+      // contrato da API ou nomes internos na interface de comparativos.
+      return failure("Não foi possível carregar o comparativo mensal. Tente novamente.");
     }
 
     return success({
@@ -204,7 +212,7 @@ async function fetchTransactionsPage(
     page: String(page),
     limit: "50",
   });
-  const response = await fetch(`${backendUrl}/transactions?${searchParams}`, {
+  const response = await backendFetch(`${backendUrl}/transactions?${searchParams}`, {
     headers: createJsonHeaders(token),
     cache: "no-store",
     next: { tags: ["transactions", "sixMonthComparison"] },
@@ -320,22 +328,6 @@ export async function getSemesterComparison(): Promise<SemesterComparisonData> {
   };
 }
 
-function getEmptySummary(month?: string): FinancialSummary {
-  const { startDate, endDate } = getMonthPeriod(month);
-
-  return {
-    balance: 0,
-    totalIncomes: 0,
-    totalExpenses: 0,
-    economyRate: 0,
-    highestSpendingCategory: null,
-    period: {
-      start: startDate,
-      end: endDate,
-    },
-  };
-}
-
 function buildDefaultComparison(month: string): MonthlyComparisonDto {
   return {
     month,
@@ -346,6 +338,11 @@ function buildDefaultComparison(month: string): MonthlyComparisonDto {
   };
 }
 
+/**
+ * Uma leitura que falha não representa saldo zero. Propagamos o erro para que
+ * a rota ofereça recuperação, em vez de mostrar um resumo financeiro inventado.
+ * Os números exibidos depois do sucesso continuam sendo calculados pela API.
+ */
 export async function getDashboardSummary(
   month?: string,
 ): Promise<FinancialSummary> {
@@ -354,14 +351,12 @@ export async function getDashboardSummary(
   const backendUrl = getServerBackendUrl();
   const { startDate, endDate } = getMonthPeriod(month);
   const token = await getServerToken();
-  const emptySummary = getEmptySummary(month);
-
   if (!token) {
-    return emptySummary;
+    throw new Error("Sua sessão expirou. Entre novamente.");
   }
 
   try {
-    const response = await fetch(
+    const response = await backendFetch(
       `${backendUrl}/dashboard?startDate=${startDate}&endDate=${endDate}`,
       {
         headers: createJsonHeaders(token),
@@ -370,13 +365,17 @@ export async function getDashboardSummary(
       },
     );
 
-    if (!response.ok) {
-      return emptySummary;
-    }
+    if (!response.ok) throw await createApiError(response, {
+      context: "GET /dashboard",
+      fallback: "Não foi possível carregar o resumo do mês.",
+    });
 
     return response.json();
   } catch (error) {
-    return emptySummary;
+    throw createRequestError(error, {
+      context: "GET /dashboard",
+      fallback: "Não foi possível carregar o resumo do mês.",
+    });
   }
 }
 
@@ -404,7 +403,7 @@ export async function getMonthlyComparison(
   }
 
   try {
-    const response = await fetch(
+    const response = await backendFetch(
       `${backendUrl}/dashboard/monthly-comparison?startDate=${startDate}&endDate=${endDate}`,
       {
         headers: createJsonHeaders(token),
@@ -486,7 +485,7 @@ export async function getSixMonthComparison(): Promise<
   try {
     const results = await Promise.all(
       months.map(async (month) => {
-        const response = await fetch(
+        const response = await backendFetch(
           `${backendUrl}/dashboard/monthly-comparison?startDate=${month.startDate}&endDate=${month.endDate}`,
           {
             headers: createJsonHeaders(token),

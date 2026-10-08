@@ -4,6 +4,7 @@ import SummaryCard from "@/components/summary-card";
 import type { FixedExpense } from "@/models/fixed-expense.model";
 import { formatCurrency } from "@/utils/formatters";
 import { useFixedExpenses } from "@/hooks/queries/useFixedExpenses";
+import { Button } from "@/components/ui/button";
 
 import { FixedExpenseList } from "../fixed-expense-list";
 
@@ -14,7 +15,10 @@ interface FixedExpenseSummaryProps {
 export function FixedExpenseSummary({
   fixedExpenses,
 }: FixedExpenseSummaryProps) {
-  const { data: currentFixedExpenses = [] } = useFixedExpenses(fixedExpenses);
+  // O cache mantém a última lista bem-sucedida quando a atualização falha.
+  // isError acrescenta uma orientação pública e refetch permite nova leitura,
+  // sem limpar dados nem reenviar marcação de pagamento/criação de despesa.
+  const { data: currentFixedExpenses = [], isError, refetch } = useFixedExpenses(fixedExpenses);
   const totalAmount = currentFixedExpenses.reduce(
     (sum, expense) => sum + expense.amount,
     0,
@@ -38,6 +42,12 @@ export function FixedExpenseSummary({
 
   return (
     <div className="space-y-6">
+      {isError && (
+        <div role="alert" className="flex flex-wrap items-center gap-3 text-sm">
+          <p>Não foi possível atualizar as despesas fixas.</p>
+          <Button size="sm" variant="outline" onClick={() => void refetch()}>Tentar novamente</Button>
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {summaryCards.map((card) => (
           <SummaryCard key={card.title} {...card} />

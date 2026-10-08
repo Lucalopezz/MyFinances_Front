@@ -1,5 +1,11 @@
 "use server";
 
+// Transporte compartilhado de despesas fixas: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
+
 import type {
   FixedExpense,
   FixedExpensePaymentResult,
@@ -23,7 +29,7 @@ export async function createFixedExpense(
   }
 
   try {
-    const response = await fetch(`${backendUrl}/fixed-expenses`, {
+    const response = await backendFetch(`${backendUrl}/fixed-expenses`, {
       method: "POST",
       headers: createJsonHeaders(token),
       body: JSON.stringify(fixedExpense),
@@ -44,6 +50,8 @@ export async function createFixedExpense(
   }
 }
 
+// [] só é dado válido quando a API responde uma lista vazia. Em indisponibilidade,
+// lançamos erro para preservar dados em cache e permitir a recuperação da leitura.
 export async function getFixedExpenses(): Promise<FixedExpense[]> {
   noStore();
 
@@ -51,30 +59,32 @@ export async function getFixedExpenses(): Promise<FixedExpense[]> {
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    return [];
+    throw new Error("Sua sessão expirou. Entre novamente.");
   }
 
   try {
-    const response = await fetch(`${backendUrl}/fixed-expenses`, {
+    const response = await backendFetch(`${backendUrl}/fixed-expenses`, {
       headers: createJsonHeaders(token),
       cache: "no-store",
       next: { tags: ["fixed-expenses"] },
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - sessão expirada");
-      }
-      return [];
-    }
+    if (!response.ok) throw await createApiError(response, {
+      context: "GET /fixed-expenses",
+      fallback: "Não foi possível carregar as despesas fixas.",
+    });
 
     return await response.json();
   } catch (error) {
-    console.error("Erro:", error);
-    return [];
+    throw createRequestError(error, {
+      context: "GET /fixed-expenses",
+      fallback: "Não foi possível carregar as despesas fixas.",
+    });
   }
 }
 
+// Uma despesa realmente ausente (404) continua retornando null; falhas de rede
+// e demais respostas sem sucesso chegam ao tratamento público de erros.
 export async function getFixedExpense(
   id: string,
 ): Promise<FixedExpense | null> {
@@ -88,26 +98,25 @@ export async function getFixedExpense(
   }
 
   try {
-    const response = await fetch(`${backendUrl}/fixed-expenses/${id}`, {
+    const response = await backendFetch(`${backendUrl}/fixed-expenses/${id}`, {
       headers: createJsonHeaders(token),
       cache: "no-store",
       next: { tags: ["fixed-expense"] },
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      } else if (response.status === 404) {
-        console.error("Despesa fixa não encontrada");
-      }
-      return null;
-    }
+    if (response.status === 404) return null;
+    if (!response.ok) throw await createApiError(response, {
+      context: "GET /fixed-expenses/:id",
+      fallback: "Não foi possível carregar a despesa fixa.",
+    });
 
     const data: FixedExpense = await response.json();
     return data;
   } catch (error) {
-    console.error("Erro ao buscar despesa fixa:", error);
-    return null;
+    throw createRequestError(error, {
+      context: "GET /fixed-expenses/:id",
+      fallback: "Não foi possível carregar a despesa fixa.",
+    });
   }
 }
 
@@ -123,7 +132,7 @@ export async function updateFixedExpense(
   }
 
   try {
-    const response = await fetch(`${backendUrl}/fixed-expenses/${id}`, {
+    const response = await backendFetch(`${backendUrl}/fixed-expenses/${id}`, {
       method: "PATCH",
       headers: createJsonHeaders(token),
       body: JSON.stringify(fixedExpense),
@@ -155,7 +164,7 @@ export async function deleteFixedExpense(
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
-    const response = await fetch(`${backendUrl}/fixed-expenses/${id}`, {
+    const response = await backendFetch(`${backendUrl}/fixed-expenses/${id}`, {
       method: "DELETE",
       headers: createJsonHeaders(token),
     });
@@ -186,7 +195,7 @@ export async function markFixedExpenseAsPaid(
     throw new Error("Sua sessão expirou. Entre novamente.");
   }
 
-  const response = await fetch(`${backendUrl}/fixed-expenses/${id}/payment`, {
+  const response = await backendFetch(`${backendUrl}/fixed-expenses/${id}/payment`, {
     method: "PATCH",
     headers: createJsonHeaders(token),
     body: JSON.stringify({

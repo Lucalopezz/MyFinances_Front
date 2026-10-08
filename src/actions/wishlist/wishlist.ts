@@ -1,5 +1,11 @@
 "use server";
 
+// Transporte compartilhado de metas e reservas: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
+
 import { NewWish, WishListInterface, WishSummary } from "@/models/wishlist.model";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
@@ -18,7 +24,7 @@ export async function createWish(data: NewWish): Promise<boolean> {
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
-    const response = await fetch(`${backendUrl}/wishlist`, {
+    const response = await backendFetch(`${backendUrl}/wishlist`, {
       method: "POST",
       headers: createJsonHeaders(token),
       body: JSON.stringify({
@@ -42,6 +48,8 @@ export async function createWish(data: NewWish): Promise<boolean> {
   }
 }
 
+// Não interpretamos erro de conexão como ausência de metas. Lançar erro evita
+// substituir a lista anterior por [] e permite refazer a consulta após recuperar.
 export async function getWishList(): Promise<WishListInterface[]> {
   noStore();
 
@@ -49,27 +57,27 @@ export async function getWishList(): Promise<WishListInterface[]> {
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    return [];
+    throw new Error("Sua sessão expirou. Entre novamente.");
   }
 
   try {
-    const response = await fetch(`${backendUrl}/wishlist`, {
+    const response = await backendFetch(`${backendUrl}/wishlist`, {
       headers: createJsonHeaders(token),
       cache: "no-store",
       next: { tags: ["wishlist"] },
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - sessão expirada");
-      }
-      return [];
-    }
+    if (!response.ok) throw await createApiError(response, {
+      context: "GET /wishlist",
+      fallback: "Não foi possível carregar suas metas.",
+    });
 
     return await response.json();
   } catch (error) {
-    console.error("Erro:", error);
-    return [];
+    throw createRequestError(error, {
+      context: "GET /wishlist",
+      fallback: "Não foi possível carregar suas metas.",
+    });
   }
 }
 
@@ -80,7 +88,7 @@ export async function deleteWish(id: string | undefined): Promise<boolean> {
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
-    const response = await fetch(`${backendUrl}/wishlist/${id}`, {
+    const response = await backendFetch(`${backendUrl}/wishlist/${id}`, {
       method: "DELETE",
       headers: createJsonHeaders(token),
     });
@@ -100,6 +108,8 @@ export async function deleteWish(id: string | undefined): Promise<boolean> {
   }
 }
 
+// A distinção entre 404 e indisponibilidade também importa na edição: o primeiro
+// mostra uma meta inexistente; o segundo usa a fronteira de erro recuperável.
 export async function getWish(id: string): Promise<WishListInterface | null> {
   noStore();
 
@@ -111,26 +121,25 @@ export async function getWish(id: string): Promise<WishListInterface | null> {
   }
 
   try {
-    const response = await fetch(`${backendUrl}/wishlist/${id}`, {
+    const response = await backendFetch(`${backendUrl}/wishlist/${id}`, {
       headers: createJsonHeaders(token),
       cache: "no-store",
       next: { tags: ["wishlist"] },
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      } else if (response.status === 404) {
-        console.error("Item de desejo não encontrado");
-      }
-      return null;
-    }
+    if (response.status === 404) return null;
+    if (!response.ok) throw await createApiError(response, {
+      context: "GET /wishlist/:id",
+      fallback: "Não foi possível carregar a meta.",
+    });
 
     const data: WishListInterface = await response.json();
     return data;
   } catch (error) {
-    console.error("Erro ao buscar item de desejo:", error);
-    return null;
+    throw createRequestError(error, {
+      context: "GET /wishlist/:id",
+      fallback: "Não foi possível carregar a meta.",
+    });
   }
 }
 
@@ -154,7 +163,7 @@ export async function updateWish(
       targetDate: wishData.targetDate,
     };
 
-    const response = await fetch(`${backendUrl}/wishlist/${id}`, {
+    const response = await backendFetch(`${backendUrl}/wishlist/${id}`, {
       method: "PATCH",
       headers: createJsonHeaders(token),
       body: JSON.stringify(formattedWishData),
@@ -183,7 +192,7 @@ async function wishlistRequest<T>(path: string, method = "GET", body?: unknown):
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
   const context = `${method} /wishlist${path}`;
   try {
-    const response = await fetch(`${getServerBackendUrl()}/wishlist${path}`, {
+    const response = await backendFetch(`${getServerBackendUrl()}/wishlist${path}`, {
       method,
       headers: createJsonHeaders(token),
       cache: "no-store",

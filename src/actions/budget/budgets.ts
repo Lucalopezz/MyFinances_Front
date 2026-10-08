@@ -1,5 +1,11 @@
 "use server";
 
+// Transporte compartilhado de orçamentos: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
+
 import { revalidatePath, revalidateTag, unstable_noStore as noStore } from "next/cache";
 
 import { createApiError, createRequestError } from "@/lib/api-error";
@@ -13,7 +19,7 @@ const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 async function authenticatedRequest(path: string, init: RequestInit = {}) {
   const token = await getServerToken();
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
-  return fetch(`${getServerBackendUrl()}${path}`, {
+  return backendFetch(`${getServerBackendUrl()}${path}`, {
     ...init,
     headers: createJsonHeaders(token),
     cache: "no-store",

@@ -1,5 +1,11 @@
 "use server";
 
+// Transporte compartilhado de notificações: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
+
 import { revalidateTag } from "next/cache";
 
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
@@ -15,7 +21,7 @@ export async function getNotifications(): Promise<NotificationInterface[]> {
     throw new Error("Sua sessão expirou. Entre novamente.");
   }
 
-  const response = await fetch(`${backendUrl}/notifications`, {
+  const response = await backendFetch(`${backendUrl}/notifications`, {
     headers: createJsonHeaders(token),
     cache: "no-store",
     next: { tags: ["notifications"] },
@@ -41,7 +47,7 @@ export async function markNotificationAsRead(
     throw new Error("Sua sessão expirou. Entre novamente.");
   }
 
-  const response = await fetch(`${backendUrl}/notifications/${id}/mark-as-read`, {
+  const response = await backendFetch(`${backendUrl}/notifications/${id}/mark-as-read`, {
     method: "PATCH",
     headers: createJsonHeaders(token),
     body: JSON.stringify({ read: true }),
@@ -63,7 +69,7 @@ export async function markAllNotificationsAsRead(): Promise<{ count: number }> {
   const token = await getServerToken();
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
-  const response = await fetch(
+  const response = await backendFetch(
     `${getServerBackendUrl()}/notifications/mark-all-as-read`,
     {
       method: "PATCH",

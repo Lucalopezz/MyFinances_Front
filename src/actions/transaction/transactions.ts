@@ -1,5 +1,11 @@
 "use server";
 
+// Transporte compartilhado de transações: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
+
 import type {
   PaginatedTransactions,
   Transaction,
@@ -21,7 +27,7 @@ export async function createTransaction(
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
-    const response = await fetch(`${backendUrl}/transactions`, {
+    const response = await backendFetch(`${backendUrl}/transactions`, {
       method: "POST",
       headers: createJsonHeaders(token),
       body: JSON.stringify(transaction),
@@ -124,6 +130,8 @@ function normalizeTransactionsResponse(
   };
 }
 
+// Falha de transporte/HTTP deve ser erro, não uma página vazia. O cache pode
+// manter os dados anteriores e o consumidor pode oferecer tentativa novamente.
 export async function getTransactions(
   page = 1,
 ): Promise<PaginatedTransactions> {
@@ -135,7 +143,7 @@ export async function getTransactions(
   const backendUrl = getServerBackendUrl();
 
   if (!token) {
-    return emptyTransactionsPage(normalizedPage);
+    throw new Error("Sua sessão expirou. Entre novamente.");
   }
 
   try {
@@ -143,26 +151,28 @@ export async function getTransactions(
       page: String(normalizedPage),
       limit: String(TRANSACTIONS_PER_PAGE),
     });
-    const response = await fetch(`${backendUrl}/transactions?${searchParams}`, {
+    const response = await backendFetch(`${backendUrl}/transactions?${searchParams}`, {
       headers: createJsonHeaders(token),
       cache: "no-store",
       next: { tags: ["transactions"] },
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - sessão expirada");
-      }
-      return emptyTransactionsPage(normalizedPage);
-    }
+    if (!response.ok) throw await createApiError(response, {
+      context: "GET /transactions",
+      fallback: "Não foi possível carregar as transações.",
+    });
 
     return normalizeTransactionsResponse(await response.json(), normalizedPage);
   } catch (error) {
-    console.error("Erro ao buscar transações:", error);
-    return emptyTransactionsPage(normalizedPage);
+    throw createRequestError(error, {
+      context: "GET /transactions",
+      fallback: "Não foi possível carregar as transações.",
+    });
   }
 }
 
+// 404 continua representando um registro inexistente. Falha temporária é
+// relançada para não transformar indisponibilidade em uma página "não encontrada".
 export async function getTransaction(id: string): Promise<Transaction | null> {
   noStore();
 
@@ -174,26 +184,26 @@ export async function getTransaction(id: string): Promise<Transaction | null> {
   }
 
   try {
-    const response = await fetch(`${backendUrl}/transactions/${id}`, {
+    const response = await backendFetch(`${backendUrl}/transactions/${id}`, {
       headers: createJsonHeaders(token),
       cache: "no-store",
       next: { tags: ["transaction"] },
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error("Não autorizado - token inválido ou expirado");
-      } else if (response.status === 404) {
-        console.error("Transação não encontrada");
-      }
-      return null;
-    }
+    // A resposta é uma negativa explícita da API, não um timeout de inicialização.
+    if (response.status === 404) return null;
+    if (!response.ok) throw await createApiError(response, {
+      context: "GET /transactions/:id",
+      fallback: "Não foi possível carregar a transação.",
+    });
 
     const data: Transaction = await response.json();
     return data;
   } catch (error) {
-    console.error("Erro ao buscar transação:", error);
-    return null;
+    throw createRequestError(error, {
+      context: "GET /transactions/:id",
+      fallback: "Não foi possível carregar a transação.",
+    });
   }
 }
 
@@ -207,7 +217,7 @@ export async function updateTransaction(
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
-    const response = await fetch(`${backendUrl}/transactions/${id}`, {
+    const response = await backendFetch(`${backendUrl}/transactions/${id}`, {
       method: "PATCH",
       headers: createJsonHeaders(token),
       body: JSON.stringify(transaction),
@@ -239,7 +249,7 @@ export async function deleteTransaction(
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
-    const response = await fetch(`${backendUrl}/transactions/${id}`, {
+    const response = await backendFetch(`${backendUrl}/transactions/${id}`, {
       method: "DELETE",
       headers: createJsonHeaders(token),
     });

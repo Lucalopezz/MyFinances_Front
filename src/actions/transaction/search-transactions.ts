@@ -1,5 +1,11 @@
 "use server";
 
+// Transporte compartilhado de busca e totais de transações: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
+
 import { unstable_noStore as noStore } from "next/cache";
 
 import { categoryReferenceSchema } from "@/schemas/category.schema";
@@ -41,7 +47,7 @@ export async function getTransactionTotals(
   const context = "GET /transactions/summary";
   const fallback = "Não foi possível carregar os totais das transações.";
   try {
-    const response = await fetch(
+    const response = await backendFetch(
       `${getServerBackendUrl()}/transactions/summary?${searchParams(filters)}`,
       {
         headers: createJsonHeaders(token),
@@ -63,7 +69,7 @@ export async function getTotalBalance(): Promise<TransactionTotals> {
   const context = "GET /transactions/balance";
   const fallback = "Não foi possível carregar o saldo total.";
   try {
-    const response = await fetch(
+    const response = await backendFetch(
       `${getServerBackendUrl()}/transactions/balance`,
       {
         headers: createJsonHeaders(token),
@@ -92,7 +98,7 @@ export async function searchTransactions(
   if (cursor && cursor.length <= 512) params.set("cursor", cursor);
 
   try {
-    const response = await fetch(
+    const response = await backendFetch(
       `${getServerBackendUrl()}/transactions/search?${params}`,
       {
         headers: createJsonHeaders(token),

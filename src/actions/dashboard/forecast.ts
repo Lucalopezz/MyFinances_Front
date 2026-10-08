@@ -1,5 +1,11 @@
 "use server";
 
+// Transporte compartilhado de projeção financeira: GET/HEAD têm prazo e repetição
+// limitada em falhas transitórias; gravações continuam com envio único. URL,
+// cookie e Authorization são tratados no servidor pelos consumidores abaixo.
+// A política completa fica em backend-fetch.ts, sem duplicar timers neste domínio.
+import { backendFetch } from "@/lib/backend-fetch";
+
 import { unstable_noStore as noStore } from "next/cache";
 
 import { createApiError, createRequestError } from "@/lib/api-error";
@@ -13,7 +19,7 @@ export async function getDashboardForecast(): Promise<DashboardForecast | null> 
   if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
 
   try {
-    const response = await fetch(`${getServerBackendUrl()}/dashboard/forecast`, {
+    const response = await backendFetch(`${getServerBackendUrl()}/dashboard/forecast`, {
       headers: createJsonHeaders(token),
       cache: "no-store",
       next: { tags: ["dashboard", "forecast"] },
