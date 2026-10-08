@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ArrowRight,
   BarChart3,
@@ -78,9 +78,9 @@ const features = [
 ];
 
 export default function LandingPage() {
-  useEffect(() => {
-    void fetch("/api/health", { cache: "no-store" }).catch(() => {});
-  }, []);
+  // O aquecimento foi centralizado no provider do layout raiz. A landing não
+  // dispara outro ping na montagem: acessar login ou uma rota privada diretamente
+  // recebe o mesmo controle global, sem depender de uma visita prévia a esta página.
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
   const [isWishDialogOpen, setIsWishDialogOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
