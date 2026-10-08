@@ -20,9 +20,22 @@ ativação. Publique a API e sincronize o schema antes do frontend.
 ## Health
 
 `GET /health` é público e retorna `{ "status": "ok" }`, sem consultar dados do usuário.
-A landing faz uma chamada assíncrona a `/api/health` no Next, que encaminha para
-a API com `BACKEND_URL`, sem cache, credenciais ou conteúdo de resposta no browser.
-Falhas são ignoradas pela interface e não atrasam a renderização da página.
+O `BackendConnectionProvider`, montado no layout global, chama `/api/health`
+ao abrir o site e a cada cinco minutos enquanto a aba está visível. Ao voltar
+à aba ou recuperar a internet, verifica novamente se o último contato está
+antigo. Chamadas simultâneas compartilham a mesma tentativa.
+
+O handler Next encaminha para `BACKEND_URL`, sem cache, JWT ou conteúdo de
+resposta no browser. Retorna `204` quando a API responde com sucesso e `503`
+em falha HTTP, de rede ou timeout. O timeout é de 20 segundos; `maxDuration`
+é de 30 segundos. O browser limita cada tentativa a 22 segundos e faz até
+três tentativas, com pausas de dois e cinco segundos. Depois oferece tentativa
+manual; a verificação periódica continua apenas com a aba visível.
+
+A renderização pública continua disponível durante o aquecimento. Falhas
+exibem um aviso de conexão e nunca alteram a sessão. Abas congeladas, navegador
+fechado e dispositivos suspensos não garantem execução de pings. Esta solução
+não elimina a suspensão por inatividade do plano Free da Render.
 
 ## Auth
 

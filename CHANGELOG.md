@@ -2,6 +2,30 @@
 
 Este arquivo concentra as mudanças por release. O [escopo atual](docs/features.md) e o [índice da documentação](docs/README.md) descrevem a aplicação e suas integrações.
 
+## [v2.3.0](https://github.com/Lucalopezz/MyFinances_Front/tree/v2.3.0) — 08/10/2026
+
+### Disponibilidade e sessão
+
+- Aquecimento global da API na abertura do site e a cada cinco minutos com a aba visível, incluindo páginas públicas e acesso direto à área privada.
+- Reconexão ao retornar à aba ou recuperar a internet, com chamadas deduplicadas, cancelamento e até três tentativas de saúde por rodada.
+- Leituras server-side com timeout de 15 segundos por tentativa e uma repetição em falhas transitórias; gravações mantêm envio único.
+- Login e cadastro aguardam disponibilidade antes de enviar o formulário. Falhas de rede preservam a sessão; o ping não renova o JWT.
+- Carregamento progressivo da área privada, tela de erro com tentativa novamente e recuperação de consultas após restabelecer a conexão.
+- Falhas no perfil, resumo mensal, metas e despesas não são interpretadas como usuário ausente, dados vazios ou saldo zero.
+
+### Interface e compatibilidade
+
+- Espera apresentada como “Esperando o servidor…” e mensagens públicas sem explicações de infraestrutura ou detalhes de falhas internas e exportações.
+- Atualização do `react-day-picker` para a versão 9 compatível com React 19 e adaptação do calendário à nova API de estilos e ícones.
+
+### Documentação e validação
+
+- Guia de cold start com contexto da hospedagem na Vercel/Render, solução implementada, intervalos, limites e cenários de validação após o deploy.
+- Referências técnicas, autenticação, contrato HTTP e escopo atualizados; comentários detalhados explicam conexão, transporte, recuperação de páginas, sessão e testes.
+- Comando `npm run test:connection` com 19 testes automatizados. Verificação separada de TypeScript e build de produção validados localmente.
+
+Esta versão reutiliza o endpoint público `GET /health` existente na API. O cold start inicial e a suspensão de abas em segundo plano continuam possíveis; o deploy e a validação no navegador estão descritos em [Cold start da API](docs/api-cold-start.md#validação-e-publicação).
+
 ## [v2.2.2](https://github.com/Lucalopezz/MyFinances_Front/tree/v2.2.2) — 03/10/2026
 
 - Saldo total em destaque na dashboard e na listagem mensal de transações, independente do mês e dos filtros.

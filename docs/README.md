@@ -10,6 +10,7 @@ Este índice organiza as referências atuais do MyFinances Front-end. O [README 
 | [Documentação técnica](doc.md) | Para entender estrutura, rotas, integração, cache e interface |
 | [Contrato HTTP](api-routes.md) | Para consultar endpoints, entradas e respostas da API |
 | [Autenticação](authentication.md) | Para trabalhar com sessão, cookie HTTP-only e proteção de rotas |
+| [Cold start da API](api-cold-start.md) | Para entender a hospedagem na Vercel/Render, o problema de inatividade e as melhorias de conexão |
 | [Calendário financeiro](financial-calendar.md) | Para consultar recorrências, projeção e regras de datas |
 
 ## Guias da API

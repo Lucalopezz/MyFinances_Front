@@ -51,6 +51,7 @@ Observações:
 - `npm run build` gera a build de produção.
 - `npm run start` serve a build gerada.
 - `npx tsc --noEmit` verifica os tipos sem gerar arquivos JavaScript.
+- `npm run test:connection` valida timers, deduplicação, reconexão, limites de tentativas, preservação da sessão e envio único de gravações. Os testes usam o runner nativo do Node.js (24 ou superior) e o TypeScript já instalado.
 - `npm run lint` é um script legado baseado em `next lint`; não há configuração funcional para execução não interativa.
 - A configuração atual da build permite ignorar erros de tipos; use a verificação de TypeScript separadamente ao validar mudanças de código.
 
@@ -119,6 +120,39 @@ A camada server-side usa `fetch` em `src/actions`, organizada por domínio:
 
 Chamadas autenticadas devem passar por Server Actions ou funcoes server-side em `src/actions/**`. Essas funcoes leem o cookie `mf_token` no servidor e adicionam `Authorization: Bearer <token>` quando existe sessão.
 
+### Disponibilidade e cold start
+
+`BackendConnectionProvider` é global, inclusive em login, cadastro e entrada
+direta em rotas privadas. Usa o endpoint público `/api/health` na abertura e a
+cada cinco minutos com a aba visível. `visibilitychange`, foco, `pageshow` e
+reconexão da internet verificam novamente quando o último contato tem pelo
+menos cinco minutos. As verificações são deduplicadas e canceladas no unmount.
+O browser pode congelar uma aba em segundo plano; não há garantia de manter
+a Render acordada com a aba oculta ou o dispositivo suspenso.
+
+Cada rodada faz até três chamadas de saúde, com timeout de 22 segundos no
+browser e 20 segundos no handler, intercaladas por pausas de dois e cinco
+segundos. Uma chamada lenta exibe aviso após 1,5 segundo. Falha final oferece
+“Tentar novamente”; falta de internet é indicada separadamente. Os dados já
+renderizados e o cache de usuário permanecem disponíveis.
+
+Ao recuperar uma falha, o provider refaz apenas queries ativas que terminaram
+em erro e atualiza os Server Components da rota privada. Mutações não são
+reexecutadas. Login e cadastro aguardam disponibilidade antes de enviar o
+formulário, e enviam a gravação uma única vez.
+
+`backendFetch` centraliza as chamadas das actions. GET/HEAD têm timeout de 15
+segundos por tentativa e uma repetição em erro de rede/timeout ou HTTP
+502/503/504. Cancelamentos do chamador e demais status não são repetidos.
+POST/PATCH/DELETE preservam o envio único e o comportamento anterior de
+timeout. Falhas de consulta não devem retornar listas vazias, saldo zero ou
+“não encontrado”. `getUser` retorna `null` apenas sem sessão ou em `401`.
+
+O layout raiz declara `maxDuration = 60` para renderizações/actions, e o
+handler de saúde declara `maxDuration = 30`. A plataforma aplica esses limites
+conforme a configuração e o plano; confirmar os valores no deployment da
+Vercel. Não foi criado agendador externo nem alterado o plano da Render.
+
 ## Cache e Revalidação
 
 Leituras server-side usam `cache: "no-store"` e tags do Next quando necessário.
@@ -149,7 +183,13 @@ Tags usadas atualmente:
 
 O layout global fica em `src/app/layout.tsx`.
 
-`AppProviders` monta `QueryClientProvider`, `ThemeProvider` e `ToastProvider` no layout raiz. O layout privado exige `requireAuth()` e monta `AuthProvider` e `CategoryProvider` antes de `AppShell`.
+`AppProviders` monta `QueryClientProvider`, `ThemeProvider`,
+`BackendConnectionProvider` e `ToastProvider` no layout raiz. O layout privado
+exige `requireAuth()` e monta `AuthProvider`. O catálogo e o `AppShell` ficam
+em `PrivateShell`, dentro de `Suspense`, permitindo mostrar um skeleton e
+iniciar o aquecimento enquanto os dados chegam. `loading.tsx` cobre as rotas
+privadas sem skeleton específico; `error.tsx` oferece reconexão e nova leitura,
+inclusive após a recuperação automática do backend.
 
 `AppShell` renderiza:
 

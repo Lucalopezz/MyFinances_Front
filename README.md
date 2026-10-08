@@ -2,7 +2,7 @@
 
 Interface de gerenciamento financeiro pessoal do MyFinances, construída com Next.js. Consome a [API MyFinances](https://github.com/Lucalopezz/MyFinances_API) para registrar movimentações, acompanhar compromissos e organizar metas.
 
-Versão de referência: **v2.2.2**. Consulte o [histórico de versões](CHANGELOG.md) para conhecer as mudanças de cada release.
+Versão de referência: **v2.3.0**. Consulte o [histórico de versões](CHANGELOG.md) para conhecer as mudanças de cada release.
 
 ## Funcionalidades
 
@@ -31,6 +31,7 @@ Comece pelo [índice da documentação](docs/README.md). As referências princip
 | [Documentação técnica](docs/doc.md) | Estrutura, rotas, integrações e cache |
 | [Contrato HTTP](docs/api-routes.md) | Endpoints consumidos pelo frontend |
 | [Autenticação](docs/authentication.md) | Sessão, cookie HTTP-only e proteção de rotas |
+| [Cold start da API](docs/api-cold-start.md) | Hospedagem na Vercel/Render, aquecimento e recuperação da conexão |
 | [Histórico de versões](CHANGELOG.md) | Mudanças por release |
 
 Os guias de domínio e os registros históricos estão organizados no índice.

@@ -106,6 +106,23 @@ Fluxo:
 4. O usuario e enviado para `/login`.
 5. A pagina e atualizada para refletir a sessao encerrada no servidor.
 
+## Indisponibilidade da API
+
+Timeout, erro de rede e HTTP 502/503/504 não significam sessão expirada e não
+devem apagar `mf_token`, limpar o QueryClient ou redirecionar para login.
+O provider global de disponibilidade faz o aquecimento e mostra um aviso de
+conexão sem modificar o estado autenticado. Depois de recuperar a API, refaz
+consultas com erro e atualiza a rota privada; nunca repete gravações.
+
+`getUser()` retorna `null` somente quando falta token ou a API responde `401`.
+Falhas temporárias lançam erro recuperável. Em configurações, `SessionExpired`
+aciona o encerramento pelo `AuthProvider` somente para esse resultado `null`.
+As verificações locais de JWT no middleware e em `requireAuth()` continuam
+redirecionando para login quando o token realmente está ausente ou expirado.
+
+Login e cadastro aguardam o backend ficar disponível antes de enviar o
+formulário. O ping de saúde não contém credenciais e não renova o JWT.
+
 ## Chamadas para a API
 
 Chamadas server-side usam `fetch` com o token lido por `getServerToken`.

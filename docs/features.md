@@ -1,6 +1,6 @@
 # Escopo atual do MyFinances
 
-Atualizado em 03/10/2026. As funcionalidades previstas no escopo aprovado estão implementadas na API e no frontend. Este documento descreve o produto disponível; os registros de planejamento e validação anteriores estão no [índice da documentação](README.md#histórico-de-planejamento-e-validação). As mudanças por versão estão no [changelog](../CHANGELOG.md).
+Atualizado em 08/10/2026. As funcionalidades previstas no escopo aprovado estão implementadas na API e no frontend. Este documento descreve o produto disponível; os registros de planejamento e validação anteriores estão no [índice da documentação](README.md#histórico-de-planejamento-e-validação). As mudanças por versão estão no [changelog](../CHANGELOG.md).
 
 ## Funcionalidades implementadas
 
@@ -20,6 +20,7 @@ Atualizado em 03/10/2026. As funcionalidades previstas no escopo aprovado estão
 | Despesas fixas | Recorrências, edição, pagamentos/desmarcações e avanço de ciclos | `/fixed-expenses` |
 | Notificações | Alertas de vencimento, consulta, exclusão e leitura individual ou em lote | Cabeçalho da área autenticada |
 | Interface | Layout responsivo, temas claro/escuro e estados de carregamento, vazio, erro e sucesso | Páginas públicas e privadas |
+| Disponibilidade da API | Aquecimento periódico com a aba visível, reconexão ao retornar e tentativa novamente sem encerrar a sessão por falha de rede | Páginas públicas e privadas |
 
 ## Regras gerais
 
