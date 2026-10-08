@@ -353,9 +353,8 @@ export function TransactionImport() {
                   </p>
                 )}
                 <p className="text-sm text-muted-foreground">
-                  Somente as linhas selecionadas e válidas serão gravadas. O
-                  servidor verificará novamente as categorias e possíveis
-                  duplicatas.
+                  Somente as linhas selecionadas e válidas serão importadas.
+                  Confira as categorias e possíveis duplicatas antes de confirmar.
                 </p>
               </div>
             )}

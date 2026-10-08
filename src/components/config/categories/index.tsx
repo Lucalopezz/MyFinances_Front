@@ -127,7 +127,7 @@ export function CategoriesSettings() {
         <details className="mt-4 text-sm">
           <summary className="cursor-pointer">Categorias padrão</summary>
           <p className="my-2 text-gray-500">
-            O catálogo padrão é preservado para manter a compatibilidade.
+            As categorias padrão continuam disponíveis para seus lançamentos.
           </p>
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {categories

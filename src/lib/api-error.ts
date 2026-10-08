@@ -11,7 +11,9 @@ type ApiErrorBody = {
   details?: unknown;
 };
 
-// create a custom error class to represent public API errors
+// Distingue uma mensagem pública já normalizada de uma exceção bruta de
+// transporte/parsing. createRequestError preserva essa mensagem, em vez de
+// substituí-la por outro fallback ao passar por catch de uma action.
 export class PublicApiError extends Error {
   constructor(message: string) {
     super(message);
@@ -24,7 +26,8 @@ export function isPublicApiError(error: unknown): error is PublicApiError {
 }
 
 function asMessage(value: unknown): string | null {
-  //  Validate if the value is an array of messages and join them into a single string.
+  // Validações podem devolver um array de mensagens. Convertemos apenas texto
+  // reconhecido, ignorando objetos/valores que não formam uma orientação pública.
   if (Array.isArray(value)) {
     const messages = value
       .map(asMessage)
@@ -43,8 +46,6 @@ function getStatusFallback(status: number, fallback: string) {
   if (status === 403) return "Você não tem permissão para realizar esta ação.";
   if (status === 429)
     return "Muitas tentativas. Aguarde um momento e tente novamente.";
-  if (status >= 500)
-    return "O serviço está indisponível no momento. Tente novamente mais tarde.";
   return fallback;
 }
 
@@ -56,6 +57,8 @@ export async function createApiError(
   let rawBody: string | null = null;
 
   try {
+    // Uma falha de gateway pode devolver HTML ou um body vazio. Ler como texto
+    // e tentar JSON evita que o formato da resposta gere uma segunda exceção.
     rawBody = await response.text();
     body = rawBody ? (JSON.parse(rawBody) as ApiErrorBody) : null;
   } catch {
@@ -67,8 +70,15 @@ export async function createApiError(
     asMessage(body?.error) ??
     asMessage(body?.details);
   const publicMessage =
-    apiMessage ?? getStatusFallback(response.status, fallback);
+    // Em 5xx, o body pode citar banco, infraestrutura, bibliotecas ou stack.
+    // Usamos somente o fallback público definido pela operação. Em outros
+    // status, preservamos validações de negócio e usamos fallback se faltarem.
+    response.status >= 500
+      ? fallback
+      : apiMessage ?? getStatusFallback(response.status, fallback);
 
+  // O diagnóstico técnico fica no servidor e contém apenas contexto/status.
+  // Não registramos o body financeiro, headers, cookies ou tokens da chamada.
   console.error(`[API] ${context} failed`, {
     status: response.status,
     statusText: response.statusText,
@@ -81,6 +91,8 @@ export function createRequestError(
   error: unknown,
   { context, fallback }: ApiErrorOptions,
 ) {
+  // Uma resposta HTTP já tratada mantém sua mensagem pública. Erros brutos
+  // (fetch, timeout, JSON, etc.) recebem o fallback da operação, sem error.message.
   if (isPublicApiError(error)) return error;
 
   console.error(`[API] ${context} could not be completed`);
