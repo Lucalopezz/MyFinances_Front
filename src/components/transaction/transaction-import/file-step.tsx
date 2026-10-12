@@ -16,8 +16,8 @@ import {
 export const selectClass =
   "mt-1 w-full min-w-0 rounded-md border border-gray-300 bg-white p-2 text-sm dark:border-gray-700 dark:bg-gray-900";
 
-// Only reads the first logical record to label mapping choices. Parsing and
-// validation of transaction data always happen in the authenticated API.
+// Lê somente o primeiro registro lógico para identificar as opções de mapeamento.
+// A interpretação e a validação dos dados das transações ocorrem na API autenticada.
 function firstRecord(text: string, delimiter: string): string[] {
   const values: string[] = [];
   let cell = "",

@@ -40,7 +40,7 @@ function rememberBatch(id?: string) {
   const url = new URL(window.location.href);
   if (id) url.searchParams.set("importBatch", id);
   else url.searchParams.delete("importBatch");
-  // Only an opaque batch identifier is persisted, never financial data or a JWT.
+  // Persiste somente o identificador opaco do lote, sem dados financeiros ou JWT.
   window.history.replaceState(null, "", url.toString());
 }
 const money = (value: number) =>
@@ -168,7 +168,7 @@ export function TransactionImport() {
         setStep("result");
       } else setStep("review");
     });
-    // Recovery runs once on mount. Further refreshes are explicit to preserve edits.
+    // A recuperação ocorre uma vez na montagem. Atualizações seguintes são explícitas para preservar as edições.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {

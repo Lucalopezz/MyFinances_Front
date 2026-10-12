@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await logoutAction();
     } catch (e) {
-      // ignore
+      // Uma falha na action de logout não interrompe o encerramento local da sessão.
     }
 
     if (pathname !== "/login") {

@@ -34,6 +34,6 @@ export async function clearServerToken() {
       path: "/",
     });
   } catch (e) {
-    // noop
+    // Uma falha ao limpar o cookie não interrompe o fluxo de quem chamou.
   }
 }
