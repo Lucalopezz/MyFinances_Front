@@ -33,6 +33,7 @@ export type CardInvoice = {
 };
 export type CreditCard = CardInput & {
   id: string;
+  archived: boolean;
   used: number;
   available: number;
   purchases: (CardPurchaseInput & { id: string })[];

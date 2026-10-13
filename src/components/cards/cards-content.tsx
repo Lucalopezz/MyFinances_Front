@@ -132,14 +132,12 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
     setError("");
     try {
       await removeCard(cardToRemove.id);
-      setCards((current) =>
-        current.filter((card) => card.id !== cardToRemove.id),
-      );
+      await reload();
       setSelectedId("");
       setDialog(null);
       setCardToRemove(null);
       router.refresh();
-      toast.success("Cartão removido. Histórico de pagamentos preservado.");
+      toast.success("Cartão arquivado. Você ainda pode pagar as faturas pendentes.");
     } catch (err) {
       setError(
         err instanceof Error
@@ -201,7 +199,7 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
                 variant={card.id === selected?.id ? "default" : "outline"}
                 onClick={() => setSelectedId(card.id)}
               >
-                {card.name}
+                {card.name}{card.archived ? " (arquivado)" : ""}
               </Button>
             ))}
           </div>
@@ -232,7 +230,7 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
-                    disabled={busy}
+                    disabled={busy || selected.archived}
                     className="text-red-600 dark:text-red-400"
                     onClick={() => {
                       setError("");
@@ -243,7 +241,7 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
                     <Trash2 /> Remover cartão
                   </Button>
                   <Button
-                    disabled={busy}
+                    disabled={busy || selected.archived}
                     onClick={() => {
                       setError("");
                       setDialog("purchase");
@@ -342,10 +340,9 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
           <DialogHeader>
             <DialogTitle>Remover {cardToRemove?.name}?</DialogTitle>
             <DialogDescription>
-              O cartão deixará de aparecer na lista e não poderá receber novas
-              compras. Os pagamentos já registrados serão preservados. Quite
-              todas as compras parceladas e faturas de anuidade fechadas antes
-              de remover.
+              O cartão será arquivado e não poderá receber novas compras.
+              Seu histórico e as faturas pendentes continuarão disponíveis
+              para consulta e pagamento.
             </DialogDescription>
           </DialogHeader>
           {error && (

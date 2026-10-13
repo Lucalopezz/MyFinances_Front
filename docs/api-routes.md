@@ -942,7 +942,7 @@ Todas as chamadas exigem Bearer JWT, enviado somente no servidor pelas actions e
 | `GET /cards` | Lista cartões com limite, compras e faturas. |
 | `POST /cards` | `{ name, limit, closingDay, dueDay, annualFee }`; cadastra cartão. |
 | `GET /cards/:id` | Detalha cartão, compras e faturas. |
-| `DELETE /cards/:id` | Remove o cartão da lista preservando compras, recibos e transações. Exige quitação das parcelas e anuidades fechadas; pendências retornam `400`. Retorna `{ message }`. |
+| `DELETE /cards/:id` | Arquiva o cartão preservando compras, recibos e transações. Faturas pendentes continuam disponíveis para pagamento. Retorna `{ message }`. |
 | `POST /cards/:id/purchases` | `{ description, amount, date, category, installments }`; registra compra sem criar transação realizada. |
 | `POST /cards/:id/invoices/:cycle/pay` | `{ date }`; quita integralmente fatura fechada e cria transações de despesa. Repetir a chamada não duplica a quitação. |
 
@@ -951,3 +951,5 @@ Todas as chamadas exigem Bearer JWT, enviado somente no servidor pelas actions e
 ### Limite de cartão por ciclo
 
 `POST /cards/:id/purchases` valida o valor de cada parcela junto aos demais valores e à anuidade na mesma fatura. `used` corresponde à maior fatura pendente e `available` ao limite menos esse valor.
+
+`DELETE /cards/:id` arquiva mesmo com pendências; `GET /cards` inclui cartões arquivados com `archived: true`. Faturas existentes continuam disponíveis para pagamento; novas compras são bloqueadas.

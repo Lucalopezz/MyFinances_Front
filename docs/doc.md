@@ -282,7 +282,7 @@ Datas seguem `YYYY-MM-DD`; valores têm centavos. A interface bloqueia envio rep
 ### Cartões de crédito
 
 Remover cartão abre uma confirmação e chama `DELETE /cards/:id`. A API arquiva
-o cartão, preserva pagamentos e exige quitar parcelas e anuidades fechadas.
+o cartão, preserva pagamentos e mantém faturas pendentes acessíveis para quitação.
 Cartões removidos saem também do seletor de novas despesas no crédito.
 
 A rota privada `/cards` carrega os cartões no servidor e apresenta limite total, em uso e disponível, compras e faturas por competência. Permite cadastrar cartão com dia de fechamento, vencimento e anuidade; registrar compra com categoria e até 60 parcelas; e marcar como paga uma fatura fechada. O formulário de nova despesa também aceita “Crédito”, cartão e número de parcelas, encaminhando a compra para `/cards/:id/purchases`.
