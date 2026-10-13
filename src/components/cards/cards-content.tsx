@@ -13,6 +13,7 @@ import {
   createCardPurchase,
   payCardInvoice,
   removeCard,
+  refundCardPurchase,
 } from "@/actions/cards/cards";
 import type {
   CreditCard,
@@ -43,10 +44,11 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
   const router = useRouter();
   const [cards, setCards] = useState(initialCards);
   const [selectedId, setSelectedId] = useState(initialCards[0]?.id ?? "");
-  const [dialog, setDialog] = useState<"card" | "purchase" | "remove" | null>(
+  const [dialog, setDialog] = useState<"card" | "purchase" | "remove" | "refund" | null>(
     null,
   );
   const [cardToRemove, setCardToRemove] = useState<CreditCard | null>(null);
+  const [purchaseToRefund, setPurchaseToRefund] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [cardForm, setCardForm] = useState<CardInput>({
@@ -125,6 +127,21 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
     } finally {
       setBusy(false);
     }
+  }
+  /** A confirmação explícita evita estornar a compra ao consultar uma fatura. */
+  async function confirmRefund() {
+    if (!selected || !purchaseToRefund || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await refundCardPurchase(selected.id, purchaseToRefund);
+      await reload();
+      setDialog(null);
+      setPurchaseToRefund(null);
+      toast.success("Compra estornada. Parcelas pendentes canceladas.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível estornar a compra.");
+    } finally { setBusy(false); }
   }
   async function confirmRemoval() {
     if (!cardToRemove || busy) return;
@@ -253,6 +270,15 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
                 </div>
               </div>
               <section className="space-y-3">
+                <h2 className="text-xl font-semibold">Compras e estornos</h2>
+                {selected.purchases.map((item) => (
+                  <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
+                    <div><p>{item.description}</p><p className="text-sm text-slate-500">{formatCurrency(item.amount)} · {item.installments} parcela(s) · {item.refundedAt ? `Estornada em ${formatShortDate(item.refundedAt)}` : formatShortDate(item.date)}</p></div>
+                    {!item.refundedAt && <Button variant="outline" disabled={busy} onClick={() => { setError(""); setPurchaseToRefund(item.id); setDialog("refund"); }}>Estornar compra</Button>}
+                  </div>
+                ))}
+              </section>
+              <section className="space-y-3">
                 <h2 className="flex items-center gap-2 text-xl font-semibold">
                   <ReceiptText className="size-5" />
                   Faturas
@@ -327,6 +353,14 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
           )}
         </>
       )}
+      <Dialog open={dialog === "refund"} onOpenChange={(open) => { if (!open && !busy) setDialog(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Estornar compra?</DialogTitle><DialogDescription>As parcelas pendentes serão canceladas. Valores de parcelas já pagas serão devolvidos ao saldo com uma receita de estorno. O histórico será preservado.</DialogDescription></DialogHeader>
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+          <Button variant="outline" disabled={busy} onClick={() => setDialog(null)}>Cancelar</Button>
+          <Button disabled={busy} onClick={() => void confirmRefund()}>{busy ? "Estornando..." : "Confirmar estorno"}</Button>
+        </DialogContent>
+      </Dialog>
       <Dialog
         open={dialog === "remove"}
         onOpenChange={(open) => {

@@ -101,3 +101,10 @@ export async function payCardInvoice(id: string, cycle: string, date: string) {
   refresh();
   return result;
 }
+
+/** Atualiza todas as telas financeiras após o cancelamento da compra. */
+export async function refundCardPurchase(id: string, purchaseId: string) {
+  const result = await request<{ returnedAmount?: number }>(`/${encodeURIComponent(id)}/purchases/${encodeURIComponent(purchaseId)}/refund`, "POST");
+  refresh();
+  return result;
+}

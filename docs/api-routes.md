@@ -953,3 +953,5 @@ Todas as chamadas exigem Bearer JWT, enviado somente no servidor pelas actions e
 `POST /cards/:id/purchases` valida o valor de cada parcela junto aos demais valores e à anuidade na mesma fatura. `used` corresponde à maior fatura pendente e `available` ao limite menos esse valor.
 
 `DELETE /cards/:id` arquiva mesmo com pendências; `GET /cards` inclui cartões arquivados com `archived: true`. Faturas existentes continuam disponíveis para pagamento; novas compras são bloqueadas.
+
+`POST /cards/:id/purchases/:purchaseId/refund` estorna integralmente e de forma idempotente. Cancela parcelas pendentes e gera receita pelo valor já pago; compras retornam `refundedAt`.
