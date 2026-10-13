@@ -3,7 +3,9 @@ const assert = require("node:assert/strict");
 const { loadTypescript } = require("./load-typescript.cjs");
 // Os módulos são reais; server-only e os limites externos do Next são simulados.
 // Não precisamos de API, cookie real, credenciais ou banco para verificar a política.
-const { backendFetch } = loadTypescript("src/lib/backend-fetch.ts", { "server-only": {} });
+const { backendFetch } = loadTypescript("src/lib/backend-fetch.ts", {
+  "server-only": {},
+});
 const errors = loadTypescript("src/lib/api-error.ts", { "server-only": {} });
 const exportModels = loadTypescript("src/models/transaction-export.ts");
 
@@ -17,7 +19,8 @@ test("GET retries a temporary gateway failure, preserving cache policy and heade
     return requests.length === 1 ? transient : Response.json({ status: "ok" });
   });
   const response = await backendFetch("http://backend/health", {
-    headers: { Authorization: "Bearer test" }, cache: "no-store",
+    headers: { Authorization: "Bearer test" },
+    cache: "no-store",
   });
   assert.equal(response.status, 200);
   assert.equal(requests.length, 2);
@@ -30,7 +33,9 @@ test("GET retries a temporary gateway failure, preserving cache policy and heade
 // Erro de rede admite uma repetição. Os status fora da lista transitória seguem
 // para a action, que decide autenticação, ausência de registro e outras regras.
 test("GET retries a network error only once; permanent HTTP errors are returned without retry", async (t) => {
-  const fetch = t.mock.method(globalThis, "fetch", async () => { throw new TypeError("offline"); });
+  const fetch = t.mock.method(globalThis, "fetch", async () => {
+    throw new TypeError("offline");
+  });
   await assert.rejects(backendFetch("http://backend/user"), /offline/);
   assert.equal(fetch.mock.callCount(), 2);
   for (const status of [400, 401, 403, 404, 429, 500]) {
@@ -49,7 +54,10 @@ test("caller cancellation is preserved and never retried", async (t) => {
     assert.equal(init.signal.aborted, true);
     throw new DOMException("cancelled", "AbortError");
   });
-  await assert.rejects(backendFetch("http://backend/user", { signal: controller.signal }), /cancelled/);
+  await assert.rejects(
+    backendFetch("http://backend/user", { signal: controller.signal }),
+    /cancelled/,
+  );
   assert.equal(fetch.mock.callCount(), 1);
 });
 
@@ -63,7 +71,9 @@ test("each read attempt has a fresh 15s deadline", async (t) => {
     controller.abort(new DOMException("timeout", "TimeoutError"));
     return controller.signal;
   });
-  const fetch = t.mock.method(globalThis, "fetch", async (_url, { signal }) => { throw signal.reason; });
+  const fetch = t.mock.method(globalThis, "fetch", async (_url, { signal }) => {
+    throw signal.reason;
+  });
   await assert.rejects(backendFetch("http://backend/user"), /timeout/);
   assert.deepEqual(deadlines, [15_000, 15_000]);
   assert.equal(fetch.mock.callCount(), 2);
@@ -73,12 +83,24 @@ test("each read attempt has a fresh 15s deadline", async (t) => {
 // casos protegem contra duplicação financeira, inclusive diante de HTTP 503.
 test("POST, PATCH and DELETE are sent once even if the result is lost or returns 503", async (t) => {
   for (const method of ["POST", "PATCH", "DELETE"]) {
-    const fetch = t.mock.method(globalThis, "fetch", async () => { throw new TypeError("lost response"); });
-    await assert.rejects(backendFetch("http://backend/transactions", { method }), /lost response/);
+    const fetch = t.mock.method(globalThis, "fetch", async () => {
+      throw new TypeError("lost response");
+    });
+    await assert.rejects(
+      backendFetch("http://backend/transactions", { method }),
+      /lost response/,
+    );
     assert.equal(fetch.mock.callCount(), 1);
     fetch.mock.restore();
-    const unavailable = t.mock.method(globalThis, "fetch", async () => new Response(null, { status: 503 }));
-    assert.equal((await backendFetch("http://backend/transactions", { method })).status, 503);
+    const unavailable = t.mock.method(
+      globalThis,
+      "fetch",
+      async () => new Response(null, { status: 503 }),
+    );
+    assert.equal(
+      (await backendFetch("http://backend/transactions", { method })).status,
+      503,
+    );
     assert.equal(unavailable.mock.callCount(), 1);
     unavailable.mock.restore();
   }
@@ -89,7 +111,10 @@ function userModule(request, token = "test-token") {
   // controla a resposta de GET /user/get-one sem expor uma sessão real.
   return loadTypescript("src/actions/user/user.ts", {
     "@/lib/backend-fetch": { backendFetch: request },
-    "@/lib/backend": { getServerBackendUrl: () => "http://backend", createJsonHeaders: () => ({}) },
+    "@/lib/backend": {
+      getServerBackendUrl: () => "http://backend",
+      createJsonHeaders: () => ({}),
+    },
     "@/lib/serverAuth": { getServerToken: async () => token },
     "next/cache": { unstable_noStore: () => {} },
     "@/lib/api-error": errors,
@@ -101,25 +126,53 @@ function userModule(request, token = "test-token") {
 test("profile is absent only without a token or with 401; timeout and 503 remain recoverable errors", async (t) => {
   t.mock.method(console, "error", () => {});
   let called = false;
-  assert.equal(await userModule(async () => { called = true; }, null).getUser(), null);
+  assert.equal(
+    await userModule(async () => {
+      called = true;
+    }, null).getUser(),
+    null,
+  );
   assert.equal(called, false);
-  assert.equal(await userModule(async () => new Response(null, { status: 401 })).getUser(), null);
-  await assert.rejects(userModule(async () => new Response(null, { status: 503 })).getUser(), /perfil/);
-  await assert.rejects(userModule(async () => { throw new DOMException("timeout", "TimeoutError"); }).getUser(), /perfil/);
+  assert.equal(
+    await userModule(async () => new Response(null, { status: 401 })).getUser(),
+    null,
+  );
+  await assert.rejects(
+    userModule(async () => new Response(null, { status: 503 })).getUser(),
+    /perfil/,
+  );
+  await assert.rejects(
+    userModule(async () => {
+      throw new DOMException("timeout", "TimeoutError");
+    }).getUser(),
+    /perfil/,
+  );
   const profile = { id: "user-test", name: "Test" };
-  assert.deepEqual(await userModule(async () => Response.json(profile)).getUser(), profile);
+  assert.deepEqual(
+    await userModule(async () => Response.json(profile)).getUser(),
+    profile,
+  );
 });
 
 // O JWT de teste só precisa de exp porque requireAuth faz a checagem local.
 // Isso não é validação de assinatura: a autorização real continua com a API.
 test("only actual missing or expired tokens cause requireAuth to redirect", async () => {
   const { isJwtExpired } = loadTypescript("src/lib/jwt.ts");
-  const jwt = (exp) => `header.${Buffer.from(JSON.stringify({ exp })).toString("base64url")}.signature`;
+  const jwt = (exp) =>
+    `header.${Buffer.from(JSON.stringify({ exp })).toString("base64url")}.signature`;
   let cookie;
   const { requireAuth } = loadTypescript("src/lib/serverAuth.ts", {
-    "next/headers": { cookies: async () => ({ get: () => cookie ? { value: cookie } : undefined }) },
+    "next/headers": {
+      cookies: async () => ({
+        get: () => (cookie ? { value: cookie } : undefined),
+      }),
+    },
     "next/cache": { unstable_noStore: () => {} },
-    "next/navigation": { redirect: (path) => { throw new Error(`redirect:${path}`); } },
+    "next/navigation": {
+      redirect: (path) => {
+        throw new Error(`redirect:${path}`);
+      },
+    },
     "@/lib/backend": { AUTH_COOKIE_NAME: "mf_token" },
     "@/lib/jwt": { isJwtExpired },
   });
@@ -152,9 +205,13 @@ test("health proxy returns an uncached 204/503 and never forwards authentication
   assert.equal(healthy.status, 204);
   assert.equal(healthy.headers.get("Cache-Control"), "no-store");
   assert.equal(await healthy.text(), "");
-  fetch.mock.mockImplementation(async () => new Response(null, { status: 503 }));
+  fetch.mock.mockImplementation(
+    async () => new Response(null, { status: 503 }),
+  );
   assert.equal((await GET()).status, 503);
-  fetch.mock.mockImplementation(async () => { throw new TypeError("offline"); });
+  fetch.mock.mockImplementation(async () => {
+    throw new TypeError("offline");
+  });
   assert.equal((await GET()).status, 503);
   assert.deepEqual(deadlines, [20_000, 20_000, 20_000]);
   assert.equal(maxDuration, 30);
@@ -165,9 +222,13 @@ test("health proxy returns an uncached 204/503 and never forwards authentication
 test("internal failures show the operation fallback instead of technical response details", async (t) => {
   t.mock.method(console, "error", () => {});
   for (const status of [500, 502, 503, 504]) {
-    const response = Response.json({ message: "Backend API Prisma timeout in POST /transactions" }, { status });
+    const response = Response.json(
+      { message: "Backend API Prisma timeout in POST /transactions" },
+      { status },
+    );
     const error = await errors.createApiError(response, {
-      context: "POST /transactions", fallback: "Não foi possível criar a transação.",
+      context: "POST /transactions",
+      fallback: "Não foi possível criar a transação.",
     });
     assert.equal(error.message, "Não foi possível criar a transação.");
   }
@@ -176,9 +237,13 @@ test("internal failures show the operation fallback instead of technical respons
 // Ocultar infraestrutura não deve apagar a orientação de uma validação de negócio.
 test("business validation messages remain available to explain a rejected operation", async (t) => {
   t.mock.method(console, "error", () => {});
-  const response = Response.json({ message: "O valor deve ser maior que zero." }, { status: 400 });
+  const response = Response.json(
+    { message: "O valor deve ser maior que zero." },
+    { status: 400 },
+  );
   const error = await errors.createApiError(response, {
-    context: "POST /transactions", fallback: "Não foi possível criar a transação.",
+    context: "POST /transactions",
+    fallback: "Não foi possível criar a transação.",
   });
   assert.equal(error.message, "O valor deve ser maior que zero.");
 });
@@ -186,18 +251,69 @@ test("business validation messages remain available to explain a rejected operat
 // Um worker pode falhar dentro de uma consulta HTTP bem-sucedida. Conferimos
 // que a normalização protege esse caminho e mantém status/id para o fluxo da UI.
 test("export processing failures show a simple message while preserving their status", async () => {
-  for (const error of ["Backend worker timeout", { message: "Prisma API error" }, { error: "Redis connection refused" }]) {
-    const { getTransactionExportStatus } = loadTypescript("src/actions/export/transactions.ts", {
-      "@/lib/backend-fetch": { backendFetch: async () => Response.json({ id: "export-test", status: "FAILED", error }) },
-      "@/lib/backend": { getServerBackendUrl: () => "http://backend", createJsonHeaders: () => ({}) },
-      "@/lib/serverAuth": { getServerToken: async () => "test-token" },
-      "next/cache": { unstable_noStore: () => {} },
-      "@/lib/api-error": errors,
-      "@/models/transaction-export": exportModels,
-    });
+  for (const error of [
+    "Backend worker timeout",
+    { message: "Prisma API error" },
+    { error: "Redis connection refused" },
+  ]) {
+    const { getTransactionExportStatus } = loadTypescript(
+      "src/actions/export/transactions.ts",
+      {
+        "@/lib/backend-fetch": {
+          backendFetch: async () =>
+            Response.json({ id: "export-test", status: "FAILED", error }),
+        },
+        "@/lib/backend": {
+          getServerBackendUrl: () => "http://backend",
+          createJsonHeaders: () => ({}),
+        },
+        "@/lib/serverAuth": { getServerToken: async () => "test-token" },
+        "next/cache": { unstable_noStore: () => {} },
+        "@/lib/api-error": errors,
+        "@/models/transaction-export": exportModels,
+      },
+    );
     const result = await getTransactionExportStatus();
     assert.equal(result.status, "FAILED");
     assert.equal(result.id, "export-test");
-    assert.equal(result.error, "Não foi possível gerar o arquivo. Tente novamente.");
+    assert.equal(
+      result.error,
+      "Não foi possível gerar o arquivo. Tente novamente.",
+    );
   }
+});
+
+// Versões antigas da API podem responder validações em inglês mesmo em 400.
+test("legacy English and database errors receive a Portuguese operation message", async (t) => {
+  t.mock.method(console, "error", () => {});
+  for (const message of [
+    "Number must be greater than 0",
+    "Bad Request",
+    "PrismaClientKnownRequestError",
+  ]) {
+    const error = await errors.createApiError(
+      Response.json({ message }, { status: 400 }),
+      { context: "POST /cards", fallback: "Confira os dados do cartão." },
+    );
+    assert.equal(error.message, "Confira os dados do cartão.");
+  }
+  const error = await errors.createApiError(
+    Response.json({ message: "Unauthorized" }, { status: 401 }),
+    { context: "GET /cards", fallback: "Não foi possível carregar." },
+  );
+  assert.equal(error.message, "Sua sessão expirou. Entre novamente.");
+});
+
+test("form defaults are in Portuguese and custom messages are preserved", () => {
+  loadTypescript("src/lib/validation.ts");
+  const { z } = require("zod");
+  assert.equal(
+    z.number().safeParse(NaN).error.issues[0].message,
+    "Informe um número válido.",
+  );
+  assert.equal(
+    z.string().min(3, "Nome muito curto.").safeParse("").error.issues[0]
+      .message,
+    "Nome muito curto.",
+  );
 });

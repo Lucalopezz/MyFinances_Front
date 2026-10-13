@@ -69,13 +69,22 @@ export async function createApiError(
     asMessage(body?.message) ??
     asMessage(body?.error) ??
     asMessage(body?.details);
+  // Respostas de versões antigas da API ainda podem trazer erros padrão em
+  // inglês ou detalhes do banco. Esses textos recebem a orientação da operação.
+  const technicalMessage =
+    apiMessage &&
+    /^(Bad Request|Unauthorized|Forbidden|Not Found|Internal Server Error|Required|Invalid input|Validation failed)|Prisma|MongoDB|ECONN|ETIMEDOUT|Number must|String must|Expected .+received/i.test(
+      apiMessage,
+    );
   const publicMessage =
     // Em 5xx, o body pode citar banco, infraestrutura, bibliotecas ou stack.
     // Usamos somente o fallback público definido pela operação. Em outros
     // status, preservamos validações de negócio e usamos fallback se faltarem.
     response.status >= 500
       ? fallback
-      : apiMessage ?? getStatusFallback(response.status, fallback);
+      : !technicalMessage && apiMessage
+        ? apiMessage
+        : getStatusFallback(response.status, fallback);
 
   // O diagnóstico técnico fica no servidor e contém apenas contexto/status.
   // Não registramos o body financeiro, headers, cookies ou tokens da chamada.
