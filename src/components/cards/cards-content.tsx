@@ -210,7 +210,7 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
                   ["Limite total", selected.limit],
-                  ["Em uso", selected.used],
+                  ["Maior fatura pendente", selected.used],
                   ["Disponível", selected.available],
                 ].map(([label, value]) => (
                   <div
@@ -474,8 +474,8 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
           <DialogHeader>
             <DialogTitle>Compra no crédito</DialogTitle>
             <DialogDescription>
-              O valor total compromete o limite agora. As parcelas entram nas
-              próximas faturas.
+              Cada parcela compromete o limite da sua fatura. A soma das compras
+              e parcelas de cada mês deve caber no limite do cartão.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={submitPurchase} className="grid gap-4">
@@ -521,6 +521,10 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
                 />
               </label>
             </div>
+            {/* Arredondamos para cima para incluir a maior parcela do rateio. */}
+            <p className="text-sm text-slate-500">
+              Até {formatCurrency(Math.ceil(purchase.amount * 100 / Math.max(1, purchase.installments)) / 100)} por parcela · limite por fatura {formatCurrency(selected?.limit ?? 0)}
+            </p>
             <label className={field}>
               Data da compra
               <Input

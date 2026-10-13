@@ -947,3 +947,7 @@ Todas as chamadas exigem Bearer JWT, enviado somente no servidor pelas actions e
 | `POST /cards/:id/invoices/:cycle/pay` | `{ date }`; quita integralmente fatura fechada e cria transações de despesa. Repetir a chamada não duplica a quitação. |
 
 `date` usa `YYYY-MM-DD` e `cycle` usa `YYYY-MM`. A categoria deve ser uma despesa ativa. O retorno do cartão inclui `used`, `available`, `purchases` e `invoices`; cada fatura traz `total`, `annualFee`, `paid`, `paymentDate`, `status` e `lines`. Compras comprometem o limite no ato; faturas pendentes entram na projeção do calendário e o pagamento entra nas transações realizadas. Regras e limites no [guia de cartões da API](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/credit-cards.md).
+
+### Limite de cartão por ciclo
+
+`POST /cards/:id/purchases` valida o valor de cada parcela junto aos demais valores e à anuidade na mesma fatura. `used` corresponde à maior fatura pendente e `available` ao limite menos esse valor.
