@@ -16,7 +16,7 @@ Atualizado em 08/10/2026. As funcionalidades previstas no escopo aprovado estão
 | Orçamentos | Limites mensais por categoria, gasto realizado e valor restante | `/dashboard` |
 | Calendário | Agenda, receitas mensais/anuais, edição/pausa, confirmação de recebimento e projeção diária | `/calendar` e projeção no dashboard |
 | Wishlist | Reserva individual, aportes, retiradas, sugestão mensal, histórico e conclusão com despesa vinculada | `/wishlist`, `/wishlist/edit/[id]` |
-| Cartões | Cadastro, limite, parcelas, faturas, pagamento integral e remoção de cartões quitados | `/cards` e formulário de nova despesa |
+| Cartões | Cadastro, limite por fatura, parcelas, despesas fixas no cartão, estorno e arquivamento com pendências | `/cards` e formulário de nova despesa |
 | Despesas fixas | Recorrências, edição, pagamentos/desmarcações e avanço de ciclos | `/fixed-expenses` |
 | Notificações | Sincronização sem cron, lembretes/atrasados, histórico resolvido e leitura individual ou em lote | Cabeçalho da área autenticada |
 | Interface | Layout responsivo, temas claro/escuro e estados de carregamento, vazio, erro e sucesso | Páginas públicas e privadas |
@@ -33,6 +33,6 @@ Atualizado em 08/10/2026. As funcionalidades previstas no escopo aprovado estão
 
 ## Limites de escopo
 
-O simulador de compras foi retirado do planejamento anterior. Open Finance, contas bancárias/carteiras, OCR, categorização por IA e compartilhamento familiar não integram o escopo aprovado. Cartões têm pagamento integral; pagamento parcial, estorno, edição de cartão/compra, juros e conciliação de extrato não estão disponíveis. A conclusão de compras da wishlist e recebimentos recorrentes não possuem fluxo específico de estorno.
+O simulador de compras foi retirado do planejamento anterior. Open Finance, contas bancárias/carteiras, OCR, categorização por IA e compartilhamento familiar não integram o escopo aprovado. Cartões têm pagamento integral; pagamento parcial, edição de cartão/compra, juros e conciliação de extrato não estão disponíveis. A conclusão de compras da wishlist e recebimentos recorrentes não possuem fluxo específico de estorno.
 
 Os contratos estão em [Rotas da API](api-routes.md), e os guias de domínio estão no [índice da documentação](README.md#guias-da-api).

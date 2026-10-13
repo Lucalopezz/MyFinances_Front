@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CreditCard as CreditCardIcon,
@@ -40,13 +41,24 @@ import { currentDay } from "@/components/calendar/calendar-utils";
 const field =
   "grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-200";
 const number = (value: string) => Number(value);
-export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
+export function CardsContent({
+  initialCards,
+  initialSelectedId,
+}: {
+  initialCards: CreditCard[];
+  initialSelectedId?: string;
+}) {
   const router = useRouter();
   const [cards, setCards] = useState(initialCards);
-  const [selectedId, setSelectedId] = useState(initialCards[0]?.id ?? "");
-  const [dialog, setDialog] = useState<"card" | "purchase" | "remove" | "refund" | null>(
-    null,
+  const [selectedId, setSelectedId] = useState(
+    initialSelectedId ??
+      initialCards.find((card) => !card.archived)?.id ??
+      initialCards[0]?.id ??
+      "",
   );
+  const [dialog, setDialog] = useState<
+    "card" | "purchase" | "remove" | "refund" | null
+  >(null);
   const [cardToRemove, setCardToRemove] = useState<CreditCard | null>(null);
   const [purchaseToRefund, setPurchaseToRefund] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -65,6 +77,14 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
     category: "SHOPPING",
     installments: 1,
   });
+  // Atualizações de outras telas e navegação por um vínculo de cartão precisam
+  // refletir a lista do servidor, inclusive pagamentos e arquivamentos.
+  useEffect(() => {
+    setCards(initialCards);
+  }, [initialCards]);
+  useEffect(() => {
+    if (initialSelectedId) setSelectedId(initialSelectedId);
+  }, [initialSelectedId]);
   const selected = cards.find((card) => card.id === selectedId) ?? cards[0];
   async function reload() {
     const { getCards } = await import("@/actions/cards/cards");
@@ -140,8 +160,14 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
       setPurchaseToRefund(null);
       toast.success("Compra estornada. Parcelas pendentes canceladas.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível estornar a compra.");
-    } finally { setBusy(false); }
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível estornar a compra.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
   async function confirmRemoval() {
     if (!cardToRemove || busy) return;
@@ -154,7 +180,9 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
       setDialog(null);
       setCardToRemove(null);
       router.refresh();
-      toast.success("Cartão arquivado. Você ainda pode pagar as faturas pendentes.");
+      toast.success(
+        "Cartão arquivado. Você ainda pode pagar as faturas pendentes.",
+      );
     } catch (err) {
       setError(
         err instanceof Error
@@ -216,7 +244,8 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
                 variant={card.id === selected?.id ? "default" : "outline"}
                 onClick={() => setSelectedId(card.id)}
               >
-                {card.name}{card.archived ? " (arquivado)" : ""}
+                {card.name}
+                {card.archived ? " (arquivado)" : ""}
               </Button>
             ))}
           </div>
@@ -272,9 +301,41 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
               <section className="space-y-3">
                 <h2 className="text-xl font-semibold">Compras e estornos</h2>
                 {selected.purchases.map((item) => (
-                  <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
-                    <div><p>{item.description}</p><p className="text-sm text-slate-500">{formatCurrency(item.amount)} · {item.installments} parcela(s) · {item.refundedAt ? `Estornada em ${formatShortDate(item.refundedAt)}` : formatShortDate(item.date)}</p></div>
-                    {!item.refundedAt && <Button variant="outline" disabled={busy} onClick={() => { setError(""); setPurchaseToRefund(item.id); setDialog("refund"); }}>Estornar compra</Button>}
+                  <div
+                    key={item.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
+                  >
+                    <div>
+                      <p>{item.description}</p>
+                      {item.fixedExpenseId && (
+                        <Link
+                          href="/fixed-expenses"
+                          className="text-xs text-blue-500 hover:underline"
+                        >
+                          Ver despesa fixa e renovação
+                        </Link>
+                      )}
+                      <p className="text-sm text-slate-500">
+                        {formatCurrency(item.amount)} · {item.installments}{" "}
+                        parcela(s) ·{" "}
+                        {item.refundedAt
+                          ? `Estornada em ${formatShortDate(item.refundedAt)}`
+                          : formatShortDate(item.date)}
+                      </p>
+                    </div>
+                    {!item.refundedAt && (
+                      <Button
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() => {
+                          setError("");
+                          setPurchaseToRefund(item.id);
+                          setDialog("refund");
+                        }}
+                      >
+                        Estornar compra
+                      </Button>
+                    )}
                   </div>
                 ))}
               </section>
@@ -324,6 +385,19 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
                           )}
                       </div>
                     </div>
+                    {invoice.paid && invoice.transactionIds?.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                        {invoice.transactionIds.map((id, index) => (
+                          <Link
+                            key={id}
+                            href={`/transactions/${encodeURIComponent(id)}`}
+                            className="text-blue-500 hover:underline"
+                          >
+                            Ver lançamento {index + 1}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                     <div className="mt-4 divide-y divide-slate-100 border-t border-slate-100 dark:divide-slate-800 dark:border-slate-800">
                       {invoice.lines.map((line) => (
                         <div
@@ -353,12 +427,36 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
           )}
         </>
       )}
-      <Dialog open={dialog === "refund"} onOpenChange={(open) => { if (!open && !busy) setDialog(null); }}>
+      <Dialog
+        open={dialog === "refund"}
+        onOpenChange={(open) => {
+          if (!open && !busy) setDialog(null);
+        }}
+      >
         <DialogContent>
-          <DialogHeader><DialogTitle>Estornar compra?</DialogTitle><DialogDescription>As parcelas pendentes serão canceladas. Valores de parcelas já pagas serão devolvidos ao saldo com uma receita de estorno. O histórico será preservado.</DialogDescription></DialogHeader>
-          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-          <Button variant="outline" disabled={busy} onClick={() => setDialog(null)}>Cancelar</Button>
-          <Button disabled={busy} onClick={() => void confirmRefund()}>{busy ? "Estornando..." : "Confirmar estorno"}</Button>
+          <DialogHeader>
+            <DialogTitle>Estornar compra?</DialogTitle>
+            <DialogDescription>
+              As parcelas pendentes serão canceladas. Valores de parcelas já
+              pagas serão devolvidos ao saldo com uma receita de estorno. O
+              histórico será preservado.
+            </DialogDescription>
+          </DialogHeader>
+          {error && (
+            <p role="alert" className="text-sm text-red-600">
+              {error}
+            </p>
+          )}
+          <Button
+            variant="outline"
+            disabled={busy}
+            onClick={() => setDialog(null)}
+          >
+            Cancelar
+          </Button>
+          <Button disabled={busy} onClick={() => void confirmRefund()}>
+            {busy ? "Estornando..." : "Confirmar estorno"}
+          </Button>
         </DialogContent>
       </Dialog>
       <Dialog
@@ -374,9 +472,9 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
           <DialogHeader>
             <DialogTitle>Remover {cardToRemove?.name}?</DialogTitle>
             <DialogDescription>
-              O cartão será arquivado e não poderá receber novas compras.
-              Seu histórico e as faturas pendentes continuarão disponíveis
-              para consulta e pagamento.
+              O cartão será arquivado e não poderá receber novas compras. Seu
+              histórico e as faturas pendentes continuarão disponíveis para
+              consulta e pagamento.
             </DialogDescription>
           </DialogHeader>
           {error && (
@@ -554,7 +652,14 @@ export function CardsContent({ initialCards }: { initialCards: CreditCard[] }) {
             </div>
             {/* Arredondamos para cima para incluir a maior parcela do rateio. */}
             <p className="text-sm text-slate-500">
-              Até {formatCurrency(Math.ceil(purchase.amount * 100 / Math.max(1, purchase.installments)) / 100)} por parcela · limite por fatura {formatCurrency(selected?.limit ?? 0)}
+              Até{" "}
+              {formatCurrency(
+                Math.ceil(
+                  (purchase.amount * 100) / Math.max(1, purchase.installments),
+                ) / 100,
+              )}{" "}
+              por parcela · limite por fatura{" "}
+              {formatCurrency(selected?.limit ?? 0)}
             </p>
             <label className={field}>
               Data da compra

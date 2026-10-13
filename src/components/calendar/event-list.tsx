@@ -88,10 +88,16 @@ export function EventList({
                     </Button>
                   ) : (
                     <Link
-                      href="/fixed-expenses"
+                      href={
+                        event.id.startsWith("card:")
+                          ? `/cards?cardId=${encodeURIComponent(event.sourceId)}`
+                          : "/fixed-expenses"
+                      }
                       className="py-2 text-xs font-medium text-blue-700 underline-offset-4 hover:underline dark:text-blue-300"
                     >
-                      Gerenciar pagamento →
+                      {event.id.startsWith("card:")
+                        ? "Gerenciar fatura →"
+                        : "Gerenciar pagamento →"}
                     </Link>
                   ))}
               </div>

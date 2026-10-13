@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -66,7 +67,12 @@ export function TransactionSummary({
         <div>
           <h1 className="text-2xl font-bold">Transações do mês</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Consulte suas movimentações e o resultado de cada mês.
+            Consulte suas movimentações e o resultado de cada mês. Compras no
+            crédito ficam em{" "}
+            <Link href="/cards" className="text-blue-500 hover:underline">
+              Cartões
+            </Link>{" "}
+            até o pagamento da fatura.
           </p>
         </div>
         <TransactionDialog

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -91,6 +92,7 @@ export const TransactionDialog = ({
   transaction,
   showTrigger = true,
 }: TransactionDialogProps) => {
+  const [cardError, setCardError] = useState("");
   const [cards, setCards] = useState<CreditCard[]>([]);
   const {
     control,
@@ -111,10 +113,24 @@ export const TransactionDialog = ({
     }
   }, [open, reset, transaction, mode]);
   useEffect(() => {
-    if (open && mode !== "edit")
-      getCards()
-        .then(setCards)
-        .catch(() => setCards([]));
+    if (!open || mode === "edit") return;
+    let active = true;
+    setCardError("");
+    getCards()
+      .then((items) => {
+        if (active) setCards(items.filter((card) => !card.archived));
+      })
+      .catch(() => {
+        if (active) {
+          setCards([]);
+          setCardError(
+            "Não foi possível carregar seus cartões. Tente abrir o formulário novamente.",
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, [open, mode]);
   const isCredit =
     watch("paymentMethod") === "CREDIT" && watch("type") === "EXPENSE";
@@ -220,9 +236,19 @@ export const TransactionDialog = ({
                       ))}
                     </select>
                   </label>
-                  {cards.length === 0 && (
+                  {cardError && (
+                    <p role="alert" className="text-sm text-red-600">
+                      {cardError}
+                    </p>
+                  )}
+                  {!cardError && cards.length === 0 && (
                     <p className="text-sm text-slate-500">
-                      Cadastre um cartão na aba Cartões para usar crédito.
+                      <Link
+                        href="/cards"
+                        className="text-blue-500 hover:underline"
+                      >
+                        Cadastrar cartão para usar crédito →
+                      </Link>
                     </p>
                   )}
                   {errors.cardId && (
@@ -240,8 +266,14 @@ export const TransactionDialog = ({
                     />
                   </label>
                   <p className="text-xs text-slate-500">
-                    A compra ocupa o limite agora. O saldo realizado muda quando
-                    a fatura for paga.
+                    Cada parcela usa o limite da sua fatura. A compra aparece em{" "}
+                    <Link
+                      href="/cards"
+                      className="text-blue-500 hover:underline"
+                    >
+                      Cartões
+                    </Link>{" "}
+                    e no calendário; o saldo muda quando a fatura é paga.
                   </p>
                 </>
               )}

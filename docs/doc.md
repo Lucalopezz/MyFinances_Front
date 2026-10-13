@@ -356,3 +356,5 @@ O front depende dos seguintes grupos de endpoints:
 - `/dashboard/monthly-comparison`
 
 Mudanças de contrato nesses endpoints devem ser refletidas nas actions, nos modelos e nos formulários correspondentes. Consulte [Rotas da API](api-routes.md) para o contrato completo.
+
+Cartões possuem navegação pelo parâmetro `cardId`, vínculos a lançamentos de faturas pagas e à renovação de despesas fixas. O calendário direciona faturas para Cartões; contratações recorrentes previstas seguem para Despesas fixas.

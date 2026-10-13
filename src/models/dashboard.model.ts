@@ -17,6 +17,7 @@ export interface DashboardForecast {
   month: string;
   currentBalance: number;
   pendingFixedExpenses: number;
+  pendingCardInvoices: number;
   projectedBalance: number;
   expenses: Array<{
     id: string;

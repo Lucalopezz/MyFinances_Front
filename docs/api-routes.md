@@ -803,10 +803,7 @@ Resposta:
 
 ### `GET /dashboard/forecast`
 
-Projeta o fechamento do mês UTC atual. O saldo real considera transações do
-início do mês até hoje. `pendingFixedExpenses` soma despesas fixas ainda não
-pagas com vencimento até o fim do mês, inclusive vencidas. Despesas já pagas
-não são descontadas novamente. A consulta não cria transações.
+Projeta o fechamento do mês financeiro de São Paulo, usando a mesma agenda de `/calendar`. O saldo real é acumulado até hoje. `pendingFixedExpenses` soma despesas fixas previstas e `pendingCardInvoices` soma faturas pendentes, inclusive vencidas. Compromissos já pagos não são descontados novamente. A consulta não cria transações.
 
 ```json
 {
@@ -957,3 +954,5 @@ Todas as chamadas exigem Bearer JWT, enviado somente no servidor pelas actions e
 `POST /cards/:id/purchases/:purchaseId/refund` estorna integralmente e de forma idempotente. Cancela parcelas pendentes e gera receita pelo valor já pago; compras retornam `refundedAt`.
 
 Despesas fixas aceitam `cardId: string | null` e `cardInstallments: number` (1–60). O valor informado é o total da contratação, e a recorrência é a frequência de renovação. Confirmar pagamento de uma despesa no cartão cria a compra parcelada e retorna `paidCardPurchaseId`, sem saída de saldo até pagar as faturas. Para desfazer a contratação, use o estorno na tela de cartões.
+
+`GET /dashboard/forecast` compartilha a projeção de `/calendar`; retorna `pendingCardInvoices` separado de `pendingFixedExpenses` e `currentBalance` acumulado. Faturas pagas retornam `transactionIds`, usados para navegar aos lançamentos. Links `/cards?cardId=...` abrem o cartão da despesa fixa ou do evento no calendário.

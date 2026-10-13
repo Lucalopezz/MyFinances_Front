@@ -19,6 +19,7 @@ export type CardInvoice = {
   total: number;
   annualFee: number;
   paid: boolean;
+  transactionIds: string[];
   paymentDate: string | null;
   status: "PAID" | "PENDING" | "OVERDUE";
   lines: {
@@ -36,6 +37,10 @@ export type CreditCard = CardInput & {
   archived: boolean;
   used: number;
   available: number;
-  purchases: (CardPurchaseInput & { id: string; refundedAt?: string | null; fixedExpenseId?: string | null })[];
+  purchases: (CardPurchaseInput & {
+    id: string;
+    refundedAt?: string | null;
+    fixedExpenseId?: string | null;
+  })[];
   invoices: CardInvoice[];
 };
