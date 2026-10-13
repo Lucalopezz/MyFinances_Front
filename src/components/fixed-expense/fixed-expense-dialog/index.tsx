@@ -99,8 +99,9 @@ export function FixedExpenseDialog({
   }, [fixedExpense, form]);
 
   useEffect(() => {
-    // O token permanece no servidor; descartar respostas após fechar evita
-    // atualizar o formulário de outra despesa com uma leitura anterior.
+    // Este formulário só é montado ao abrir. Cada abertura faz uma leitura
+    // atual dos cartões e permite tentar novamente após uma falha anterior.
+    // O token permanece no servidor; fechar descarta a resposta em andamento.
     let active = true;
     getCards()
       .then((items) => {
@@ -144,6 +145,7 @@ export function FixedExpenseDialog({
     <DialogContent
       className={cn(
         "sm:max-w-[425px]",
+        "max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain sm:max-h-[calc(100dvh-4rem)]",
         "bg-[#2C3344] border-none",
         "text-white",
         "rounded-lg",
@@ -176,9 +178,7 @@ export function FixedExpenseDialog({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {form.watch("cardId")
-                    ? "Valor total da contratação"
-                    : "Valor"}
+                  {cardId ? "Valor total da contratação" : "Valor"}
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -200,9 +200,7 @@ export function FixedExpenseDialog({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {form.watch("cardId")
-                    ? "Data da renovação"
-                    : "Data de vencimento"}
+                  {cardId ? "Data da renovação" : "Data de vencimento"}
                 </FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
@@ -317,12 +315,12 @@ export function FixedExpenseDialog({
                 )}
               />
               <p className="text-sm text-slate-300">
-                Informe o valor total da contratação. Até{" "}
+                Até{" "}
                 {formatCurrency(
                   Math.ceil((total * 100) / Math.max(1, installments)) / 100,
                 )}{" "}
-                por parcela. A recorrência define a renovação; registre a compra
-                em cada renovação e pague as parcelas nas faturas.
+                por parcela. Confirme a compra a cada renovação; o saldo muda
+                quando a fatura é paga.
               </p>
             </>
           )}

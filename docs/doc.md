@@ -287,12 +287,16 @@ Cartões removidos saem também do seletor de novas despesas no crédito.
 
 A rota privada `/cards` carrega os cartões no servidor e apresenta limite total, em uso e disponível, compras e faturas por competência. Permite cadastrar cartão com dia de fechamento, vencimento e anuidade; registrar compra com categoria e até 60 parcelas; e marcar como paga uma fatura fechada. O formulário de nova despesa também aceita “Crédito”, cartão e número de parcelas, encaminhando a compra para `/cards/:id/purchases`.
 
+A tela abre na visão de faturas, priorizando pendências do vencimento mais antigo ao mais distante; faturas pagas aparecem depois, das mais recentes às mais antigas. Itens e lançamentos ficam em detalhes expansíveis. Compras e estornos têm uma visão própria, com estados vazios e acesso às despesas fixas vinculadas. As confirmações usam o rodapé responsivo de diálogos da aplicação.
+
 As Server Actions em `src/actions/cards/cards.ts` usam o cookie HTTP-only e chamadas sem cache. Após mutações, revalidam cartões, transações, calendário, dashboard, orçamentos e comparativos. Uma compra compromete o limite, mas não aparece como despesa realizada até o pagamento integral da fatura; faturas pendentes entram na projeção do calendário. O contrato HTTP está em [Rotas da API](api-routes.md) e as regras de cálculo e implantação no [guia de cartões da API](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/credit-cards.md).
 
 ### Despesas Fixas
 
 Controla despesas recorrentes, vencimento, status de pagamento e atualização do próximo ciclo.
 A projeção diária compartilhada com o calendário mostra compromissos pendentes, receitas previstas e movimentações realizadas.
+
+Os formulários de criação e edição são montados apenas ao abrir, evitando consultas de cartões para cada linha fechada das listas desktop e mobile. Cada abertura consulta os cartões atuais e permite recuperar uma leitura anterior que falhou. O modal limita a altura ao viewport e permite rolagem; o cartão vinculado é acessível também na versão mobile da lista.
 
 ### Orçamentos
 

@@ -4,6 +4,8 @@ Este arquivo concentra as mudanças por release. O [escopo atual](docs/features.
 
 ## Não lançado
 
+- Cartões com visões de faturas e histórico separadas, pendências priorizadas, detalhes expansíveis e rodapé de confirmação responsivo.
+- Formulários de despesas fixas consultam cartões somente ao abrir, têm rolagem em telas baixas e preservam o acesso ao cartão no mobile.
 - Cartões integrados a despesas fixas, calendário e transações: contratação anual parcelada, limite por fatura, estorno integral e arquivamento com pendências.
 - Mensagens públicas e validações em português; downloads com mês e data de geração.
 

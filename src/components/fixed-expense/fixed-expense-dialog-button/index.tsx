@@ -18,7 +18,8 @@ export function FixedExpenseDialogButton() {
           Nova despesa fixa
         </Button>
       </DialogTrigger>
-      <FixedExpenseDialog setOpen={setOpen} />
+      {/* Montar apenas ao abrir evita consultar cartões com o formulário fechado. */}
+      {open && <FixedExpenseDialog setOpen={setOpen} />}
     </Dialog>
   );
 }

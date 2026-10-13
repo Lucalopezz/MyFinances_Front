@@ -1,13 +1,7 @@
 "use client";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  CreditCard as CreditCardIcon,
-  Plus,
-  ReceiptText,
-  Trash2,
-} from "lucide-react";
+import { CreditCard as CreditCardIcon, Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   createCard,
@@ -28,15 +22,14 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  formatCurrency,
-  formatShortDate,
-  formatMonthLabel,
-} from "@/utils/formatters";
+import { formatCurrency } from "@/utils/formatters";
 import { currentDay } from "@/components/calendar/calendar-utils";
+import { CardInvoices } from "./card-invoices";
+import { CardPurchaseHistory } from "./card-purchase-history";
 
 const field =
   "grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-200";
@@ -50,6 +43,7 @@ export function CardsContent({
 }) {
   const router = useRouter();
   const [cards, setCards] = useState(initialCards);
+  const [view, setView] = useState<"invoices" | "purchases">("invoices");
   const [selectedId, setSelectedId] = useState(
     initialSelectedId ??
       initialCards.find((card) => !card.archived)?.id ??
@@ -83,7 +77,10 @@ export function CardsContent({
     setCards(initialCards);
   }, [initialCards]);
   useEffect(() => {
-    if (initialSelectedId) setSelectedId(initialSelectedId);
+    if (initialSelectedId) {
+      setSelectedId(initialSelectedId);
+      setView("invoices");
+    }
   }, [initialSelectedId]);
   const selected = cards.find((card) => card.id === selectedId) ?? cards[0];
   async function reload() {
@@ -99,6 +96,7 @@ export function CardsContent({
       const card = await createCard(cardForm);
       await reload();
       setSelectedId(card.id);
+      setView("invoices");
       setDialog(null);
       toast.success("Cartão cadastrado.");
     } catch (err) {
@@ -177,6 +175,7 @@ export function CardsContent({
       await removeCard(cardToRemove.id);
       await reload();
       setSelectedId("");
+      setView("invoices");
       setDialog(null);
       setCardToRemove(null);
       router.refresh();
@@ -232,9 +231,8 @@ export function CardsContent({
         </div>
       ) : (
         <>
-          <div
+          <nav
             className="flex flex-wrap gap-2"
-            role="tablist"
             aria-label="Cartões cadastrados"
           >
             {cards.map((card) => (
@@ -242,13 +240,17 @@ export function CardsContent({
                 key={card.id}
                 type="button"
                 variant={card.id === selected?.id ? "default" : "outline"}
-                onClick={() => setSelectedId(card.id)}
+                aria-pressed={card.id === selected?.id}
+                onClick={() => {
+                  setSelectedId(card.id);
+                  setView("invoices");
+                }}
               >
                 {card.name}
                 {card.archived ? " (arquivado)" : ""}
               </Button>
             ))}
-          </div>
+          </nav>
           {selected && (
             <>
               <div className="grid gap-4 sm:grid-cols-3">
@@ -298,131 +300,47 @@ export function CardsContent({
                   </Button>
                 </div>
               </div>
-              <section className="space-y-3">
-                <h2 className="text-xl font-semibold">Compras e estornos</h2>
-                {selected.purchases.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
-                  >
-                    <div>
-                      <p>{item.description}</p>
-                      {item.fixedExpenseId && (
-                        <Link
-                          href="/fixed-expenses"
-                          className="text-xs text-blue-500 hover:underline"
-                        >
-                          Ver despesa fixa e renovação
-                        </Link>
-                      )}
-                      <p className="text-sm text-slate-500">
-                        {formatCurrency(item.amount)} · {item.installments}{" "}
-                        parcela(s) ·{" "}
-                        {item.refundedAt
-                          ? `Estornada em ${formatShortDate(item.refundedAt)}`
-                          : formatShortDate(item.date)}
-                      </p>
-                    </div>
-                    {!item.refundedAt && (
-                      <Button
-                        variant="outline"
-                        disabled={busy}
-                        onClick={() => {
-                          setError("");
-                          setPurchaseToRefund(item.id);
-                          setDialog("refund");
-                        }}
-                      >
-                        Estornar compra
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </section>
-              <section className="space-y-3">
-                <h2 className="flex items-center gap-2 text-xl font-semibold">
-                  <ReceiptText className="size-5" />
+              {/* Separar as visões mantém as faturas próximas das ações de
+                  pagamento, sem repetir o histórico inteiro na mesma tela. */}
+              <nav
+                aria-label="Visualização do cartão"
+                className="flex flex-wrap gap-2"
+              >
+                <Button
+                  type="button"
+                  variant={view === "invoices" ? "default" : "outline"}
+                  aria-pressed={view === "invoices"}
+                  onClick={() => setView("invoices")}
+                >
                   Faturas
-                </h2>
-                {selected.invoices.length === 0 && (
-                  <p className="rounded-xl border p-5 text-sm text-slate-500">
-                    Ainda não há faturas para este cartão.
-                  </p>
-                )}
-                {[...selected.invoices].reverse().map((invoice) => (
-                  <article
-                    key={invoice.cycle}
-                    className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <h3 className="font-semibold">
-                          {formatMonthLabel(invoice.cycle)}
-                        </h3>
-                        <p className="text-sm text-slate-500">
-                          Fecha em {formatShortDate(invoice.closingDate)} ·
-                          vence em {formatShortDate(invoice.dueDate)} ·{" "}
-                          {invoice.paid
-                            ? `Paga em ${formatShortDate(invoice.paymentDate ?? undefined)}`
-                            : invoice.status === "OVERDUE"
-                              ? "Vencida"
-                              : "Pendente"}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold">
-                          {formatCurrency(invoice.total)}
-                        </p>
-                        {!invoice.paid &&
-                          invoice.closingDate <= currentDay() && (
-                            <Button
-                              size="sm"
-                              disabled={busy}
-                              onClick={() => pay(invoice.cycle)}
-                            >
-                              Marcar como paga
-                            </Button>
-                          )}
-                      </div>
-                    </div>
-                    {invoice.paid && invoice.transactionIds?.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-3 text-sm">
-                        {invoice.transactionIds.map((id, index) => (
-                          <Link
-                            key={id}
-                            href={`/transactions/${encodeURIComponent(id)}`}
-                            className="text-blue-500 hover:underline"
-                          >
-                            Ver lançamento {index + 1}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                    <div className="mt-4 divide-y divide-slate-100 border-t border-slate-100 dark:divide-slate-800 dark:border-slate-800">
-                      {invoice.lines.map((line) => (
-                        <div
-                          key={line.id}
-                          className="flex justify-between gap-3 py-2 text-sm"
-                        >
-                          <span>
-                            {line.description}{" "}
-                            <span className="text-slate-500">
-                              {line.number}/{line.installments}
-                            </span>
-                          </span>
-                          <span>{formatCurrency(line.amount)}</span>
-                        </div>
-                      ))}
-                      {invoice.annualFee > 0 && (
-                        <div className="flex justify-between py-2 text-sm">
-                          <span>Anuidade</span>
-                          <span>{formatCurrency(invoice.annualFee)}</span>
-                        </div>
-                      )}
-                    </div>
-                  </article>
-                ))}
-              </section>
+                </Button>
+                <Button
+                  type="button"
+                  variant={view === "purchases" ? "default" : "outline"}
+                  aria-pressed={view === "purchases"}
+                  onClick={() => setView("purchases")}
+                >
+                  Compras e estornos
+                </Button>
+              </nav>
+              {view === "invoices" ? (
+                <CardInvoices
+                  key={selected.id}
+                  invoices={selected.invoices}
+                  busy={busy}
+                  onPay={(cycle) => void pay(cycle)}
+                />
+              ) : (
+                <CardPurchaseHistory
+                  purchases={selected.purchases}
+                  busy={busy}
+                  onRefund={(purchaseId) => {
+                    setError("");
+                    setPurchaseToRefund(purchaseId);
+                    setDialog("refund");
+                  }}
+                />
+              )}
             </>
           )}
         </>
@@ -433,7 +351,7 @@ export function CardsContent({
           if (!open && !busy) setDialog(null);
         }}
       >
-        <DialogContent>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto bg-white text-slate-900 dark:bg-slate-900 dark:text-white">
           <DialogHeader>
             <DialogTitle>Estornar compra?</DialogTitle>
             <DialogDescription>
@@ -447,16 +365,18 @@ export function CardsContent({
               {error}
             </p>
           )}
-          <Button
-            variant="outline"
-            disabled={busy}
-            onClick={() => setDialog(null)}
-          >
-            Cancelar
-          </Button>
-          <Button disabled={busy} onClick={() => void confirmRefund()}>
-            {busy ? "Estornando..." : "Confirmar estorno"}
-          </Button>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => setDialog(null)}
+            >
+              Cancelar
+            </Button>
+            <Button disabled={busy} onClick={() => void confirmRefund()}>
+              {busy ? "Estornando..." : "Confirmar estorno"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       <Dialog
@@ -482,7 +402,7 @@ export function CardsContent({
               {error}
             </p>
           )}
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <DialogFooter>
             <Button
               variant="outline"
               disabled={busy}
@@ -500,7 +420,7 @@ export function CardsContent({
             >
               {busy ? "Removendo..." : "Remover cartão"}
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       <Dialog

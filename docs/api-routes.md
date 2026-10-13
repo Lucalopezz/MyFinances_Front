@@ -803,13 +803,14 @@ Resposta:
 
 ### `GET /dashboard/forecast`
 
-Projeta o fechamento do mês financeiro de São Paulo, usando a mesma agenda de `/calendar`. O saldo real é acumulado até hoje. `pendingFixedExpenses` soma despesas fixas previstas e `pendingCardInvoices` soma faturas pendentes, inclusive vencidas. Compromissos já pagos não são descontados novamente. A consulta não cria transações.
+Projeta o fechamento do mês financeiro de São Paulo, usando a mesma agenda de `/calendar`. O saldo real é acumulado até hoje, sem repetir movimentos já incluídos no saldo-base. `pendingFixedExpenses` soma despesas fixas previstas e `pendingCardInvoices` soma faturas pendentes, inclusive vencidas. Cada evento aparece uma única vez nos totais e em `expenses`; compromissos pagos não são descontados novamente. A consulta não cria transações.
 
 ```json
 {
   "month": "2026-07",
   "currentBalance": 2500,
   "pendingFixedExpenses": 800,
+  "pendingCardInvoices": 0,
   "projectedBalance": 1700,
   "expenses": [{ "id": "64f000000000000000000030", "name": "Aluguel", "amount": 800, "dueDate": "2026-07-10T00:00:00.000Z" }]
 }

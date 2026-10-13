@@ -131,6 +131,14 @@ function MobileFixedExpenseCard({
             </StatusBadge>
             <FixedExpensePaymentBadge expense={expense} />
           </div>
+          {expense.cardId && (
+            <Link
+              href={`/cards?cardId=${encodeURIComponent(expense.cardId)}`}
+              className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+            >
+              Ver cartão vinculado →
+            </Link>
+          )}
         </div>
       }
       actions={
@@ -183,7 +191,11 @@ function FixedExpenseActions({
       />
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <FixedExpenseDialog setOpen={setIsEditOpen} fixedExpense={expense} />
+        {/* A lista monta desktop e mobile juntos; formulários fechados não
+            devem disparar uma leitura de cartões para cada versão da linha. */}
+        {isEditOpen && (
+          <FixedExpenseDialog setOpen={setIsEditOpen} fixedExpense={expense} />
+        )}
       </Dialog>
     </>
   );
