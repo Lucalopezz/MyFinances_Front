@@ -41,11 +41,12 @@ export async function updateFixedExpenseAction(
     const updated = await updateFixedExpense(id, fixedExpenseData);
 
     revalidateTag("fixed-expenses");
+    revalidateTag("notifications");
     revalidateTag("forecast");
     revalidatePath("/fixed-expenses");
     revalidatePath("/dashboard");
-  revalidatePath("/calendar");
-  revalidateTag("calendar");
+    revalidatePath("/calendar");
+    revalidateTag("calendar");
 
     if (isFormData(payload)) {
       redirect("/fixed-expenses");

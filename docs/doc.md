@@ -53,6 +53,7 @@ Observações:
 - `npm run start` serve a build gerada.
 - `npx tsc --noEmit` verifica os tipos sem gerar arquivos JavaScript.
 - `npm run test:connection` valida timers, deduplicação, reconexão, limites de tentativas, preservação da sessão e envio único de gravações. Os testes usam o runner nativo do Node.js (24 ou superior) e o TypeScript já instalado.
+- `npm run test:notifications` valida sincronização/listagem, timers reais do Query Core, foco/rede, autenticação/disponibilidade, cache compartilhado, resolução e transporte autenticado.
 - `npm run test:exports` valida os três formatos, solicitação XLSX, preservação do formato no status e download autenticado com os tipos e extensões correspondentes.
 - `npm run lint` é um script legado baseado em `next lint`; não há configuração funcional para execução não interativa.
 - A configuração atual da build permite ignorar erros de tipos; use a verificação de TypeScript separadamente ao validar mudanças de código.
@@ -312,7 +313,13 @@ Permite atualizar dados do usuário e senha.
 
 ### Notificações
 
-O cabeçalho privado permite consultar alertas, excluir notificações e marcar uma ou todas como lidas. As chamadas passam pelas actions de `src/actions/notification` e preservam a sessão HTTP-only.
+O cabeçalho privado sincroniza avisos antes de listar, em qualquer página autenticada. `POST /notifications/sync` atualiza recorrências e gera lembretes/alertas de atraso durante a requisição. `GET /notifications` somente lista o histórico. As Server Actions de `src/actions/notification` preservam o JWT no cookie HTTP-only; o POST tem prazo de 15 segundos e a query permite uma repetição segura por usar recibos únicos na API.
+
+A política de `src/lib/notification-query.ts` consulta a cada cinco minutos com a aba visível, ao recuperar foco/rede, e ao abrir o sininho. `useGetNotifications` habilita a query apenas com sessão autenticada e API disponível; recuperação de disponibilidade reativa a consulta stale. Cabeçalho/configurações compartilham a mesma chave de cache. Mutações de despesas e pagamentos pelo calendário invalidam essa chave para atualizar a lista imediatamente.
+
+Avisos resolvidos não contam como pendências e exibem o motivo no histórico. Pagar resolve; desmarcar reabre o mesmo aviso; virar atraso substitui o lembrete. Nome/valor e mensagens relativas são atualizados sem duplicar nem resetar leitura. Uma falha transitória mantém a lista já carregada; a primeira leitura permanece em carregamento enquanto aguarda disponibilidade.
+
+Não há execução com o app fechado. O retorno recupera despesas atrasadas. Avisos legados sem vínculo estruturado continuam no histórico sem resolução automática. Antes de publicar o frontend, sincronizar o schema/índices e publicar a API, conforme o [guia de notificações](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/notifications.md).
 
 ## Convenções de Implementação
 

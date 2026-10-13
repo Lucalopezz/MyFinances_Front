@@ -4,6 +4,9 @@ Este arquivo concentra as mudanças por release. O [escopo atual](docs/features.
 
 ## Não lançado
 
+- Notificações sob demanda em qualquer tela privada, com sincronização a cada cinco minutos em uso, alertas de atraso, prevenção transacional de duplicatas e histórico de resolução/reabertura.
+- Janela de vencimento inclui o terceiro dia inteiro e respeita o dia financeiro de São Paulo; mutações de despesas atualizam os avisos imediatamente.
+
 - Seletor de exportação com três opções: PDF, CSV para abrir no Excel e Excel nativo `.xlsx`; status e download preservam o formato escolhido.
 - Fundo de carregamento, skeleton, mensagens e aviso de conexão alinhados às cores dos temas claro e escuro da aplicação, inclusive antes da montagem do layout privado.
 

@@ -83,6 +83,7 @@ export function CalendarContent({
         "wishlist",
         "budgets",
         "fixed-expenses",
+        "notifications",
       ].map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
     );
   }

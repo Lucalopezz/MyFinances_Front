@@ -1,12 +1,7 @@
 "use client";
 
 import { type ReactNode, useMemo } from "react";
-import {
-  Bell,
-  CheckCircle2,
-  CircleAlert,
-  Clock3,
-} from "lucide-react";
+import { Bell, CheckCircle2, CircleAlert, Clock3 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -14,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   NotificationInterface,
   NotificationsType,
+  isUnreadNotification,
+  notificationResolutionLabel,
 } from "@/models/notification.model";
 import {
   useGetNotifications,
@@ -49,7 +46,7 @@ export function NotificationsCard({
 }: NotificationsCardProps) {
   const {
     data: notifications = [],
-    isLoading,
+    isPending: isLoading,
     isError,
   } = useGetNotifications();
   const { markAsRead, isLoading: isMarkingAsRead } = useMarkAsRead();
@@ -57,13 +54,12 @@ export function NotificationsCard({
   const openNotifications = useMemo(
     () =>
       notifications.filter(
-        (notification) => showReadNotifications || !notification.read,
+        (notification) =>
+          showReadNotifications || isUnreadNotification(notification),
       ),
     [notifications, showReadNotifications],
   );
-  const unreadCount = notifications.filter(
-    (notification) => !notification.read,
-  ).length;
+  const unreadCount = notifications.filter(isUnreadNotification).length;
 
   async function handleMarkAsRead(id: NotificationInterface["id"]) {
     try {
@@ -91,7 +87,7 @@ export function NotificationsCard({
           icon={<Clock3 className="size-5" />}
           text="Carregando notificações..."
         />
-      ) : isError ? (
+      ) : isError && notifications.length === 0 ? (
         <NotificationState
           icon={<CircleAlert className="size-5" />}
           text="Erro ao carregar notificações."
@@ -169,8 +165,13 @@ function NotificationItem({
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {notification.message}
           </p>
+          {notificationResolutionLabel(notification) && (
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {notificationResolutionLabel(notification)}
+            </p>
+          )}
         </div>
-        {!notification.read && (
+        {isUnreadNotification(notification) && (
           <Button
             aria-label="Marcar notificação como lida"
             className="text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-300 dark:hover:bg-blue-800/50 dark:hover:text-blue-200"
@@ -188,13 +189,7 @@ function NotificationItem({
   );
 }
 
-function NotificationState({
-  icon,
-  text,
-}: {
-  icon: ReactNode;
-  text: string;
-}) {
+function NotificationState({ icon, text }: { icon: ReactNode; text: string }) {
   return (
     <div className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-md border border-dashed border-gray-200 p-6 text-center text-gray-500 dark:border-gray-700 dark:text-gray-400">
       {icon}

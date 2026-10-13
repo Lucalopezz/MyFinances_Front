@@ -19,6 +19,9 @@ function invalidateFixedExpenseViews(
   queryClient: ReturnType<typeof useQueryClient>,
 ) {
   queryClient.invalidateQueries({ queryKey: queryKeys.fixedExpenses.all() });
+  // A API já força a avaliação após mutações; recarregamos o sininho sem
+  // aguardar o intervalo periódico nem depender da navegação do usuário.
+  queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all() });
 }
 
 function invalidatePaymentViews(

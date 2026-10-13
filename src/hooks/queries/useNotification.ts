@@ -4,24 +4,21 @@ import {
   getNotifications,
   markAllNotificationsAsRead,
   markNotificationAsRead,
+  syncNotifications,
 } from "@/actions/notification/notifications";
 import { queryKeys } from "@/hooks/queries/query-keys";
-
-async function fetchNotification(): Promise<NotificationInterface[]> {
-  try {
-    return await getNotifications();
-  } catch (error) {
-    if (error instanceof Error) throw error;
-    throw new Error("Não foi possível carregar as notificações.");
-  }
-}
+import { notificationQueryOptions } from "@/lib/notification-query";
+import { useAuthContext } from "@/providers/auth-provider";
+import { useBackendConnection } from "@/providers/backend-connection-provider";
 
 export function useMarkAllAsRead() {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: markAllNotificationsAsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.all(),
+      });
     },
   });
 
@@ -32,9 +29,13 @@ export function useMarkAllAsRead() {
 }
 
 export function useGetNotifications() {
+  const { status } = useAuthContext();
+  const connection = useBackendConnection();
+  // O cabeçalho monta em qualquer página privada. Após recuperar a API,
+  // habilitar novamente a query stale solicita uma nova sincronização.
   return useQuery<NotificationInterface[], Error>({
-    queryKey: queryKeys.notifications.all(),
-    queryFn: () => fetchNotification(),
+    ...notificationQueryOptions(syncNotifications, getNotifications),
+    enabled: status === "authenticated" && connection.status === "ready",
   });
 }
 

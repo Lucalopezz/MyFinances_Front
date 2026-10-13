@@ -16,6 +16,8 @@ import {
 import {
   NotificationInterface,
   NotificationsType,
+  isUnreadNotification,
+  notificationResolutionLabel,
 } from "@/models/notification.model";
 import { formatTimeAgo } from "@/utils/formatters";
 
@@ -35,7 +37,7 @@ const NotificationIcon = ({ type }: { type: NotificationsType }) => {
 export const NotificationButton = () => {
   const {
     data: notifications = [],
-    isLoading,
+    isPending: isLoading,
     isError,
     refetch,
   } = useGetNotifications();
@@ -55,7 +57,7 @@ export const NotificationButton = () => {
     }
   }
 
-  const unreadCount = notifications.filter((notif) => !notif.read).length;
+  const unreadCount = notifications.filter(isUnreadNotification).length;
 
   async function handleMarkAllAsRead() {
     try {
@@ -71,7 +73,14 @@ export const NotificationButton = () => {
   }
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        // Abrir o sininho consulta novamente; o backend pula avaliações recentes.
+        if (open) void refetch();
+      }}
+    >
       <PopoverTrigger asChild>
         <button
           className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -108,7 +117,7 @@ export const NotificationButton = () => {
               <div className="p-8 text-center text-gray-500">
                 Carregando notificações...
               </div>
-            ) : isError ? (
+            ) : isError && notifications.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
                 Erro ao carregar notificações.
               </div>
@@ -117,7 +126,7 @@ export const NotificationButton = () => {
                 {notifications.map((notification) => (
                   <li
                     onClick={() =>
-                      !notification.read &&
+                      isUnreadNotification(notification) &&
                       handleNotificationClick(notification.id)
                     }
                     key={notification.id}
@@ -145,10 +154,15 @@ export const NotificationButton = () => {
                         >
                           {notification.message}
                         </p>
+                        {notificationResolutionLabel(notification) && (
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {notificationResolutionLabel(notification)}
+                          </p>
+                        )}
                       </div>
                       <div className="flex flex-col items-end gap-2 ml-4">
                         <NotificationIcon type={notification.type} />
-                        {!notification.read && (
+                        {isUnreadNotification(notification) && (
                           <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
                         )}
                       </div>

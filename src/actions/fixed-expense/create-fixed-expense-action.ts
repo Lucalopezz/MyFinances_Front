@@ -13,6 +13,7 @@ export async function createFixedExpenseAction(data: Omit<FixedExpense, "id">) {
   }
 
   revalidateTag("fixed-expenses");
+  revalidateTag("notifications");
   revalidateTag("forecast");
   revalidatePath("/fixed-expenses");
   revalidatePath("/dashboard");
