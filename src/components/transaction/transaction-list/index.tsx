@@ -104,8 +104,8 @@ export function TransactionList({ transactions, page }: TransactionListProps) {
             página.
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            A exportação em PDF inclui todas as suas transações, não apenas as
-            exibidas nesta página.
+            A exportação inclui todas as suas transações, não apenas as exibidas
+            nesta página.
           </p>
         </div>
         <div className="flex flex-wrap items-start gap-2">

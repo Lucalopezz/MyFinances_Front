@@ -32,7 +32,8 @@ Busca global, projeção mensal, orçamentos, marcação de todas as notificaç�
 como lidas e exportação CSV ficam ativos por padrão, sem variáveis de ativação.
 O backend configurado deve oferecer as rotas descritas no
 [contrato HTTP](api-routes.md). As antigas variáveis de ativação não são mais utilizadas.
-A exportação PDF continua disponível no seletor de formato. A ação de marcar
+A exportação oferece PDF, CSV para abrir no Excel e Excel nativo `.xlsx`,
+sem variável de ativação. A ação de marcar
 todas como lidas aparece quando há notificações não lidas.
 
 ## Scripts
@@ -52,6 +53,7 @@ Observações:
 - `npm run start` serve a build gerada.
 - `npx tsc --noEmit` verifica os tipos sem gerar arquivos JavaScript.
 - `npm run test:connection` valida timers, deduplicação, reconexão, limites de tentativas, preservação da sessão e envio único de gravações. Os testes usam o runner nativo do Node.js (24 ou superior) e o TypeScript já instalado.
+- `npm run test:exports` valida os três formatos, solicitação XLSX, preservação do formato no status e download autenticado com os tipos e extensões correspondentes.
 - `npm run lint` é um script legado baseado em `next lint`; não há configuração funcional para execução não interativa.
 - A configuração atual da build permite ignorar erros de tipos; use a verificação de TypeScript separadamente ao validar mudanças de código.
 
@@ -232,7 +234,7 @@ busca ficam na URL. A lista usa cursores em páginas de 50 itens dentro do mês;
 os cards usam `/transactions/summary`, somando todos os resultados dos mesmos
 filtros em lotes no servidor. Mutações invalidam a lista e os totais.
 
-Exportações PDF/CSV são solicitadas pela API e acompanhadas até a conclusão. O download passa pelo handler autenticado `/api/exports/transactions/[id]/download`, mantendo o token no servidor.
+Exportações PDF/CSV/XLSX são solicitadas pela API e acompanhadas até a conclusão. O download passa pelo handler autenticado `/api/exports/transactions/[id]/download`, mantendo o token no servidor. Formatos e metadados compartilhados ficam em `src/models/transaction-export.ts`, usados pela action, seletor e proxy para preservar o formato durante o fluxo completo. O XLSX mantém datas e números nativos, categorias em português e filtros no arquivo.
 
 ### Categorias e regras
 

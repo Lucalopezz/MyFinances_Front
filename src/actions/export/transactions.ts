@@ -8,28 +8,21 @@ import { backendFetch } from "@/lib/backend-fetch";
 
 import { unstable_noStore as noStore } from "next/cache";
 
-import {
-  createApiError,
-  createRequestError,
-} from "@/lib/api-error";
+import { createApiError, createRequestError } from "@/lib/api-error";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
+import {
+  normalizeTransactionExportFormat,
+  type TransactionExportFormat,
+  type TransactionExportStatus,
+  type TransactionExportStatusValue,
+} from "@/models/transaction-export";
 
-export type TransactionExportStatusValue =
-  | "PENDING"
-  | "PROCESSING"
-  | "COMPLETED"
-  | "FAILED";
-
-export type TransactionExportFormat = "PDF" | "CSV";
-
-export type TransactionExportStatus = {
-  id: string | null;
-  status: TransactionExportStatusValue;
-  progress: number | null;
-  error: string | null;
-  format?: TransactionExportFormat;
-};
+export type {
+  TransactionExportFormat,
+  TransactionExportStatus,
+  TransactionExportStatusValue,
+} from "@/models/transaction-export";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -67,17 +60,16 @@ function getExportId(record: JsonRecord): string | null {
   );
 }
 
-function normalizeStatus(value: unknown):
-  | TransactionExportStatusValue
-  | "NOT_FOUND"
-  | null {
-  const status = asNonEmptyString(value)?.toUpperCase().replace(/[\s-]+/g, "_");
+function normalizeStatus(
+  value: unknown,
+): TransactionExportStatusValue | "NOT_FOUND" | null {
+  const status = asNonEmptyString(value)
+    ?.toUpperCase()
+    .replace(/[\s-]+/g, "_");
 
   if (!status) return null;
   if (["PENDING", "QUEUED", "WAITING"].includes(status)) return "PENDING";
-  if (
-    ["PROCESSING", "IN_PROGRESS", "GENERATING", "STARTED"].includes(status)
-  ) {
+  if (["PROCESSING", "IN_PROGRESS", "GENERATING", "STARTED"].includes(status)) {
     return "PROCESSING";
   }
   if (["COMPLETED", "COMPLETE", "DONE", "READY"].includes(status)) {
@@ -163,7 +155,7 @@ function normalizeExportStatus(
       record.progress ?? record.percentage ?? record.percent,
     ),
     error: getSafeError(record),
-    format: record.format === "CSV" ? "CSV" : "PDF",
+    format: normalizeTransactionExportFormat(record.format),
   };
 }
 

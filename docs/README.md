@@ -19,7 +19,7 @@ As regras financeiras, o banco e os procedimentos de implantação são document
 
 - [Índice da API](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/README.md).
 - [Importação CSV/OFX](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/transaction-imports.md).
-- [Exportação PDF/CSV](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/transaction-exports.md).
+- [Exportação PDF/CSV/XLSX](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/transaction-exports.md).
 - [Reservas da wishlist](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/wishlist-reservations.md).
 - [Cartões de crédito](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/credit-cards.md).
 - [Criptografia financeira](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/transaction-encryption.md).

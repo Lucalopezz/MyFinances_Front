@@ -16,6 +16,10 @@ import {
   type TransactionExportStatus,
   type TransactionExportFormat,
 } from "@/actions/export/transactions";
+import {
+  normalizeTransactionExportFormat,
+  TRANSACTION_EXPORT_FORMATS,
+} from "@/models/transaction-export";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,9 +40,7 @@ import {
 const POLLING_INTERVAL = 2500;
 const DOWNLOADED_EXPORTS_KEY = "myfinances:downloaded-transaction-exports";
 
-function isActiveExport(
-  exportStatus: TransactionExportStatus | null,
-): boolean {
+function isActiveExport(exportStatus: TransactionExportStatus | null): boolean {
   return (
     exportStatus?.status === "PENDING" || exportStatus?.status === "PROCESSING"
   );
@@ -75,8 +77,8 @@ function rememberDownloadedExport(exportId: string): void {
       window.sessionStorage.getItem(DOWNLOADED_EXPORTS_KEY) ?? "[]",
     ) as unknown;
     const exportIds = Array.isArray(storedExports)
-      ? storedExports.filter((storedId): storedId is string =>
-          typeof storedId === "string",
+      ? storedExports.filter(
+          (storedId): storedId is string => typeof storedId === "string",
         )
       : [];
 
@@ -108,7 +110,7 @@ export function TransactionExport() {
         ...latestStatus,
         format:
           current?.id && current.id === latestStatus.id
-            ? current.format ?? latestStatus.format
+            ? (current.format ?? latestStatus.format)
             : latestStatus.format,
       }));
     }
@@ -184,7 +186,9 @@ export function TransactionExport() {
       previousStatus.current !== "COMPLETED" &&
       currentStatus === "COMPLETED"
     ) {
-      toast.success(`Seu ${exportStatus?.format ?? "PDF"} está pronto para baixar.`);
+      const label =
+        TRANSACTION_EXPORT_FORMATS[exportStatus?.format ?? "PDF"].label;
+      toast.success(`Seu arquivo ${label} está pronto para baixar.`);
     }
 
     previousStatus.current = currentStatus;
@@ -220,6 +224,7 @@ export function TransactionExport() {
   const progress = exportStatus?.progress;
   const exportId = exportStatus?.id;
   const activeFormat = exportStatus?.format ?? "PDF";
+  const activeFormatLabel = TRANSACTION_EXPORT_FORMATS[activeFormat].label;
 
   const handleDownload = () => {
     // O download acontece pelo link; ao mesmo tempo, liberamos a criação de
@@ -249,7 +254,7 @@ export function TransactionExport() {
             onClick={handleDownload}
           >
             <Download aria-hidden="true" />
-            Baixar {activeFormat}
+            Baixar {activeFormatLabel}
           </a>
         </Button>
       );
@@ -258,8 +263,8 @@ export function TransactionExport() {
     if (isCreating || isActiveExport(exportStatus)) {
       const progressLabel =
         progress === null || progress === undefined
-          ? `Gerando ${activeFormat}...`
-          : `Gerando ${activeFormat}... ${progress}%`;
+          ? `Gerando ${activeFormatLabel}...`
+          : `Gerando ${activeFormatLabel}... ${progress}%`;
 
       return (
         <Button type="button" variant="outline" disabled>
@@ -284,7 +289,7 @@ export function TransactionExport() {
   const helperMessage = isCompleted
     ? `${activeFormat} pronto para baixar.`
     : isFailed
-      ? exportStatus.error ?? statusError ?? "A exportação falhou."
+      ? (exportStatus.error ?? statusError ?? "A exportação falhou.")
       : isActiveExport(exportStatus)
         ? "A exportação inclui todas as transações e pode demorar."
         : statusError;
@@ -322,19 +327,32 @@ export function TransactionExport() {
           </DialogHeader>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="transaction-export-format">
+            <label
+              className="text-sm font-medium"
+              htmlFor="transaction-export-format"
+            >
               Formato
             </label>
             <Select
               value={format}
-              onValueChange={(value) => setFormat(value as TransactionExportFormat)}
+              onValueChange={(value) =>
+                setFormat(normalizeTransactionExportFormat(value))
+              }
             >
-              <SelectTrigger id="transaction-export-format" aria-label="Formato da exportação">
+              <SelectTrigger
+                id="transaction-export-format"
+                aria-label="Formato da exportação"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="PDF">PDF para leitura e impressão</SelectItem>
-                <SelectItem value="CSV">CSV para planilhas</SelectItem>
+                {Object.entries(TRANSACTION_EXPORT_FORMATS).map(
+                  ([value, details]) => (
+                    <SelectItem key={value} value={value}>
+                      {details.option}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
           </div>

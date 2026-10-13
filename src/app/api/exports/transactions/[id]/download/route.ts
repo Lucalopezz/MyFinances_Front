@@ -1,6 +1,10 @@
 import { createApiError, createRequestError } from "@/lib/api-error";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
+import {
+  normalizeTransactionExportFormat,
+  TRANSACTION_EXPORT_FORMATS,
+} from "@/models/transaction-export";
 
 export const dynamic = "force-dynamic";
 
@@ -8,12 +12,13 @@ type DownloadRouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(
-  request: Request,
-  { params }: DownloadRouteContext,
-) {
+export async function GET(request: Request, { params }: DownloadRouteContext) {
   const { id } = await params;
-  const format = new URL(request.url).searchParams.get("format") === "CSV" ? "CSV" : "PDF";
+  // O formato do link serve como fallback de cabeçalhos. O arquivo continua
+  // sendo escolhido pelo registro autenticado da API, não por esse parâmetro.
+  const format = normalizeTransactionExportFormat(
+    new URL(request.url).searchParams.get("format"),
+  );
 
   if (!id) {
     return Response.json(
@@ -56,7 +61,7 @@ export async function GET(
     headers.set(
       "Content-Type",
       response.headers.get("content-type") ??
-        (format === "CSV" ? "text/csv; charset=utf-8" : "application/pdf"),
+        TRANSACTION_EXPORT_FORMATS[format].contentType,
     );
     headers.set(
       "Content-Disposition",
@@ -74,9 +79,6 @@ export async function GET(
       fallback: "Não foi possível baixar a exportação.",
     });
 
-    return Response.json(
-      { message: publicError.message },
-      { status: 500 },
-    );
+    return Response.json({ message: publicError.message }, { status: 500 });
   }
 }

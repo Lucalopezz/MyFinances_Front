@@ -10,7 +10,7 @@ Versão de referência: **v2.3.0**. Consulte o [histórico de versões](CHANGELO
 - **Landing page:** apresentação pública dos recursos e demonstrações da interface.
 - **Transações:** receitas e despesas, edição, remoção, duplicação pelo formulário, navegação mensal e busca.
 - **Categorias e regras:** catálogo personalizado e sugestões de classificação por descrição.
-- **Importação e exportação:** CSV/OFX com revisão antes de confirmar; relatórios em PDF/CSV.
+- **Importação e exportação:** CSV/OFX com revisão antes de confirmar; relatórios em PDF/CSV/XLSX.
 - **Dashboard e comparativos:** saldo total, resumo mensal, indicadores e análise de receitas, despesas e saldo.
 - **Orçamentos:** limites mensais e acompanhamento de gastos por categoria.
 - **Calendário financeiro:** agenda, receitas recorrentes e projeção diária de saldo.

@@ -5,6 +5,7 @@ const { loadTypescript } = require("./load-typescript.cjs");
 // Não precisamos de API, cookie real, credenciais ou banco para verificar a política.
 const { backendFetch } = loadTypescript("src/lib/backend-fetch.ts", { "server-only": {} });
 const errors = loadTypescript("src/lib/api-error.ts", { "server-only": {} });
+const exportModels = loadTypescript("src/models/transaction-export.ts");
 
 // Uma repetição deve manter a intenção da action (headers/cache) e liberar
 // a resposta descartada. Só modificamos signal/política de transporte do GET.
@@ -192,6 +193,7 @@ test("export processing failures show a simple message while preserving their st
       "@/lib/serverAuth": { getServerToken: async () => "test-token" },
       "next/cache": { unstable_noStore: () => {} },
       "@/lib/api-error": errors,
+      "@/models/transaction-export": exportModels,
     });
     const result = await getTransactionExportStatus();
     assert.equal(result.status, "FAILED");

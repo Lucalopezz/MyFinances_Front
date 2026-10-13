@@ -347,7 +347,7 @@ Filtros opcionais no body:
 ```
 
 Quando nenhum filtro é enviado, todas as transações do usuário são incluídas.
-A opção `format` aceita `PDF` ou `CSV` (padrão `PDF`). Solicitações antigas sem
+A opção `format` aceita `PDF`, `CSV` ou `XLSX` (padrão `PDF`). Solicitações antigas sem
 `format` continuam gerando PDF.
 A resposta deve identificar a exportação criada, por exemplo:
 
@@ -382,11 +382,15 @@ Os status usados pelo front são `PENDING`, `PROCESSING`, `COMPLETED` e
 
 ### `GET /exports/:id/download`
 
-Baixa o PDF ou CSV da exportação quando o status for `COMPLETED`. O formato
+Baixa o PDF, CSV ou XLSX da exportação quando o status for `COMPLETED`. O formato
 persistido determina o `Content-Type` e o nome do arquivo. CSV usa UTF-8 com
 BOM, cabeçalho `id,date,type,category,description,value`, datas ISO e valores
 numéricos sem formatação local. O armazenamento de arquivos é local e efêmero;
 um download pode deixar de funcionar após reinicialização ou deploy da API.
+
+XLSX é uma planilha nativa com **Data, Descrição, Categoria, Tipo e Valor**. Datas e valores são células tipadas; categorias e tipos são exibidos em português. O arquivo contém cabeçalho fixo, filtros nas colunas e formatação monetária em reais. O `Content-Type` é `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` e o nome termina em `.xlsx`.
+
+O seletor oferece **PDF para leitura e impressão**, **Abrir no Excel (.csv)** e **Excel nativo (.xlsx)**. Status e download preservam o formato da exportação ao recarregar a página. As três opções incluem todo o histórico; os filtros visuais da listagem não são enviados por essa tela.
 
 ---
 

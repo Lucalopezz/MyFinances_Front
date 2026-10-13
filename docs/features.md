@@ -11,7 +11,7 @@ Atualizado em 08/10/2026. As funcionalidades previstas no escopo aprovado estão
 | Transações | Receitas e despesas, edição, remoção, duplicação pelo formulário, navegação mensal, filtros e totais | `/transactions`, `/transactions/[id]` |
 | Categorias e regras | Categorias personalizadas, arquivamento/restauração, prioridades, teste e sugestão por descrição | `/config` e formulários financeiros |
 | Importação | CSV/OFX com mapeamento, prévia, revisão de categorias/duplicatas e confirmação | `/transactions` |
-| Exportação | PDF/CSV assíncronos, acompanhamento e download autenticado | `/transactions` |
+| Exportação | PDF/CSV/XLSX assíncronos, acompanhamento e download autenticado | `/transactions` |
 | Dashboard e comparativos | Resumo mensal, indicadores, comparação de períodos e despesas por categoria | `/dashboard`, `/comparative` |
 | Orçamentos | Limites mensais por categoria, gasto realizado e valor restante | `/dashboard` |
 | Calendário | Agenda, receitas mensais/anuais, edição/pausa, confirmação de recebimento e projeção diária | `/calendar` e projeção no dashboard |
