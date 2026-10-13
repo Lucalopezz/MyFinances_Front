@@ -155,6 +155,7 @@ function normalizeExportStatus(
       record.progress ?? record.percentage ?? record.percent,
     ),
     error: getSafeError(record),
+    downloadName: asNonEmptyString(record.downloadName),
     format: normalizeTransactionExportFormat(record.format),
   };
 }

@@ -956,3 +956,5 @@ Todas as chamadas exigem Bearer JWT, enviado somente no servidor pelas actions e
 Despesas fixas aceitam `cardId: string | null` e `cardInstallments: number` (1–60). O valor informado é o total da contratação, e a recorrência é a frequência de renovação. Confirmar pagamento de uma despesa no cartão cria a compra parcelada e retorna `paidCardPurchaseId`, sem saída de saldo até pagar as faturas. Para desfazer a contratação, use o estorno na tela de cartões.
 
 `GET /dashboard/forecast` compartilha a projeção de `/calendar`; retorna `pendingCardInvoices` separado de `pendingFixedExpenses` e `currentBalance` acumulado. Faturas pagas retornam `transactionIds`, usados para navegar aos lançamentos. Links `/cards?cardId=...` abrem o cartão da despesa fixa ou do evento no calendário.
+
+`GET /exports/status` inclui `downloadName`; o download fornece nome com mês e data de geração em Brasília, por exemplo `transacoes-outubro-2026-gerado-em-13-10-2026.pdf`. O front preserva o `Content-Disposition` e deixa o navegador usar esse nome.

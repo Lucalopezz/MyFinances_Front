@@ -34,6 +34,7 @@ export type TransactionExportStatus = {
   progress: number | null;
   error: string | null;
   format?: TransactionExportFormat;
+  downloadName?: string | null;
 };
 
 /**
@@ -44,4 +45,34 @@ export function normalizeTransactionExportFormat(
   value: unknown,
 ): TransactionExportFormat {
   return value === "CSV" || value === "XLSX" ? value : "PDF";
+}
+
+/** Fallback para APIs legadas sem cabeçalho; a API atual fornece o nome oficial. */
+export function defaultExportFilename(
+  format: TransactionExportFormat,
+  generatedAt = new Date(),
+) {
+  const parts = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(generatedAt);
+  const part = (type: string) =>
+    parts.find((item) => item.type === type)!.value;
+  const months = [
+    "janeiro",
+    "fevereiro",
+    "marco",
+    "abril",
+    "maio",
+    "junho",
+    "julho",
+    "agosto",
+    "setembro",
+    "outubro",
+    "novembro",
+    "dezembro",
+  ];
+  return `transacoes-${months[Number(part("month")) - 1]}-${part("year")}-gerado-em-${part("day")}-${part("month")}-${part("year")}.${format.toLowerCase()}`;
 }

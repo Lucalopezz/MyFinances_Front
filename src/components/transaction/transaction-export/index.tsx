@@ -246,11 +246,12 @@ export function TransactionExport() {
     }
 
     if (isCompleted && exportId) {
+      // O nome oficial vem do Content-Disposition, com período e data de geração.
       return (
         <Button type="button" variant="outline" asChild>
           <a
             href={`/api/exports/transactions/${encodeURIComponent(exportId)}/download?format=${activeFormat}`}
-            download={`transacoes.${activeFormat.toLowerCase()}`}
+            download
             onClick={handleDownload}
           >
             <Download aria-hidden="true" />

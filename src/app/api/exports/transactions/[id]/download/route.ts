@@ -3,6 +3,7 @@ import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import {
   normalizeTransactionExportFormat,
+  defaultExportFilename,
   TRANSACTION_EXPORT_FORMATS,
 } from "@/models/transaction-export";
 
@@ -66,7 +67,7 @@ export async function GET(request: Request, { params }: DownloadRouteContext) {
     headers.set(
       "Content-Disposition",
       response.headers.get("content-disposition") ??
-        `attachment; filename="transacoes.${format.toLowerCase()}"`,
+        `attachment; filename="${defaultExportFilename(format)}"`,
     );
 
     const contentLength = response.headers.get("content-length");

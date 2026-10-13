@@ -80,7 +80,7 @@ for (const format of ["PDF", "CSV", "XLSX"]) {
     );
     assert.equal(
       response.headers.get("content-disposition"),
-      `attachment; filename="transacoes.${format.toLowerCase()}"`,
+      `attachment; filename="${formats.defaultExportFilename(format)}"`,
     );
     assert.deepEqual(new Uint8Array(await response.arrayBuffer()), bytes);
     assert.equal(
