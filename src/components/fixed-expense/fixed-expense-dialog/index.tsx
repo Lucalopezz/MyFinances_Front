@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -37,6 +37,10 @@ import { categoryReferenceSchema } from "@/schemas/category.schema";
 import type { FixedExpense } from "@/models/fixed-expense.model";
 import { toDateInputValue } from "@/utils/date";
 
+import { getCards } from "@/actions/cards/cards";
+import type { CreditCard } from "@/models/card.model";
+import { formatCurrency } from "@/utils/formatters";
+
 interface FixedExpenseDialogProps {
   setOpen: (open: boolean) => void;
   fixedExpense?: FixedExpense;
@@ -47,6 +51,12 @@ const formSchema = z.object({
   amount: z.number().min(0.01, { message: "Valor deve ser maior que zero" }),
   category: categoryReferenceSchema,
   dueDate: z.string().min(1, { message: "Selecione uma data de vencimento" }),
+  cardId: z.string().nullable().optional(),
+  cardInstallments: z
+    .number()
+    .int()
+    .min(1, "Informe pelo menos uma parcela")
+    .max(60, "Use até 60 parcelas"),
   recurrence: z.string().min(1, { message: "Selecione a recorrência" }),
 });
 
@@ -54,6 +64,8 @@ function getInitialValues(fixedExpense?: FixedExpense): FormData {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   return {
+    cardId: fixedExpense?.cardId ?? null,
+    cardInstallments: fixedExpense?.cardInstallments ?? 1,
     name: fixedExpense?.name ?? "",
     amount: fixedExpense?.amount ?? 0,
     category: fixedExpense?.category ?? "UTILITIES",
@@ -72,6 +84,9 @@ export function FixedExpenseDialog({
 }: FixedExpenseDialogProps) {
   const { createFixedExpense, isLoading } = useCreateFixedExpense();
   const { updateFixedExpense, isLoading: isUpdating } = useUpdateFixedExpense();
+  const [cards, setCards] = useState<CreditCard[]>([]);
+  const [cardError, setCardError] = useState("");
+  const [loadingCards, setLoadingCards] = useState(true);
   const isEditing = Boolean(fixedExpense?.id);
 
   const form = useForm<FormData>({
@@ -82,6 +97,31 @@ export function FixedExpenseDialog({
   useEffect(() => {
     form.reset(getInitialValues(fixedExpense));
   }, [fixedExpense, form]);
+
+  useEffect(() => {
+    // O token permanece no servidor; descartar respostas após fechar evita
+    // atualizar o formulário de outra despesa com uma leitura anterior.
+    let active = true;
+    getCards()
+      .then((items) => {
+        if (active) setCards(items);
+      })
+      .catch(() => {
+        if (active)
+          setCardError(
+            "Não foi possível carregar os cartões. Tente abrir o formulário novamente.",
+          );
+      })
+      .finally(() => {
+        if (active) setLoadingCards(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const cardId = form.watch("cardId");
+  const total = form.watch("amount");
+  const installments = form.watch("cardInstallments");
 
   async function onSubmit(data: FormData) {
     try {
@@ -135,7 +175,11 @@ export function FixedExpenseDialog({
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Valor</FormLabel>
+                <FormLabel>
+                  {form.watch("cardId")
+                    ? "Valor total da contratação"
+                    : "Valor"}
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -155,7 +199,11 @@ export function FixedExpenseDialog({
             name="dueDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Data de vencimento</FormLabel>
+                <FormLabel>
+                  {form.watch("cardId")
+                    ? "Data da renovação"
+                    : "Data de vencimento"}
+                </FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -203,6 +251,81 @@ export function FixedExpenseDialog({
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="cardId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Forma de pagamento</FormLabel>
+                <Select
+                  value={field.value ?? "direct"}
+                  onValueChange={(value) =>
+                    field.onChange(value === "direct" ? null : value)
+                  }
+                  disabled={loadingCards || Boolean(fixedExpense?.isPaid)}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o pagamento" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="direct">Pagamento direto</SelectItem>
+                    {cards.map((card) => (
+                      <SelectItem
+                        key={card.id}
+                        value={card.id}
+                        disabled={card.archived}
+                      >
+                        {card.name}
+                        {card.archived ? " (arquivado)" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {cardError && (
+            <p role="alert" className="text-sm text-red-300">
+              {cardError}
+            </p>
+          )}
+          {cardId && (
+            <>
+              <FormField
+                control={form.control}
+                name="cardInstallments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Parcelas no cartão</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="60"
+                        disabled={Boolean(fixedExpense?.isPaid)}
+                        value={field.value}
+                        onChange={(event) =>
+                          field.onChange(Number(event.target.value))
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <p className="text-sm text-slate-300">
+                Informe o valor total da contratação. Até{" "}
+                {formatCurrency(
+                  Math.ceil((total * 100) / Math.max(1, installments)) / 100,
+                )}{" "}
+                por parcela. A recorrência define a renovação; registre a compra
+                em cada renovação e pague as parcelas nas faturas.
+              </p>
+            </>
+          )}
           <DialogFormActions
             onCancel={() => setOpen(false)}
             isLoading={isLoading || isUpdating}

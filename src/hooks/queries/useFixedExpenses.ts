@@ -137,6 +137,9 @@ function getPaymentSuccessMessage(
     return "Pagamento desmarcado e transação removida.";
   }
 
+  if (result.fixedExpense.paidCardPurchaseId)
+    return "Compra registrada no cartão. Pague as parcelas nas faturas.";
+
   if (transaction) {
     const category = categoryLabel(transaction.category);
 

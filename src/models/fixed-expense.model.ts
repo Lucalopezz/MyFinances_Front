@@ -8,6 +8,9 @@ export interface FixedExpense {
   dueDate: string;
   recurrence: string;
   isPaid?: boolean;
+  cardId?: string | null;
+  cardInstallments?: number | null;
+  paidCardPurchaseId?: string | null;
   paidAt?: string | null;
   paidTransactionId?: string | null;
   paidTransaction?: Transaction | null;

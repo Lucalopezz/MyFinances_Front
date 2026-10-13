@@ -31,6 +31,8 @@ export async function markFixedExpenseAsPaidAction(
 
   const result = await markFixedExpenseAsPaid(id, isPaid);
 
+  revalidateTag("cards");
+  revalidatePath("/cards");
   revalidateTag("fixed-expenses");
   revalidateTag("notifications");
   revalidateTag("fixed-expense");

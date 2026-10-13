@@ -36,6 +36,6 @@ export type CreditCard = CardInput & {
   archived: boolean;
   used: number;
   available: number;
-  purchases: (CardPurchaseInput & { id: string; refundedAt?: string | null })[];
+  purchases: (CardPurchaseInput & { id: string; refundedAt?: string | null; fixedExpenseId?: string | null })[];
   invoices: CardInvoice[];
 };

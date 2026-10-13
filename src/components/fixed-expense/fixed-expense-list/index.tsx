@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { FixedExpense } from "@/models/fixed-expense.model";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -63,6 +64,14 @@ function DesktopFixedExpenseRow({
     <TableRow className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
       <TableCell className="py-4 whitespace-nowrap font-medium text-gray-900 dark:text-gray-100">
         {expense.name}
+        {expense.cardId && (
+          <Link
+            href={`/cards?cardId=${encodeURIComponent(expense.cardId)}`}
+            className="block text-xs text-blue-500"
+          >
+            No cartão · {expense.cardInstallments ?? 1} parcela(s)
+          </Link>
+        )}
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap text-red-600 dark:text-red-400 font-medium">
         {formatCurrency(expense.amount)}
@@ -74,7 +83,9 @@ function DesktopFixedExpenseRow({
         {categoryLabel(expense.category)}
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
-        <StatusBadge tone="blue">{expense.recurrence}</StatusBadge>
+        <StatusBadge tone="blue">
+          {expense.recurrence === "YEARLY" ? "Anual" : "Mensal"}
+        </StatusBadge>
       </TableCell>
       <TableCell className="py-4 whitespace-nowrap">
         <FixedExpensePaymentBadge expense={expense} />
@@ -106,13 +117,15 @@ function MobileFixedExpenseCard({
   return (
     <MobileListCard
       title={expense.name}
-      meta={`Vencimento: ${formatShortDate(expense.dueDate)}`}
+      meta={`${expense.cardId ? "Renovação" : "Vencimento"}: ${formatShortDate(expense.dueDate)}${expense.cardId ? ` · ${expense.cardInstallments ?? 1} parcela(s) no cartão` : ""}`}
       amount={formatCurrency(expense.amount)}
       amountClassName="text-red-600 dark:text-red-400"
       footerLeft={
         <div className="flex min-w-0 flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge tone="blue">{expense.recurrence}</StatusBadge>
+            <StatusBadge tone="blue">
+              {expense.recurrence === "YEARLY" ? "Anual" : "Mensal"}
+            </StatusBadge>
             <StatusBadge tone="blue">
               {categoryLabel(expense.category)}
             </StatusBadge>
@@ -153,9 +166,15 @@ function FixedExpenseActions({
         deleteId={expense.id}
         deleteAction={deleteAction}
         markAsPaidActive={expense.isPaid}
-        markAsPaidDisabled={!expense.id}
+        markAsPaidDisabled={!expense.id || Boolean(expense.paidCardPurchaseId)}
         markAsPaidTitle={
-          expense.isPaid ? "Desmarcar como pago" : "Marcar como pago"
+          expense.cardId
+            ? expense.isPaid
+              ? "Contratação registrada; estorne na tela de cartões"
+              : "Registrar compra no cartão"
+            : expense.isPaid
+              ? "Desmarcar como pago"
+              : "Marcar como pago"
         }
         onMarkAsPaid={() =>
           expense.id &&
@@ -172,7 +191,9 @@ function FixedExpenseActions({
 
 function FixedExpensePaymentBadge({ expense }: { expense: FixedExpense }) {
   return expense.isPaid ? (
-    <StatusBadge tone="green">Pago</StatusBadge>
+    <StatusBadge tone="green">
+      {expense.paidCardPurchaseId ? "Registrado no cartão" : "Pago"}
+    </StatusBadge>
   ) : (
     <StatusBadge tone="yellow">Pendente</StatusBadge>
   );

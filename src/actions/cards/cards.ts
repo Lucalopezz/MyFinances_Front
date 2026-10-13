@@ -31,12 +31,15 @@ async function request<T>(
   const context = `${method} /cards${path}`;
   const fallback = "Não foi possível atualizar o cartão. Tente novamente.";
   try {
-    const response = await backendFetch(`${getServerBackendUrl()}/cards${path}`, {
-      method,
-      headers: createJsonHeaders(token),
-      cache: "no-store",
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-    });
+    const response = await backendFetch(
+      `${getServerBackendUrl()}/cards${path}`,
+      {
+        method,
+        headers: createJsonHeaders(token),
+        cache: "no-store",
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      },
+    );
     if (!response.ok)
       throw await createApiError(response, { context, fallback });
     return (await response.json()) as T;
@@ -47,6 +50,10 @@ async function request<T>(
 function refresh() {
   for (const tag of [
     "cards",
+    "fixed-expenses",
+    "fixed-expense",
+    "notifications",
+    "forecast",
     "transactions",
     "dashboard",
     "calendar",
@@ -57,6 +64,7 @@ function refresh() {
     revalidateTag(tag);
   for (const path of [
     "/cards",
+    "/fixed-expenses",
     "/transactions",
     "/dashboard",
     "/calendar",
@@ -104,7 +112,10 @@ export async function payCardInvoice(id: string, cycle: string, date: string) {
 
 /** Atualiza todas as telas financeiras após o cancelamento da compra. */
 export async function refundCardPurchase(id: string, purchaseId: string) {
-  const result = await request<{ returnedAmount?: number }>(`/${encodeURIComponent(id)}/purchases/${encodeURIComponent(purchaseId)}/refund`, "POST");
+  const result = await request<{ returnedAmount?: number }>(
+    `/${encodeURIComponent(id)}/purchases/${encodeURIComponent(purchaseId)}/refund`,
+    "POST",
+  );
   refresh();
   return result;
 }

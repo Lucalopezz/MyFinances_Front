@@ -955,3 +955,5 @@ Todas as chamadas exigem Bearer JWT, enviado somente no servidor pelas actions e
 `DELETE /cards/:id` arquiva mesmo com pendências; `GET /cards` inclui cartões arquivados com `archived: true`. Faturas existentes continuam disponíveis para pagamento; novas compras são bloqueadas.
 
 `POST /cards/:id/purchases/:purchaseId/refund` estorna integralmente e de forma idempotente. Cancela parcelas pendentes e gera receita pelo valor já pago; compras retornam `refundedAt`.
+
+Despesas fixas aceitam `cardId: string | null` e `cardInstallments: number` (1–60). O valor informado é o total da contratação, e a recorrência é a frequência de renovação. Confirmar pagamento de uma despesa no cartão cria a compra parcelada e retorna `paidCardPurchaseId`, sem saída de saldo até pagar as faturas. Para desfazer a contratação, use o estorno na tela de cartões.
