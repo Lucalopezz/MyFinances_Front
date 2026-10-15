@@ -10,6 +10,10 @@ import { updateTransactionAction } from "@/actions/transaction/update-transactio
 import type { PaginatedTransactions } from "@/models/transaction.model";
 import { queryKeys } from "@/hooks/queries/query-keys";
 
+/**
+ * Atualiza os dados em memória após a mutação; as actions revalidam o cache do Next.
+ * O prefixo transactions alcança páginas, buscas, totais e saldo acumulado.
+ */
 function invalidateTransactionViews(
   queryClient: ReturnType<typeof useQueryClient>,
 ) {

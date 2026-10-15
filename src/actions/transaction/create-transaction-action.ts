@@ -6,11 +6,14 @@ import { createTransaction } from "@/actions/transaction/transactions";
 import type { Transaction } from "@/models/transaction.model";
 import { createCardPurchase } from "@/actions/cards/cards";
 
+/** Direciona o formulário para lançamento realizado ou compra no cartão e revalida as telas. */
 export async function createTransactionAction(transaction: Transaction) {
   if (
     transaction.type === "EXPENSE" &&
     transaction.paymentMethod === "CREDIT"
   ) {
+    // A compra compromete as faturas; a despesa realizada só nasce no pagamento.
+    // createCardPurchase já revalida o domínio de cartões e as telas financeiras.
     if (!transaction.cardId) throw new Error("Selecione um cartão.");
     const purchase = await createCardPurchase(transaction.cardId, {
       description: transaction.description,
@@ -27,6 +30,8 @@ export async function createTransactionAction(transaction: Transaction) {
     throw new Error("Falha ao criar transação");
   }
 
+  // O lançamento afeta lista, indicadores, orçamento e projeções no servidor.
+  // Os hooks de mutação invalidam separadamente o cache React Query no navegador.
   revalidateTag("transactions");
   revalidateTag("dashboard");
   revalidateTag("budgets");

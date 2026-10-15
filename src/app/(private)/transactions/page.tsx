@@ -21,6 +21,7 @@ function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+/** Normaliza parâmetros da URL e aplica o mesmo período à listagem e aos totais. */
 function parseFilters(
   params: Record<string, string | string[] | undefined>,
   month: string,
@@ -39,6 +40,7 @@ function parseFilters(
   };
 }
 
+/** Carrega a primeira página no servidor; o componente cliente continua a paginação. */
 export default async function TransactionsPage({
   searchParams,
 }: TransactionsPageProps) {
@@ -49,12 +51,16 @@ export default async function TransactionsPage({
       ? requestedMonth
       : currentDay().slice(0, 7);
   const filters = parseFilters(params, month);
+  // Lista e totais usam os filtros; o saldo acumulado considera todo o histórico.
+  // allSettled permite mostrar os blocos disponíveis e tratar a falha de cada leitura.
   const [pageResult, totalsResult, balanceResult] = await Promise.allSettled([
     searchTransactions(filters),
     getTransactionTotals(filters),
     getTotalBalance(),
   ]);
 
+  // A key da lista muda com os filtros: remontar descarta cursores da busca anterior,
+  // que a API não aceita para outra combinação de período, tipo, categoria ou texto.
   return (
     <div className="mx-auto max-w-6xl">
       <TransactionSummary

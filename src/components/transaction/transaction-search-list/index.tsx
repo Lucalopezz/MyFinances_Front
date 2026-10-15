@@ -39,6 +39,7 @@ type SearchListProps = {
   initialError?: string;
 };
 
+/** Lista uma página por cursor; filtros aplicados ficam na URL e a API calcula a busca. */
 export function TransactionSearchList({
   month,
   filters,
@@ -47,8 +48,12 @@ export function TransactionSearchList({
 }: SearchListProps) {
   const { categories } = useCategories();
   const router = useRouter();
+  // O rascunho só vira uma busca ao enviar o formulário. A rota remonta esta lista
+  // quando os filtros aplicados mudam, reiniciando a paginação e seu histórico.
   const [draft, setDraft] = useState(filters);
   const [cursor, setCursor] = useState<string | undefined>();
+  // A API fornece apenas o próximo cursor; guardamos os anteriores para voltar.
+  // A string vazia representa a primeira página, cuja consulta não envia cursor.
   const [history, setHistory] = useState<string[]>([]);
   useEffect(() => setDraft(filters), [filters]);
 
@@ -60,6 +65,8 @@ export function TransactionSearchList({
         throw new Error("A busca de transações ainda não está disponível.");
       return page;
     },
+    // A leitura inicial do servidor pertence só à primeira página. Reutilizá-la
+    // com outro cursor exibiria registros da página errada no cache dessa consulta.
     initialData: !cursor ? (initialPage ?? undefined) : undefined,
     retry: false,
   });

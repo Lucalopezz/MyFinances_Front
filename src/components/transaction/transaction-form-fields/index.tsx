@@ -44,6 +44,10 @@ function FieldMessage({ message }: { message?: string }) {
   return <p className="mt-1 text-sm text-red-500">{message}</p>;
 }
 
+/**
+ * Compartilha campos de criação/edição e oferece sugestões sem substituir a escolha manual.
+ * preservedId permite manter na edição a categoria original, mesmo que tenha sido arquivada.
+ */
 export function TransactionFormFields({
   control,
   register,
@@ -62,6 +66,8 @@ export function TransactionFormFields({
   const [suggestionError, setSuggestionError] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   useEffect(() => {
+    // Trocar receita por despesa pode invalidar a categoria. Categorias arquivadas
+    // só são aceitas quando já pertencem ao registro em edição (preservedId).
     const current = catalog.find((item) => item.id === transactionCategory);
     if (
       current &&
@@ -76,6 +82,8 @@ export function TransactionFormFields({
     setSuggestionError(false);
     setSuggesting(false);
     if (!suggest || !description?.trim()) return;
+    // Espera uma pausa na digitação antes de consultar as regras na API.
+    // active impede que uma resposta antiga substitua a sugestão do texto atual.
     let active = true;
     const timer = setTimeout(async () => {
       setSuggesting(true);
@@ -89,6 +97,7 @@ export function TransactionFormFields({
       }
     }, 400);
     return () => {
+      // Limpar o timer evita iniciar a chamada; active ignora uma chamada já iniciada.
       active = false;
       clearTimeout(timer);
     };

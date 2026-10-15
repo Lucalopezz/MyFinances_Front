@@ -46,6 +46,10 @@ function rememberBatch(id?: string) {
 const money = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+/**
+ * Coordena prévia, revisão e confirmação; só a confirmação grava transações na API.
+ * O lote na URL permite retomar o fluxo e consultar recibos após recarregar a página.
+ */
 export function TransactionImport() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("file");
@@ -60,6 +64,8 @@ export function TransactionImport() {
   const { categories } = useCategories();
   const queryClient = useQueryClient();
   const router = useRouter();
+  // Recibos IMPORTED são definitivos, inclusive após uma tentativa com falha parcial.
+  // Essas linhas não voltam à seleção quando o usuário consulta ou retoma o lote.
   const imported = new Set(
     (result?.results ?? batch?.results ?? [])
       .filter((r) => r.status === "IMPORTED")
@@ -75,6 +81,7 @@ export function TransactionImport() {
         canImport(r, choices[r.rowId], categories),
     ) ?? [];
 
+  /** Serializa ações do diálogo; a ref bloqueia dois cliques antes do próximo render. */
   async function run(work: () => Promise<void>) {
     if (lock.current) return;
     lock.current = true;
@@ -99,6 +106,8 @@ export function TransactionImport() {
     const done = new Set(
       data.results?.filter((r) => r.status === "IMPORTED").map((r) => r.rowId),
     );
+    // Uma atualização mantém as escolhas locais quando preserve=true, mas o recibo
+    // do servidor sempre prevalece: uma linha já importada deve ficar desmarcada.
     setChoices((current) =>
       Object.fromEntries(
         data.rows.map((r) => [
@@ -116,6 +125,8 @@ export function TransactionImport() {
     );
   }
   async function refreshViews() {
+    // React Query atualiza os dados no navegador; router.refresh atualiza também
+    // os Server Components, pois a importação pode alterar os indicadores financeiros.
     await Promise.all(
       ["transactions", "dashboard", "budgets", "wishlist"].map((key) =>
         queryClient.invalidateQueries({ queryKey: [key] }),
@@ -177,6 +188,7 @@ export function TransactionImport() {
     return () => clearInterval(timer);
   }, [open, batch]);
 
+  /** Com totalsOnly, reconsulta o resultado pela confirmação sem selecionar novas linhas. */
   async function confirm(totalsOnly = false) {
     if (!batch) return;
     try {
@@ -197,6 +209,8 @@ export function TransactionImport() {
       setResult(data);
       setStep("result");
     } finally {
+      // A API confirma cada linha separadamente. Mesmo com erro na resposta, algumas
+      // transações podem ter sido salvas e as telas precisam refletir esse resultado.
       await refreshViews();
     }
   }

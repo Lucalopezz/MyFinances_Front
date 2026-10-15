@@ -21,6 +21,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+/** Mantém a sessão da interface e centraliza logout manual ou disparado por um 401. */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("authenticated");
   const router = useRouter();
@@ -29,12 +30,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isEndingSessionRef = useRef(false);
 
   const endSession = useCallback(async () => {
+    // Várias consultas podem receber 401 juntas. A ref limita a limpeza e a
+    // navegação a um único encerramento, antes mesmo de o estado renderizar novamente.
     if (isEndingSessionRef.current) return;
     if (status === "unauthenticated" && pathname === "/login") return;
 
     isEndingSessionRef.current = true;
     setStatus("unauthenticated");
 
+    // Cancela consultas antes de limpar o cache para que respostas em andamento
+    // não repovoem os dados financeiros da sessão encerrada.
     await queryClient.cancelQueries();
     queryClient.clear();
 
