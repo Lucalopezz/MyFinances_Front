@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { loadTypescript } = require("./load-typescript.cjs");
+const { loadTypescript } = require("../support/load-typescript.cjs");
 
 const formats = loadTypescript("src/models/transaction-export.ts");
 const errors = loadTypescript("src/lib/api-error.ts", { "server-only": {} });

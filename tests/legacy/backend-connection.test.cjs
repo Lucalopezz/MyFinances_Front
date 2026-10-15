@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { loadTypescript } = require("./load-typescript.cjs");
+const { loadTypescript } = require("../support/load-typescript.cjs");
 // A store não depende de React ou DOM; estes testes observam suas decisões
 // com rede/visibilidade e relógio controlados, sem waits reais de cinco minutos.
 const { createBackendConnection, BACKEND_PING_INTERVAL_MS } = loadTypescript("src/lib/backend-connection.ts");

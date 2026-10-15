@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { loadTypescript } = require("./load-typescript.cjs");
+const { loadTypescript } = require("../support/load-typescript.cjs");
 // Os módulos são reais; server-only e os limites externos do Next são simulados.
 // Não precisamos de API, cookie real, credenciais ou banco para verificar a política.
 const { backendFetch } = loadTypescript("src/lib/backend-fetch.ts", {

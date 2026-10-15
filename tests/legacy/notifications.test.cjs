@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { loadTypescript } = require("./load-typescript.cjs");
+const { loadTypescript } = require("../support/load-typescript.cjs");
 const { notificationQueryOptions, NOTIFICATION_REFRESH_INTERVAL_MS } =
   loadTypescript("src/lib/notification-query.ts");
 const model = loadTypescript("src/models/notification.model.ts");

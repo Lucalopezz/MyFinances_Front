@@ -12,7 +12,7 @@ const ts = require("typescript");
  * new Function executa o módulo local que o próprio projeto está verificando.
  */
 function loadTypescript(path, mocks = {}) {
-  const file = resolve(__dirname, "..", path);
+  const file = resolve(__dirname, "../..", path);
   const { outputText } = ts.transpileModule(readFileSync(file, "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
     fileName: file,
