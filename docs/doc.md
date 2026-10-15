@@ -55,6 +55,7 @@ Observações:
 - `npm run test:connection` valida timers, deduplicação, reconexão, limites de tentativas, preservação da sessão e envio único de gravações. Os testes usam o runner nativo do Node.js (24 ou superior) e o TypeScript já instalado.
 - `npm run test:notifications` valida sincronização/listagem, timers reais do Query Core, foco/rede, autenticação/disponibilidade, cache compartilhado, resolução e transporte autenticado.
 - `npm run test:exports` valida os três formatos, solicitação XLSX, preservação do formato no status e download autenticado com os tipos e extensões correspondentes.
+- `npm test`, `test:unit`, `test:integration`, `test:cov`, `test:e2e` e `test:all` seguem o [guia de testes](testing.md). As suítes anteriores agora ficam em `tests/legacy`, e todos os auxiliares e configurações ficam em `tests/`.
 - `npm run lint` é um script legado baseado em `next lint`; não há configuração funcional para execução não interativa.
 - A configuração atual da build permite ignorar erros de tipos; use a verificação de TypeScript separadamente ao validar mudanças de código.
 

@@ -12,7 +12,13 @@ export default defineConfig({
   expect: { timeout: 15000 },
   reporter: [
     ["list"],
-    ["html", { outputFolder: resolve(__dirname, "../playwright-report"), open: "never" }],
+    [
+      "html",
+      {
+        outputFolder: resolve(__dirname, "../playwright-report"),
+        open: "never",
+      },
+    ],
   ],
   use: {
     baseURL: `http://127.0.0.1:${port}`,

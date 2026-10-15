@@ -16,15 +16,13 @@ test("importa um CSV pela prévia e só grava após confirmar", async ({
   await page.getByRole("button", { name: "Importar", exact: true }).click();
   const dialog = page.getByRole("dialog");
   const civil = today().split("-").reverse().join("/");
-  await dialog
-    .getByLabel("Arquivo CSV ou OFX")
-    .setInputFiles({
-      name: "extrato.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(
-        `data;descricao;valor\n${civil};Mercado importado;-10,25\n`,
-      ),
-    });
+  await dialog.getByLabel("Arquivo CSV ou OFX").setInputFiles({
+    name: "extrato.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      `data;descricao;valor\n${civil};Mercado importado;-10,25\n`,
+    ),
+  });
   await dialog.getByLabel("Origem do extrato").fill("Banco do navegador");
   await dialog
     .getByRole("button", { name: "Gerar prévia", exact: true })

@@ -12,6 +12,7 @@ Este índice organiza as referências atuais do MyFinances Front-end. O [README 
 | [Autenticação](authentication.md) | Para trabalhar com sessão, cookie HTTP-only e proteção de rotas |
 | [Cold start da API](api-cold-start.md) | Para entender a hospedagem na Vercel/Render, o problema de inatividade e as melhorias de conexão |
 | [Calendário financeiro](financial-calendar.md) | Para consultar recorrências, projeção e regras de datas |
+| [Testes automatizados](testing.md) | Para executar unitários, integrações, E2E e consultar limites de cobertura |
 
 ## Guias da API
 

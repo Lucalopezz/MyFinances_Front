@@ -85,6 +85,12 @@ Pré-requisitos: Node.js com npm e a API MyFinances configurada.
 | `npm run build` | Build de produção |
 | `npm run start` | Execução da build |
 | `npx tsc --noEmit` | Verificação de tipos |
+| `npm test` | Testes anteriores, unitários e integrações |
+| `npm run test:cov` | Cobertura de unitários e integrações |
+| `npm run test:e2e` | Fluxos em navegador com Next e API reais |
+| `npm run test:all` | Todas as camadas |
+
+Consulte o [guia de testes](docs/testing.md) para preparar o ambiente E2E, entender a cobertura e escolher cenários.
 
 O script legado `npm run lint` usa `next lint` e não possui configuração funcional para execução não interativa. Veja os detalhes na [documentação técnica](docs/doc.md#scripts).
 
@@ -93,6 +99,7 @@ O script legado `npm run lint` usa `next lint` e não possui configuração func
 ```text
 ├── docs/                 # Referências técnicas, guias e histórico
 ├── public/               # Assets públicos
+├── tests/                # Unitários, integração, E2E, configurações e auxiliares
 ├── src/
 │   ├── actions/          # Server Actions e acesso autenticado à API
 │   ├── app/              # Rotas públicas, privadas e handlers Next.js
