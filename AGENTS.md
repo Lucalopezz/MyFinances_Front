@@ -196,3 +196,15 @@ Execute validacoes proporcionais a mudanca:
 - Mudanca pequena de texto/documentacao: revise o arquivo alterado.
 - Não precisa ficar rodando `npm run build` quando não necessario.
 - Mudanca em autenticacao, middleware ou API: revise `docs/authentication.md` e `docs/api-routes.md` e valide o fluxo afetado.
+
+## Testes e TDD
+
+- Siga TDD em toda alteração de comportamento: escreva primeiro o teste, execute-o e confirme a falha pelo comportamento esperado (vermelho); implemente a menor mudança para passar (verde); depois refatore mantendo os testes passando. Erros de compilação ou configuração não substituem a falha de comportamento.
+- Toda correção de bug exige um teste de regressão que reproduza o problema antes da correção e passe depois dela. Escolha a camada adequada; problemas entre componentes, Server Actions ou navegação também devem ter cobertura de integração ou E2E.
+- Ao ampliar cobertura de código existente, escreva os testes antes de ajustar a implementação. Testes de caracterização podem passar de imediato; mudanças de comportamento devem se apoiar no contrato documentado.
+- Todos os testes, auxiliares, fixtures e configurações devem ficar em `tests/` ou em uma pasta `__tests__`, separados do código de produção. Não crie testes junto dos componentes em `src/` nem use a pasta singular `test/`.
+- Organize as suítes por camada: `tests/unit`, `tests/integration` e `tests/e2e`. Preserve testes anteriores e seus cenários ao reorganizá-los.
+- Unitários verificam regras e validações isoladas. Integrações exercitam componentes com providers, formulários, cache e Server Actions, substituindo apenas limites externos necessários. E2E usam navegador e aplicação Next reais para os fluxos principais; documente se a API é real ou simulada.
+- Prefira consultas acessíveis por papel e nome e interações como as do usuário. Evite testar classes CSS, detalhes internos do React ou reproduzir a implementação nas expectativas.
+- Nunca use contas pessoais nem limpe dados do ambiente da aplicação. E2E com API real devem criar usuários e banco descartáveis; encerre processos, conexões e arquivos temporários ao terminar.
+- Execute os testes afetados e a verificação de tipos antes de concluir. Informe os comandos executados, testes ignorados e limitações da cobertura. Não apresente suíte ignorada como validação realizada.
