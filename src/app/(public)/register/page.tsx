@@ -21,7 +21,7 @@ export default function RegisterPage() {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(RegisterSchema),
   });
-  const { createUser, isLoading } = useCreateUser();
+  const { createUser, isLoading, error } = useCreateUser();
 
   const onSubmit = (formData: RegisterFormData) => {
     const { confirmPassword, ...dataToSend } = formData;
@@ -59,6 +59,7 @@ export default function RegisterPage() {
           />
           <Button
             type="submit"
+            disabled={isLoading}
             className="w-full bg-[#10B981] hover:bg-[#059669] text-white"
           >
             {isLoading ? (
@@ -67,6 +68,8 @@ export default function RegisterPage() {
               "Criar conta"
             )}
           </Button>
+          {/* Rejeições como e-mail duplicado precisam permanecer visíveis para correção. */}
+          {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         </form>
         <p className="mt-4 text-sm text-[#6B7280] dark:text-gray-400">
           Já tem conta?{" "}
