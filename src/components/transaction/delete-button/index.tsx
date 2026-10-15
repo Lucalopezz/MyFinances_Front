@@ -36,6 +36,7 @@ export function DeleteButton({ id, deleteAction }: DeleteButtonProps) {
 
   return (
     <Button
+      aria-label="Excluir transação"
       onClick={handleDelete}
       variant="ghost"
       size="icon"
