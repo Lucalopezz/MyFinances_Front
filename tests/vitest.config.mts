@@ -6,12 +6,17 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("../src", import.meta.url)),
-      "server-only": fileURLToPath(new URL("./support/server-only.ts", import.meta.url)),
+      "server-only": fileURLToPath(
+        new URL("./support/server-only.ts", import.meta.url),
+      ),
     },
   },
   oxc: { jsx: { runtime: "automatic" } },
   test: {
-    include: ["tests/unit/**/*.test.{ts,tsx}", "tests/integration/**/*.test.{ts,tsx}"],
+    include: [
+      "tests/unit/**/*.test.{ts,tsx}",
+      "tests/integration/**/*.test.{ts,tsx}",
+    ],
     environment: "node",
     setupFiles: ["tests/setup.ts"],
     clearMocks: true,

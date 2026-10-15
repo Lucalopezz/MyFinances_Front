@@ -69,7 +69,11 @@ export default function RegisterPage() {
             )}
           </Button>
           {/* Rejeições como e-mail duplicado precisam permanecer visíveis para correção. */}
-          {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+          {error && (
+            <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
         </form>
         <p className="mt-4 text-sm text-[#6B7280] dark:text-gray-400">
           Já tem conta?{" "}

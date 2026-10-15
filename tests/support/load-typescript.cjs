@@ -14,7 +14,10 @@ const ts = require("typescript");
 function loadTypescript(path, mocks = {}) {
   const file = resolve(__dirname, "../..", path);
   const { outputText } = ts.transpileModule(readFileSync(file, "utf8"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+    },
     fileName: file,
   });
   const module = { exports: {} };
@@ -24,7 +27,11 @@ function loadTypescript(path, mocks = {}) {
     if (Object.hasOwn(mocks, name)) return mocks[name];
     return require(name);
   };
-  new Function("require", "module", "exports", outputText)(imports, module, module.exports);
+  new Function("require", "module", "exports", outputText)(
+    imports,
+    module,
+    module.exports,
+  );
   return module.exports;
 }
 

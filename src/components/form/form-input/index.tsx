@@ -20,7 +20,10 @@ export const FormInput = ({
   const id = useId();
   return (
     <div className="space-y-1">
-      <label htmlFor={id} className="block text-sm font-medium text-[#1F2937] dark:text-gray-300">
+      <label
+        htmlFor={id}
+        className="block text-sm font-medium text-[#1F2937] dark:text-gray-300"
+      >
         {label}
       </label>
       <input
@@ -31,7 +34,11 @@ export const FormInput = ({
         className="w-full p-2 border rounded dark:bg-gray-800 dark:text-white"
         {...register}
       />
-      {error && <p id={`${id}-error`} className="text-red-500 text-sm">{error}</p>}
+      {error && (
+        <p id={`${id}-error`} className="text-red-500 text-sm">
+          {error}
+        </p>
+      )}
     </div>
   );
 };

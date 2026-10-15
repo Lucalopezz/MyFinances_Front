@@ -21,7 +21,10 @@ export const PasswordInput = ({
 
   return (
     <div className="relative space-y-1">
-      <label htmlFor={id} className="block text-sm font-medium text-[#1F2937] dark:text-gray-300">
+      <label
+        htmlFor={id}
+        className="block text-sm font-medium text-[#1F2937] dark:text-gray-300"
+      >
         {label}
       </label>
       <input
@@ -42,7 +45,11 @@ export const PasswordInput = ({
       >
         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
       </button>
-      {error && <p id={`${id}-error`} className="text-red-500 text-sm">{error}</p>}
+      {error && (
+        <p id={`${id}-error`} className="text-red-500 text-sm">
+          {error}
+        </p>
+      )}
     </div>
   );
 };

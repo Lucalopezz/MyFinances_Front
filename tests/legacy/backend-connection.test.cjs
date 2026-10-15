@@ -3,18 +3,28 @@ const assert = require("node:assert/strict");
 const { loadTypescript } = require("../support/load-typescript.cjs");
 // A store não depende de React ou DOM; estes testes observam suas decisões
 // com rede/visibilidade e relógio controlados, sem waits reais de cinco minutos.
-const { createBackendConnection, BACKEND_PING_INTERVAL_MS } = loadTypescript("src/lib/backend-connection.ts");
+const { createBackendConnection, BACKEND_PING_INTERVAL_MS } = loadTypescript(
+  "src/lib/backend-connection.ts",
+);
 // Avançar um timer simulado não resolve sozinho todos os awaits encadeados.
 // Drenamos microtasks antes de verificar snapshots, probes e callbacks de recovery.
-const flush = async () => { for (let i = 0; i < 10; i++) await Promise.resolve(); };
+const flush = async () => {
+  for (let i = 0; i < 10; i++) await Promise.resolve();
+};
 
 function setup(t, probe = async () => true) {
   // Date e setTimeout compartilham o relógio simulado. O tempo inicial não é
   // zero para exercitar timestamps reais e sua distinção em relação ao null.
   t.mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1_000_000 });
-  let visible = true, online = true, calls = 0, recoveries = 0;
+  let visible = true,
+    online = true,
+    calls = 0,
+    recoveries = 0;
   const connection = createBackendConnection({
-    probe: (signal) => { calls++; return probe(signal); },
+    probe: (signal) => {
+      calls++;
+      return probe(signal);
+    },
     isVisible: () => visible,
     isOnline: () => online,
     onRecovery: () => recoveries++,
@@ -22,18 +32,38 @@ function setup(t, probe = async () => true) {
   // Cada caso encerra timers/I/O, mesmo se uma asserção falhar. O runner limpa
   // os mocks do contexto; uma store não deve influenciar o teste seguinte.
   t.after(() => connection.stop());
-  return { connection, get calls() { return calls; }, get recoveries() { return recoveries; },
-    visible: (value) => { visible = value; }, online: (value) => { online = value; } };
+  return {
+    connection,
+    get calls() {
+      return calls;
+    },
+    get recoveries() {
+      return recoveries;
+    },
+    visible: (value) => {
+      visible = value;
+    },
+    online: (value) => {
+      online = value;
+    },
+  };
 }
 
 // Representa eventos reais que chegam quase juntos ao reabrir uma aba: todos
 // precisam observar o mesmo resultado, sem abrir várias requisições de saúde.
 test("one probe on mount; focus, resume and manual retry share the in-flight request", async (t) => {
   let finish;
-  const s = setup(t, () => new Promise((resolve) => { finish = resolve; }));
+  const s = setup(
+    t,
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
   s.connection.start();
   s.connection.resume();
-  const first = s.connection.reconnect(), second = s.connection.reconnect();
+  const first = s.connection.reconnect(),
+    second = s.connection.reconnect();
   assert.equal(first, second);
   assert.equal(s.calls, 1);
   finish(true);
@@ -111,7 +141,9 @@ test("offline cancels pending work; an immediate online event starts a fresh pro
   let signal;
   const s = setup(t, (current) => {
     signal = current;
-    return new Promise((resolve) => current.addEventListener("abort", () => resolve(false), { once: true }));
+    return new Promise((resolve) =>
+      current.addEventListener("abort", () => resolve(false), { once: true }),
+    );
   });
   s.connection.start();
   s.online(false);
@@ -164,7 +196,10 @@ test("unmount cancels probes and retry timers; Strict Mode restart still works",
 // generation precisa impedir que esse resultado antigo marque a conexão pronta.
 test("Strict Mode stop/start in the same tick starts a fresh probe immediately", async (t) => {
   const probes = [];
-  const s = setup(t, (signal) => new Promise((resolve) => probes.push({ signal, resolve })));
+  const s = setup(
+    t,
+    (signal) => new Promise((resolve) => probes.push({ signal, resolve })),
+  );
   s.connection.start();
   s.connection.stop();
   s.connection.start();
