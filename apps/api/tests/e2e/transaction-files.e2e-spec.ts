@@ -289,4 +289,83 @@ describe('Importação e exportação pela API com MongoDB e Redis reais', () =>
       await queue.resume();
     }
   });
+
+  it.each([
+    ['CSV', 'text/csv', 'csv'],
+    [
+      'XLSX',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'xlsx',
+    ],
+    ['PDF', 'application/pdf', 'pdf'],
+  ])(
+    'gera %s na própria requisição sem job ou arquivo persistido',
+    async (format, contentType, extension) => {
+      await context
+        .http()
+        .post('/transactions')
+        .auth(user.token, { type: 'bearer' })
+        .send({
+          type: 'EXPENSE',
+          value: 10.25,
+          date: '2026-01-15',
+          category: 'FOOD',
+          description: 'Exportação direta',
+        })
+        .expect(201);
+      await context
+        .http()
+        .post('/transactions')
+        .auth(other.token, { type: 'bearer' })
+        .send({
+          type: 'EXPENSE',
+          value: 999,
+          date: '2026-01-15',
+          category: 'FOOD',
+          description: 'Outra conta',
+        })
+        .expect(201);
+
+      const download = await context
+        .http()
+        .post('/exports/transactions/direct')
+        .auth(user.token, { type: 'bearer' })
+        .send({ format })
+        .buffer(true)
+        .parse((response, callback) => {
+          const chunks: Buffer[] = [];
+          response.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+          response.on('end', () => callback(null, Buffer.concat(chunks)));
+          response.on('error', callback);
+        })
+        .expect(200);
+
+      expect(download.headers['content-type']).toContain(contentType);
+      expect(download.headers['content-disposition']).toContain(
+        `.${extension}`,
+      );
+      const bytes = download.body as Buffer;
+      if (format === 'CSV') {
+        expect(bytes.toString('utf8')).toContain('Exportação direta');
+        expect(bytes.toString('utf8')).not.toContain('Outra conta');
+      } else if (format === 'XLSX') {
+        const workbook = new Workbook();
+        await workbook.xlsx.load(bytes as never);
+        expect(workbook.getWorksheet('Transações').getCell('B2').value).toBe(
+          'Exportação direta',
+        );
+        expect(workbook.getWorksheet('Transações').rowCount).toBe(2);
+      } else {
+        expect(bytes.subarray(0, 5).toString()).toBe('%PDF-');
+      }
+    },
+  );
+
+  it('exige autenticação para exportação direta', async () => {
+    await context
+      .http()
+      .post('/exports/transactions/direct')
+      .send({ format: 'CSV' })
+      .expect(401);
+  });
 });

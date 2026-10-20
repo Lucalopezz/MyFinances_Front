@@ -1,9 +1,17 @@
 /**
- * Oculta exportações no deploy unificado enquanto não houver worker e
- * armazenamento persistente; o fluxo local continua disponível.
+ * A Vercel usa download direto; o ambiente local conserva o fluxo com fila.
  */
 export function exportsAvailable(
-  env: { VERCEL?: string } = { VERCEL: process.env.VERCEL },
+  env: { VERCEL?: string; DISABLE_TRANSACTION_EXPORTS?: string } = {
+    VERCEL: process.env.VERCEL,
+    DISABLE_TRANSACTION_EXPORTS: process.env.DISABLE_TRANSACTION_EXPORTS,
+  },
 ): boolean {
-  return env.VERCEL !== '1';
+  return env.DISABLE_TRANSACTION_EXPORTS !== "1";
+}
+
+export function exportMode(
+  env: { VERCEL?: string } = { VERCEL: process.env.VERCEL },
+): "direct" | "queued" {
+  return env.VERCEL === "1" ? "direct" : "queued";
 }

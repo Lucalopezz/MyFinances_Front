@@ -329,9 +329,17 @@ Resposta:
 
 ## Exports
 
-Todas as rotas de exportação são protegidas. No deploy unificado da Vercel,
-o módulo de exportação está temporariamente desligado e a interface não envia
-novos pedidos; o contrato abaixo continua válido para o ambiente local.
+Todas as rotas de exportação são protegidas. Na Vercel, o front usa
+`GET /api/exports/transactions/direct?format=PDF|CSV|XLSX`, que lê o cookie
+HTTP-only e chama `POST /exports/transactions/direct` na API privada. A API
+gera e transmite o arquivo na mesma requisição, sem fila ou arquivo persistido.
+As rotas assíncronas abaixo continuam válidas para o ambiente local.
+
+### `POST /exports/transactions/direct`
+
+Aceita os mesmos filtros e formatos do pedido assíncrono e responde `200 OK`
+com `Content-Disposition: attachment` e o arquivo completo em stream.
+Somente as transações do usuário autenticado entram no arquivo.
 
 ### `POST /exports/transactions`
 

@@ -21,6 +21,7 @@ import {
   TRANSACTION_EXPORT_FORMATS,
 } from "@/models/transaction-export";
 import { Button } from "@/components/ui/button";
+import { DirectTransactionExport } from "./direct-export";
 import {
   Dialog,
   DialogContent,
@@ -93,7 +94,7 @@ function rememberDownloadedExport(exportId: string): void {
   }
 }
 
-export function TransactionExport() {
+function QueuedTransactionExport() {
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [format, setFormat] = useState<TransactionExportFormat>("PDF");
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
@@ -373,5 +374,18 @@ export function TransactionExport() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+/** Seleciona o contrato disponível no ambiente sem misturar estados dos fluxos. */
+export function TransactionExport({
+  mode = "queued",
+}: {
+  mode?: "queued" | "direct";
+}) {
+  return mode === "direct" ? (
+    <DirectTransactionExport />
+  ) : (
+    <QueuedTransactionExport />
   );
 }

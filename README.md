@@ -5,7 +5,7 @@ Este repositório reúne o [front Next.js](apps/web/README.md) e a [API NestJS](
 ## Estado desta etapa
 
 - Front, autenticação, transações, importação e demais rotas da API usam o mesmo deployment. Por decisão do proprietário, o Preview atual usa o MongoDB de produção: alterações feitas nele afetam os dados reais.
-- A exportação de transações fica indisponível na Vercel. O módulo BullMQ e o worker não iniciam nas funções HTTP, e a interface não oferece novos pedidos. Em desenvolvimento local, o fluxo anterior continua ativo.
+- A exportação de transações em PDF, CSV e XLSX funciona na Vercel por download direto: a API gera o arquivo em um diretório temporário exclusivo da requisição e o front repassa o stream autenticado. Não há Redis, worker nem arquivo persistido entre invocações. Em desenvolvimento local, o fluxo anterior com fila continua ativo.
 - Não houve mudança no `prisma/schema.prisma` nem execução de migração no banco. O deploy em si não altera os dados; operações feitas pelos usuários no Preview podem alterá-los.
 
 ## Variáveis de ambiente
@@ -21,7 +21,7 @@ Configure no novo projeto Vercel, para o ambiente de Preview. Um MongoDB separad
 | `JWT_TOKEN_ISSUER` | Opcional | Padrão do código: `myfinances-api`. Configure se o deployment anterior usava outro valor. |
 | `JWT_TTL` e `JWT_REFRESH_TTL` | Opcionais | Padrões do código: `3600` e `86400` segundos. |
 
-`BACKEND_INTERNAL_URL` é um **service binding**: a Vercel a injeta apenas no front em cada deployment. Não crie essa variável manualmente. `BACKEND_URL` é só o fallback para desenvolvimento local. Nesta etapa da Vercel, `REDIS_URL`, `EXPORT_STORAGE_PATH`, `TRANSACTION_EXPORT_BATCH_SIZE`, `PORT` e `FRONTEND_URL` não são necessários para as rotas publicadas. Não use `NEXT_PUBLIC_*` para segredos.
+`BACKEND_INTERNAL_URL` é um **service binding**: a Vercel a injeta apenas no front em cada deployment. Não crie essa variável manualmente. `BACKEND_URL` é só o fallback para desenvolvimento local. Nesta etapa da Vercel, `REDIS_URL`, `EXPORT_STORAGE_PATH`, `PORT` e `FRONTEND_URL` não são necessários para as rotas publicadas. `TRANSACTION_EXPORT_BATCH_SIZE` continua opcional para controlar a leitura em lotes. Não use `NEXT_PUBLIC_*` para segredos.
 
 ## Publicação
 

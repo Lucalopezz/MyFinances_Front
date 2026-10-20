@@ -12,10 +12,12 @@ import { PublicExceptionFilter } from 'src/common/filters/public-exception.filte
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
 import { TRANSACTION_EXPORT_QUEUE } from 'src/modules/transactions/exports/constants/exports.constants';
 import { TransactionExportProcessor } from 'src/modules/transactions/exports/processors/transaction-export.processor';
+import { exportsAvailable } from 'src/common/config/deployment-features';
 import { createTestDatabase } from './test-database';
 
 /** Usa aplicação, autenticação, repositórios e worker reais, com recursos exclusivos da suíte. */
 export async function createTestApp() {
+  const queueEnabled = exportsAvailable();
   const redis = new URL(process.env.TEST_REDIS_URL ?? 'redis://127.0.0.1:6380');
   if (
     redis.protocol !== 'redis:' ||
@@ -30,21 +32,23 @@ export async function createTestApp() {
   let app: NestExpressApplication;
   let queue: Queue;
   try {
-    const module = await Test.createTestingModule({ imports: [AppModule] })
+    const builder = Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService)
-      .useValue(database.db)
-      .overrideProvider(getSharedConfigToken())
-      .useValue({
+      .useValue(database.db);
+    if (queueEnabled) {
+      builder.overrideProvider(getSharedConfigToken()).useValue({
         connection: { host: redis.hostname, port: Number(redis.port || 6379) },
         // O prefixo aleatório impede que workers de outras execuções consumam estes jobs.
         prefix: `myfinances-test-${randomBytes(12).toString('hex')}`,
-      })
-      .compile();
+      });
+    }
+    const module = await builder.compile();
     app = module.createNestApplication<NestExpressApplication>();
     app.useGlobalFilters(new PublicExceptionFilter());
     app.useBodyParser('json', { limit: '256kb' });
     await app.init();
-    queue = module.get<Queue>(getQueueToken(TRANSACTION_EXPORT_QUEUE));
+    if (queueEnabled)
+      queue = module.get<Queue>(getQueueToken(TRANSACTION_EXPORT_QUEUE));
 
     return {
       app,
@@ -72,8 +76,10 @@ export async function createTestApp() {
       async close() {
         try {
           // Encerra o worker antes de remover somente a fila pertencente à suíte.
-          await module.get(TransactionExportProcessor).worker.close();
-          await queue.obliterate({ force: true });
+          if (queueEnabled) {
+            await module.get(TransactionExportProcessor).worker.close();
+            await queue.obliterate({ force: true });
+          }
         } finally {
           try {
             await app.close();

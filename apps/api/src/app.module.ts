@@ -26,7 +26,7 @@ import { exportsAvailable } from './common/config/deployment-features';
     ImportsModule,
     CategoriesModule,
     ConfigModule.forRoot({ isGlobal: true }),
-    // Na Vercel, o worker e a fila ficam desligados até existir um processador durável.
+    // O download direto continua disponível; apenas o worker legado depende de Redis.
     ...(exportsAvailable()
       ? [
           BullModule.forRootAsync({
@@ -57,9 +57,9 @@ import { exportsAvailable } from './common/config/deployment-features';
               };
             },
           }),
-          ExportsModule,
         ]
       : []),
+    ExportsModule,
     DashboardModule,
     TransactionsModule,
     WishlistModule,

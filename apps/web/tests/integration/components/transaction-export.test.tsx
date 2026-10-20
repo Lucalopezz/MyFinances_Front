@@ -21,6 +21,17 @@ beforeEach(() => {
 });
 
 describe("Ciclo de exportação na interface", () => {
+  it("oferece download direto sem consultar a fila na Vercel", async () => {
+    render(<TransactionExport mode="direct" />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Exportar transações" }),
+    );
+    expect(
+      screen.getByRole("link", { name: "Confirmar exportação" }),
+    ).toHaveAttribute("href", "/api/exports/transactions/direct?format=PDF");
+    expect(getTransactionExportStatus).not.toHaveBeenCalled();
+    expect(createTransactionExport).not.toHaveBeenCalled();
+  });
   it.each([
     ["CSV", "CSV"],
     ["XLSX", "Excel (.xlsx)"],

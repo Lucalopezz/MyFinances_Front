@@ -11,7 +11,7 @@ Atualizado em 08/10/2026. As funcionalidades previstas no escopo aprovado estão
 | Transações | Receitas e despesas, edição, remoção, duplicação pelo formulário, navegação mensal, filtros e totais | `/transactions`, `/transactions/[id]` |
 | Categorias e regras | Categorias personalizadas, arquivamento/restauração, prioridades, teste e sugestão por descrição | `/config` e formulários financeiros |
 | Importação | CSV/OFX com mapeamento, prévia, revisão de categorias/duplicatas e confirmação | `/transactions` |
-| Exportação | PDF/CSV/XLSX assíncronos, acompanhamento e download autenticado | `/transactions` |
+| Exportação | PDF/CSV/XLSX por download direto na Vercel; fila e acompanhamento no ambiente local | `/transactions` |
 | Dashboard e comparativos | Resumo mensal, indicadores, comparação de períodos e despesas por categoria | `/dashboard`, `/comparative` |
 | Orçamentos | Limites mensais por categoria, gasto realizado e valor restante | `/dashboard` |
 | Calendário | Agenda, receitas mensais/anuais, edição/pausa, confirmação de recebimento e projeção diária | `/calendar` e projeção no dashboard |
@@ -22,9 +22,9 @@ Atualizado em 08/10/2026. As funcionalidades previstas no escopo aprovado estão
 | Interface | Layout responsivo, temas claro/escuro e estados de carregamento, vazio, erro e sucesso | Páginas públicas e privadas |
 | Disponibilidade da API | Aquecimento periódico com a aba visível, reconexão ao retornar e tentativa novamente sem encerrar a sessão por falha de rede | Páginas públicas e privadas |
 
-No deploy unificado da Vercel, a exportação está temporariamente indisponível
-porque o worker BullMQ ainda depende de um processo contínuo e de arquivos
-locais. O restante do escopo da tabela permanece publicado.
+No deploy unificado da Vercel, o download é gerado na própria requisição e
+repassado ao navegador sem expor o token. A duração máxima da função ainda
+limita exportações de históricos muito grandes.
 
 ## Regras gerais
 

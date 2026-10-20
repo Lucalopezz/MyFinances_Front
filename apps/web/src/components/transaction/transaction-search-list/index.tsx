@@ -38,6 +38,7 @@ type SearchListProps = {
   initialPage: TransactionSearchPage | null;
   initialError?: string;
   exportsAvailable: boolean;
+  exportMode: "direct" | "queued";
 };
 
 /** Lista uma página por cursor; filtros aplicados ficam na URL e a API calcula a busca. */
@@ -47,6 +48,7 @@ export function TransactionSearchList({
   initialPage,
   initialError,
   exportsAvailable,
+  exportMode,
 }: SearchListProps) {
   const { categories } = useCategories();
   const router = useRouter();
@@ -107,7 +109,8 @@ export function TransactionSearchList({
           </p>
           {exportsAvailable ? (
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              A exportação inclui todas as transações e é independente desta busca.
+              A exportação inclui todas as transações e é independente desta
+              busca.
             </p>
           ) : (
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -117,7 +120,7 @@ export function TransactionSearchList({
         </div>
         <div className="flex flex-wrap items-start gap-2">
           <TransactionImport />
-          {exportsAvailable && <TransactionExport />}
+          {exportsAvailable && <TransactionExport mode={exportMode} />}
         </div>
       </div>
 

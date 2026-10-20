@@ -1,6 +1,17 @@
-# Exportação assíncrona de transações
+# Exportação de transações
 
-As exportações em PDF, CSV ou XLSX são processadas pelo BullMQ dentro do mesmo processo da API NestJS. O Redis local pode ser iniciado com:
+Na Vercel, `POST /exports/transactions/direct` gera PDF, CSV ou XLSX na
+própria requisição autenticada. A leitura continua em lotes e o arquivo fica
+somente em um diretório temporário exclusivo da invocação. Depois que o stream
+de download fecha, o diretório é removido. O fluxo direto não usa Redis,
+BullMQ, registros de status ou armazenamento compartilhado. A duração máxima
+da função limita históricos muito grandes; nesses casos, será necessário um
+processamento durável com armazenamento externo.
+
+## Fluxo local com fila
+
+No ambiente local, as exportações assíncronas em PDF, CSV ou XLSX continuam
+processadas pelo BullMQ dentro do processo da API NestJS. O Redis local pode ser iniciado com:
 
 ```bash
 docker compose up -d redis

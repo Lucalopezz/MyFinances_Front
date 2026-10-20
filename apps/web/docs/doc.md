@@ -33,9 +33,10 @@ Busca global, projeção mensal, orçamentos e marcação de todas as notificaç
 como lidas ficam ativos por padrão, sem variáveis de ativação.
 O backend configurado deve oferecer as rotas descritas no
 [contrato HTTP](api-routes.md). As antigas variáveis de ativação não são mais utilizadas.
-A exportação local oferece PDF, CSV para abrir no Excel e Excel nativo `.xlsx`.
-No deploy unificado da Vercel, a exportação fica oculta até o worker receber
-uma implementação durável. A ação de marcar
+A exportação oferece PDF, CSV para abrir no Excel e Excel nativo `.xlsx`.
+No deploy unificado da Vercel, o arquivo é gerado na própria requisição e
+baixado pela rota Next autenticada. No ambiente local, o fluxo com fila e
+acompanhamento permanece disponível. A ação de marcar
 todas como lidas aparece quando há notificações não lidas.
 
 ## Scripts

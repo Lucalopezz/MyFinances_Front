@@ -14,6 +14,9 @@ import { TransactionExportsRepository } from './repositories/transaction-exports
 import { TransactionsModule } from '../transactions.module';
 import { TransactionExportReaderService } from './services/transaction-export-reader.service';
 import { TransactionExportWriterFactory } from './services/transaction-export-writer.factory';
+import { exportsAvailable } from '../../../common/config/deployment-features';
+import { DirectExportsController } from './direct-exports.controller';
+import { DirectTransactionExportService } from './services/direct-transaction-export.service';
 
 @Module({
   imports: [
@@ -21,16 +24,24 @@ import { TransactionExportWriterFactory } from './services/transaction-export-wr
     CategoriesModule,
     AuthModule,
     TransactionsModule,
-    // Registra a fila compartilhada pelo serviço que agenda os jobs e pelo worker que os executa.
-    BullModule.registerQueue({
-      name: TRANSACTION_EXPORT_QUEUE,
-    }),
+    // O modo direto não cria conexões Redis na função HTTP da Vercel.
+    ...(exportsAvailable()
+      ? [BullModule.registerQueue({ name: TRANSACTION_EXPORT_QUEUE })]
+      : []),
   ],
-  controllers: [ExportsController],
+  controllers: [
+    DirectExportsController,
+    ...(exportsAvailable() ? [ExportsController] : []),
+  ],
   providers: [
-    ExportsService,
-    TransactionExportsRepository,
-    TransactionExportProcessor,
+    DirectTransactionExportService,
+    ...(exportsAvailable()
+      ? [
+          ExportsService,
+          TransactionExportsRepository,
+          TransactionExportProcessor,
+        ]
+      : []),
     TransactionPdfService,
     TransactionCsvService,
     TransactionXlsxService,

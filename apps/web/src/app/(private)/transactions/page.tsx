@@ -9,7 +9,7 @@ import { categoryReferenceSchema } from "@/schemas/category.schema";
 import type { TransactionSearchFilters } from "@/models/transaction.model";
 import { currentDay } from "@/components/calendar/calendar-utils";
 import { MONTH_PATTERN, transactionMonthRange } from "@/lib/transaction-month";
-import { exportsAvailable } from "@/lib/deployment-features";
+import { exportMode, exportsAvailable } from "@/lib/deployment-features";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -77,6 +77,7 @@ export default async function TransactionsPage({
       <TransactionSearchList
         key={JSON.stringify(filters)}
         exportsAvailable={exportsAvailable()}
+        exportMode={exportMode()}
         month={month}
         filters={filters}
         initialPage={
