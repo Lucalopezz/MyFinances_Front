@@ -13,6 +13,9 @@ export class ImportCleanupService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(ImportCleanupService.name);
   constructor(private readonly repository: ImportsRepository) {}
   onModuleInit() {
+    // Funções da Vercel não são um lugar confiável para timers de manutenção.
+    // Também evita que um Preview ligado ao banco de produção apague dados.
+    if (process.env.VERCEL === '1') return;
     void this.purge();
     this.timer = setInterval(() => void this.purge(), 60_000);
     this.timer.unref();

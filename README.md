@@ -4,7 +4,7 @@ Este repositório reúne o [front Next.js](apps/web/README.md) e a [API NestJS](
 
 ## Estado desta etapa
 
-- Front, autenticação, transações, importação e demais rotas da API usam o mesmo deployment e o MongoDB configurado para o Preview.
+- Front, autenticação, transações, importação e demais rotas da API usam o mesmo deployment. Até haver um MongoDB separado no Preview, a API aceita somente `/health`.
 - A exportação de transações fica indisponível na Vercel. O módulo BullMQ e o worker não iniciam nas funções HTTP, e a interface não oferece novos pedidos. Em desenvolvimento local, o fluxo anterior continua ativo.
 - Não houve mudança no `prisma/schema.prisma` nem execução de migração no banco. Nenhum dado existente é alterado por esta integração.
 
@@ -20,6 +20,7 @@ Configure no novo projeto Vercel, para o ambiente de Preview. Use um banco Mongo
 | `JWT_TOKEN_AUDIENCE` | Conforme configuração anterior | Padrão documentado: `myfinances`. Preserve o valor anterior. |
 | `JWT_TOKEN_ISSUER` | Conforme configuração anterior | Padrão documentado: `myfinances-api`. Preserve o valor anterior. |
 | `JWT_TTL` e `JWT_REFRESH_TTL` | Opcionais | Padrões do código: `3600` e `86400` segundos. |
+| `PREVIEW_API_ENABLED` | Após isolar o banco | Defina `1` somente no ambiente Preview, depois de confirmar que `DATABASE_URL` aponta para um banco de teste separado. Sem isso, a API em Preview libera apenas `/health`. |
 
 `BACKEND_INTERNAL_URL` é um **service binding**: a Vercel a injeta apenas no front em cada deployment. Não crie essa variável manualmente. `BACKEND_URL` é só o fallback para desenvolvimento local. Nesta etapa da Vercel, `REDIS_URL`, `EXPORT_STORAGE_PATH`, `TRANSACTION_EXPORT_BATCH_SIZE`, `PORT` e `FRONTEND_URL` não são necessários para as rotas publicadas. Não use `NEXT_PUBLIC_*` para segredos.
 
@@ -27,10 +28,12 @@ Configure no novo projeto Vercel, para o ambiente de Preview. Use um banco Mongo
 
 1. O projeto Vercel separado `my-finances-unificado` já foi criado com **Root Directory** na raiz deste repositório e **Framework Preset** em **Services**. Não mude as configurações do projeto `my-finances-front` que já está em produção.
 2. Em **Settings → Environment Variables** do novo projeto, configure as variáveis para **Preview**. Confira que `DATABASE_URL` aponta para um MongoDB de Preview já preparado com os índices necessários e acessível pelas funções da Vercel. Depois de salvar as variáveis, faça um novo deployment: elas não atualizam o Preview anterior.
-3. Confirme o projeto selecionado com `vercel project inspect --non-interactive` na raiz antes de qualquer deploy. Publique um Preview da branch `deploy-unificado-vercel` e teste `/api/health`, login, leitura e gravação de uma transação e importação. A publicação inicial foi feita pelo CLI; até conectar o Git a este novo projeto, novos pushes não criam Previews automaticamente nele.
+3. Confirme o projeto selecionado com `vercel project inspect --non-interactive` na raiz antes de qualquer deploy. Publique um Preview da branch `deploy-unificado-vercel` e teste `/api/health`. Depois de configurar o banco de teste e habilitar a API, faça outro deployment e teste login, leitura e gravação de uma transação e importação. A publicação inicial foi feita pelo CLI; até conectar o Git a este novo projeto, novos pushes não criam Previews automaticamente nele.
 4. Mantenha a branch `main`, o deployment atual e o banco de produção intactos. O rollback do Preview é o redeploy do commit anterior desta branch.
 
 O build da API executa `prisma generate` e `nest build`, mas não chama `prisma db push`. Com Prisma 6 e MongoDB, `db push` não gera histórico de migrações reversíveis; por isso esta integração não sincroniza schema automaticamente. Para qualquer mudança futura no banco, prepare scripts versionados de avanço e reversão, valide ambos em uma cópia descartável e faça backup antes de aplicar em produção.
+
+Na Vercel, a limpeza periódica de importações fica desligada: funções HTTP não executam timers de manutenção de forma confiável. No Preview com banco ainda compartilhado com produção, isso também impede uma exclusão automática de dados ao iniciar a API.
 
 ## Desenvolvimento local
 
