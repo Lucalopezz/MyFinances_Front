@@ -9,6 +9,8 @@ Monorepositório principal do MyFinances: [interface Next.js](apps/web/README.md
 - **Estado do frontend antes da unificação:** branch [`backup/main-before-monorepo-2026-10-20`](https://github.com/Lucalopezz/MyFinances/tree/backup/main-before-monorepo-2026-10-20).
 - **API original:** [MyFinances_API](https://github.com/Lucalopezz/MyFinances_API), mantida como histórico.
 
+O endereço antigo `github.com/Lucalopezz/MyFinances_Front` redireciona para o novo repositório. Links diretos para arquivos da antiga raiz precisam apontar para `apps/web/`; a documentação ativa da API fica em `apps/api/`. O domínio público da aplicação não mudou.
+
 ## Como funciona o deploy
 
 O projeto Vercel `my-finances-unificado` usa **Services** com a raiz deste repositório: o `vercel.json` publica o front e a API no mesmo deployment. O front acessa a API privada pelo service binding `BACKEND_INTERNAL_URL`; essa URL e o JWT não são expostos ao navegador.
