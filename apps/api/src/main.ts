@@ -1,3 +1,4 @@
+import './vercel-module-paths';
 import { PublicExceptionFilter } from './common/filters/public-exception.filter';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
