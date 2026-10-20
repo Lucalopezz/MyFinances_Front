@@ -103,9 +103,10 @@ describe("Formulários, hooks e cache de sessão", () => {
     ]);
   });
   it("credenciais rejeitadas mantêm formulário disponível para corrigir", async () => {
-    vi.mocked(loginAction).mockRejectedValue(
-      new Error("Usuário ou senha inválidos"),
-    );
+    vi.mocked(loginAction).mockResolvedValue({
+      ok: false,
+      message: "Usuário ou senha inválidos",
+    });
     renderWithCache(<LoginPage />);
     await fillLogin();
     await userEvent.click(screen.getByRole("button", { name: "Entrar" }));

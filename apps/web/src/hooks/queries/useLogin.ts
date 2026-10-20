@@ -27,7 +27,11 @@ export const useLogin = () => {
       }
       // A Server Action lê/grava o cookie no servidor. Esta operação é enviada
       // uma única vez depois da preparação; não faz parte do loop de health.
-      await loginAction({ email: data.email, password: data.password });
+      const result = await loginAction({ email: data.email, password: data.password });
+      if (!result.ok) {
+        toast.error(result.message);
+        return;
+      }
 
       // Só o login bem-sucedido limpa o cache, preservando isolamento entre
       // contas. Uma falha de aquecimento acima não chega a este bloco.

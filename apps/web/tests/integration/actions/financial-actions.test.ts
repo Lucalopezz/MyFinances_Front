@@ -368,13 +368,23 @@ describe("Contratos de transações e autenticação", () => {
     );
     await expect(
       loginAction({ email: "user@example.test", password: "password123" }),
-    ).rejects.toThrow();
+    ).resolves.toMatchObject({ ok: false });
+    expect(cookie.set).not.toHaveBeenCalled();
+  });
+  it("indisponibilidade da API não acusa senha inválida", async () => {
+    fetchMock.mockResolvedValue(Response.json({}, { status: 503 }));
+    await expect(
+      loginAction({ email: "user@example.test", password: "password123" }),
+    ).resolves.toEqual({
+      ok: false,
+      message: "Não foi possível entrar agora. Tente novamente.",
+    });
     expect(cookie.set).not.toHaveBeenCalled();
   });
   it("login sem accessToken não cria sessão", async () => {
     await expect(
       loginAction({ email: "user@example.test", password: "password123" }),
-    ).rejects.toThrow();
+    ).resolves.toMatchObject({ ok: false });
     expect(cookie.set).not.toHaveBeenCalled();
   });
   it("edição de categoria não envia alteração do tipo imutável", async () => {

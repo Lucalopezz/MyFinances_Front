@@ -4,7 +4,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import type { NextFunction, Request, Response } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -16,20 +15,6 @@ async function bootstrap() {
       crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );
-
-  // Preview fica isolado enquanto DATABASE_URL ainda aponta para produção.
-  // Habilite as demais rotas somente depois de configurar um banco de teste.
-  if (
-    process.env.VERCEL_ENV === 'preview' &&
-    process.env.PREVIEW_API_ENABLED !== '1'
-  ) {
-    app.use((req: Request, res: Response, next: NextFunction) => {
-      if (req.path === '/health') return next();
-      return res.status(503).json({
-        message: 'API do Preview aguardando banco de teste separado.',
-      });
-    });
-  }
 
   const allowedOrigins = [
     'http://localhost:3000',

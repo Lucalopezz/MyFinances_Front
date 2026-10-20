@@ -22,6 +22,8 @@ type LoginPayload =
       password: string;
     };
 
+type LoginResult = { ok: true } | { ok: false; message: string };
+
 function isFormData(payload: LoginPayload): payload is FormData {
   return typeof (payload as FormData).get === "function";
 }
@@ -34,37 +36,42 @@ function getLoginField(payload: LoginPayload, field: "email" | "password") {
   return String(payload[field] ?? "");
 }
 
-export async function loginAction(payload: LoginPayload) {
+export async function loginAction(payload: LoginPayload): Promise<LoginResult> {
   const email = getLoginField(payload, "email");
   const password = getLoginField(payload, "password");
-  const backendUrl = getServerBackendUrl();
 
   let response: Response;
   try {
+    const backendUrl = getServerBackendUrl();
     response = await backendFetch(`${backendUrl}/auth`, {
       method: "POST",
       headers: createJsonHeaders(),
       body: JSON.stringify({ email, password }),
     });
   } catch (error) {
-    throw createRequestError(error, {
+    const publicError = createRequestError(error, {
       context: "POST /auth",
       fallback: "Não foi possível entrar agora. Tente novamente.",
     });
+    return { ok: false, message: publicError.message };
   }
 
   if (!response.ok) {
-    throw await createApiError(response, {
+    const publicError = await createApiError(response, {
       context: "POST /auth",
-      fallback: "E-mail ou senha inválidos.",
+      fallback:
+        response.status >= 500
+          ? "Não foi possível entrar agora. Tente novamente."
+          : "E-mail ou senha inválidos.",
     });
+    return { ok: false, message: publicError.message };
   }
 
   const data = await response.json();
 
   if (!data?.accessToken) {
     console.error("[API] POST /auth returned a response without accessToken");
-    throw new Error("Não foi possível entrar agora. Tente novamente.");
+    return { ok: false, message: "Não foi possível entrar agora. Tente novamente." };
   }
 
   (await cookies()).set({
