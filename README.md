@@ -15,8 +15,8 @@ Configure no novo projeto Vercel, para o ambiente de Preview. Use um banco Mongo
 | Variável | Necessidade | Observação |
 | --- | --- | --- |
 | `DATABASE_URL` | Obrigatória | URL de um MongoDB de Preview, com replica set e índices do schema atual. Preserve o banco de produção. |
-| `JWT_SECRET` | Obrigatória | Pode ser diferente em Preview; preserve a anterior somente se futuramente migrar este deploy para o banco e domínio de produção. |
-| `FINANCIAL_DATA_ENCRYPTION_KEY` | Obrigatória | Gere uma chave para Preview. **Ao usar o banco existente no futuro, reutilize exatamente a chave de produção** ou os dados financeiros antigos ficarão ilegíveis. |
+| `JWT_SECRET` | Obrigatória | Gere um segredo aleatório para Preview, por exemplo com `openssl rand -base64 48`. |
+| `FINANCIAL_DATA_ENCRYPTION_KEY` | Obrigatória | Gere uma chave para Preview com `openssl rand -base64 32`. **Ao usar o banco existente no futuro, reutilize exatamente a chave de produção** ou os dados financeiros antigos ficarão ilegíveis. |
 | `JWT_TOKEN_AUDIENCE` | Conforme configuração anterior | Padrão documentado: `myfinances`. Preserve o valor anterior. |
 | `JWT_TOKEN_ISSUER` | Conforme configuração anterior | Padrão documentado: `myfinances-api`. Preserve o valor anterior. |
 | `JWT_TTL` e `JWT_REFRESH_TTL` | Opcionais | Padrões do código: `3600` e `86400` segundos. |
@@ -25,9 +25,9 @@ Configure no novo projeto Vercel, para o ambiente de Preview. Use um banco Mongo
 
 ## Publicação
 
-1. Crie um projeto Vercel separado do `my-finances-front`, com **Root Directory** na raiz deste repositório e **Framework Preset** em **Services**. Não mude as configurações do projeto que já está em produção.
-2. Configure as variáveis de Preview no novo projeto e confira que `DATABASE_URL` aponta para um MongoDB de Preview já preparado com os índices necessários.
-3. Confirme o projeto selecionado com `vercel project inspect --non-interactive` na raiz antes de qualquer deploy. Publique um Preview da branch `deploy-unificado-vercel` e teste `/api/health`, login, leitura e gravação de uma transação e importação.
+1. O projeto Vercel separado `my-finances-unificado` já foi criado com **Root Directory** na raiz deste repositório e **Framework Preset** em **Services**. Não mude as configurações do projeto `my-finances-front` que já está em produção.
+2. Em **Settings → Environment Variables** do novo projeto, configure as variáveis para **Preview**. Confira que `DATABASE_URL` aponta para um MongoDB de Preview já preparado com os índices necessários e acessível pelas funções da Vercel. Depois de salvar as variáveis, faça um novo deployment: elas não atualizam o Preview anterior.
+3. Confirme o projeto selecionado com `vercel project inspect --non-interactive` na raiz antes de qualquer deploy. Publique um Preview da branch `deploy-unificado-vercel` e teste `/api/health`, login, leitura e gravação de uma transação e importação. A publicação inicial foi feita pelo CLI; até conectar o Git a este novo projeto, novos pushes não criam Previews automaticamente nele.
 4. Mantenha a branch `main`, o deployment atual e o banco de produção intactos. O rollback do Preview é o redeploy do commit anterior desta branch.
 
 O build da API executa `prisma generate` e `nest build`, mas não chama `prisma db push`. Com Prisma 6 e MongoDB, `db push` não gera histórico de migrações reversíveis; por isso esta integração não sincroniza schema automaticamente. Para qualquer mudança futura no banco, prepare scripts versionados de avanço e reversão, valide ambos em uma cópia descartável e faça backup antes de aplicar em produção.
