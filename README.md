@@ -17,8 +17,8 @@ Configure no novo projeto Vercel, para o ambiente de Preview. Um MongoDB separad
 | `DATABASE_URL` | Obrigatória | Atualmente aponta para o MongoDB de produção também no Preview. Um banco separado evita que testes mudem dados reais. |
 | `JWT_SECRET` | Obrigatória | Use um segredo longo e aleatório; ao compartilhar sessões entre deployments, preserve o segredo anterior. |
 | `FINANCIAL_DATA_ENCRYPTION_KEY` | Obrigatória | **Ao usar o banco existente, reutilize exatamente a chave de produção** ou os dados financeiros antigos ficarão ilegíveis. |
-| `JWT_TOKEN_AUDIENCE` | Conforme configuração anterior | Padrão documentado: `myfinances`. Preserve o valor anterior. |
-| `JWT_TOKEN_ISSUER` | Conforme configuração anterior | Padrão documentado: `myfinances-api`. Preserve o valor anterior. |
+| `JWT_TOKEN_AUDIENCE` | Opcional | Padrão do código: `myfinances`. Configure se o deployment anterior usava outro valor. |
+| `JWT_TOKEN_ISSUER` | Opcional | Padrão do código: `myfinances-api`. Configure se o deployment anterior usava outro valor. |
 | `JWT_TTL` e `JWT_REFRESH_TTL` | Opcionais | Padrões do código: `3600` e `86400` segundos. |
 
 `BACKEND_INTERNAL_URL` é um **service binding**: a Vercel a injeta apenas no front em cada deployment. Não crie essa variável manualmente. `BACKEND_URL` é só o fallback para desenvolvimento local. Nesta etapa da Vercel, `REDIS_URL`, `EXPORT_STORAGE_PATH`, `TRANSACTION_EXPORT_BATCH_SIZE`, `PORT` e `FRONTEND_URL` não são necessários para as rotas publicadas. Não use `NEXT_PUBLIC_*` para segredos.
