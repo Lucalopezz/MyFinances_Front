@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "prebuild": "prisma generate",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.{ts,cjs}\"",
     "start": "nest start",

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import * as PDFDocument from 'pdfkit';
+import PDFDocument = require('pdfkit');
 import { DecryptedTransaction } from '../../../mappers/transaction-encryption.mapper';
 import { CreateTransactionExportDto } from '../../dto/create-transaction-export.dto';
 import {
