@@ -15,8 +15,8 @@
     },
     "api": {
       "root": "apps/api",
-      "entrypoint": "src/main.ts",
-      "buildCommand": "npx prisma generate && npm run build"
+      "framework": "nestjs",
+      "entrypoint": "src/main.ts"
     }
   },
   "rewrites": [
