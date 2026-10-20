@@ -1,0 +1,53 @@
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthTokenGuard } from 'src/common/guards/auth-token.guard';
+import { User } from 'src/common/decorators/get-userId-from-token.decorator';
+import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
+import { CategoriesService } from './categories.service';
+import {
+  CreateCategoryDto,
+  CreateCategorySchema,
+  UpdateCategoryDto,
+  UpdateCategorySchema,
+  ResolveCategoryDto,
+  ResolveCategorySchema,
+} from './dto/category.dto';
+
+@Controller('categories')
+@UseGuards(AuthTokenGuard)
+export class CategoriesController {
+  constructor(private readonly service: CategoriesService) {}
+  @Get()
+  list(@User('sub') userId: string) {
+    return this.service.list(userId);
+  }
+  @Post()
+  create(
+    @Body(new ZodValidationPipe(CreateCategorySchema)) dto: CreateCategoryDto,
+    @User('sub') userId: string,
+  ) {
+    return this.service.create(dto, userId);
+  }
+  @Post('resolve')
+  resolve(
+    @Body(new ZodValidationPipe(ResolveCategorySchema)) dto: ResolveCategoryDto,
+    @User('sub') userId: string,
+  ) {
+    return this.service.resolve(dto, userId);
+  }
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UpdateCategorySchema)) dto: UpdateCategoryDto,
+    @User('sub') userId: string,
+  ) {
+    return this.service.update(id, dto, userId);
+  }
+}

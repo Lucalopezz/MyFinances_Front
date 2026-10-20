@@ -1,0 +1,101 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { TransactionsService } from './transactions.service';
+import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
+import {
+  CreateTransactionDto,
+  CreateTransactionSchema,
+  TransactionsQueryDto,
+  TransactionsQuerySchema,
+  TransactionSearchDto,
+  TransactionSearchSchema,
+  TransactionSummaryDto,
+  TransactionSummarySchema,
+  UpdateTransactionDto,
+  UpdateTransactionSchema,
+} from './dto/transaction.dto';
+import { AuthTokenGuard } from 'src/common/guards/auth-token.guard';
+import { User } from 'src/common/decorators/get-userId-from-token.decorator';
+
+@Controller('transactions')
+@UseGuards(AuthTokenGuard)
+export class TransactionsController {
+  constructor(private readonly transactionsService: TransactionsService) {}
+
+  @Post()
+  async createTransaction(
+    @Body(new ZodValidationPipe(CreateTransactionSchema))
+    dto: CreateTransactionDto,
+    @User('sub') userId: string,
+  ) {
+    return this.transactionsService.createTransaction(dto, userId);
+  }
+
+  @Get()
+  async getTransactions(
+    @Query(new ZodValidationPipe(TransactionsQuerySchema))
+    query: TransactionsQueryDto,
+    @User('sub') userId: string,
+  ) {
+    return this.transactionsService.getTransactions(query, userId);
+  }
+
+  @Get('search')
+  async searchTransactions(
+    @Query(new ZodValidationPipe(TransactionSearchSchema))
+    query: TransactionSearchDto,
+    @User('sub') userId: string,
+  ) {
+    return this.transactionsService.searchTransactions(query, userId);
+  }
+
+  @Get('summary')
+  summary(
+    @Query(new ZodValidationPipe(TransactionSummarySchema))
+    query: TransactionSummaryDto,
+    @User('sub') userId: string,
+  ) {
+    return this.transactionsService.summarizeTransactions(query, userId);
+  }
+
+  @Get('balance')
+  totalBalance(@User('sub') userId: string) {
+    return this.transactionsService.getTotalBalance(userId);
+  }
+
+  @Get(':id')
+  async getTransaction(@Param('id') id: string, @User('sub') userId: string) {
+    return this.transactionsService.getTransaction(id, userId);
+  }
+
+  @Patch(':id')
+  async updateTransaction(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UpdateTransactionSchema))
+    updateTransactionDto: UpdateTransactionDto,
+    @User('sub') userId: string,
+  ) {
+    return this.transactionsService.updateTransaction(
+      id,
+      updateTransactionDto,
+      userId,
+    );
+  }
+
+  @Delete(':id')
+  async deleteTransaction(
+    @Param('id') id: string,
+    @User('sub') userId: string,
+  ) {
+    return this.transactionsService.deleteTransaction(id, userId);
+  }
+}
