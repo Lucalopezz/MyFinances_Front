@@ -16,17 +16,17 @@ Este índice organiza as referências atuais do MyFinances Front-end. O [README 
 
 ## Guias da API
 
-As regras financeiras, o banco e os procedimentos de implantação são documentados no backend:
+As regras financeiras, o banco e os procedimentos de implantação estão no backend deste monorepositório:
 
-- [Índice da API](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/README.md).
-- [Importação CSV/OFX](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/transaction-imports.md).
-- [Exportação PDF/CSV/XLSX](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/transaction-exports.md).
-- [Ambiente local de teste](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/local-development.md): Docker, `.env` e conta com dados de exemplo.
-- [Reservas da wishlist](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/wishlist-reservations.md).
-- [Cartões de crédito](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/credit-cards.md).
-- [Criptografia financeira](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/transaction-encryption.md).
+- [Índice da API](../../api/docs/README.md).
+- [Importação CSV/OFX](../../api/docs/transaction-imports.md).
+- [Exportação PDF/CSV/XLSX](../../api/docs/transaction-exports.md).
+- [Ambiente local de teste](../../api/docs/local-development.md): Docker, `.env` e conta com dados de exemplo.
+- [Reservas da wishlist](../../api/docs/wishlist-reservations.md).
+- [Cartões de crédito](../../api/docs/credit-cards.md).
+- [Criptografia financeira](../../api/docs/transaction-encryption.md).
 
-Publique a API e sincronize seus índices antes de ativar interfaces que dependam de novos contratos.
+Prepare eventuais mudanças de schema e publique os dois serviços no mesmo deployment antes de ativar interfaces que dependam de novos contratos.
 
 ## Histórico de planejamento e validação
 

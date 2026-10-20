@@ -38,4 +38,4 @@ Estes documentos preservam o contexto e as evidências das rodadas anteriores. C
 
 ## Documentação do frontend
 
-Consulte o [índice do frontend](https://github.com/Lucalopezz/MyFinances_Front/blob/main/docs/README.md) para telas, sessão e integrações no Next.js.
+Consulte o [índice do frontend](../../web/docs/README.md) para telas, sessão e integrações no Next.js.

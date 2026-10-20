@@ -3,7 +3,7 @@ const { resolve } = require('node:path');
 const { randomBytes } = require('node:crypto');
 
 const apiDirectory = resolve(__dirname, '..');
-const frontDirectory = resolve(apiDirectory, '..', 'MyFinances_Front');
+const frontDirectory = resolve(apiDirectory, '..', 'web');
 
 /**
  * Cria configurações locais uma única vez. Reutilizar o arquivo é necessário:
@@ -50,8 +50,8 @@ createEnv(
   ].join('\n'),
 );
 
-// O frontend é um repositório separado, normalmente irmão da API neste
-// workspace. Ele recebe somente a URL pública local, nunca segredos do JWT.
+// No monorepositório, o frontend fica em apps/web. Ele recebe somente a URL
+// pública local da API, nunca os segredos usados para assinar ou ler os dados.
 if (existsSync(frontDirectory)) {
   createEnv(
     frontDirectory,

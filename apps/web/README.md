@@ -1,6 +1,6 @@
 # MyFinances Front-end
 
-Interface de gerenciamento financeiro pessoal do MyFinances, construída com Next.js. Consome a [API MyFinances](https://github.com/Lucalopezz/MyFinances_API) para registrar movimentações, acompanhar compromissos e organizar metas.
+Interface de gerenciamento financeiro pessoal do MyFinances, construída com Next.js. Consome a [API MyFinances](../api/README.md), mantida no mesmo [monorepositório](../../README.md), para registrar movimentações, acompanhar compromissos e organizar metas.
 
 Versão de referência: **v2.3.0**. Consulte o [histórico de versões](CHANGELOG.md) para conhecer as mudanças de cada release.
 
@@ -52,8 +52,8 @@ Pré-requisitos: Node.js com npm e a API MyFinances configurada.
 1. Clone o repositório e instale as dependências:
 
    ```bash
-   git clone https://github.com/Lucalopezz/MyFinances_Front.git
-   cd MyFinances_Front
+   git clone https://github.com/Lucalopezz/MyFinances.git
+   cd MyFinances/apps/web
    npm install
    ```
 

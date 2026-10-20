@@ -31,7 +31,7 @@ A numeração original foi preservada na coluna de origem. As dependências regi
 | E | Pedido adicional | Concluir compra da wishlist | D para consumir/liberar reservas individuais; reutiliza criação de transação |
 | Cartões | Pedido adicional | Cartões de crédito, compras parceladas, limite e faturas | Calendário e transações para previsão e pagamento |
 
-As entregas incluídas têm API, interface e documentação. A gestão de cartões desta versão cobre cadastro, compras, parcelas e pagamento integral de faturas; seus limites estão no [guia de cartões da API](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/credit-cards.md). Contas bancárias e carteiras não integram este escopo.
+As entregas incluídas têm API, interface e documentação. A gestão de cartões desta versão cobre cadastro, compras, parcelas e pagamento integral de faturas; seus limites estão no [guia de cartões da API](../../api/docs/credit-cards.md). Contas bancárias e carteiras não integram este escopo.
 
 ## A — Categorias personalizadas e regras automáticas
 
@@ -222,7 +222,7 @@ Implementação no código em 30/09/2026: despesa e consumo/liberação atômico
 
 ## Cartões de crédito — pedido adicional
 
-Cadastro de cartões com limite, fechamento, vencimento e anuidade; compras à vista ou parceladas; faturas por ciclo; pagamento integral de fatura fechada e previsão no calendário. Compras comprometem o limite no ato, mas só geram despesas realizadas no pagamento da fatura. Contrato HTTP em [Rotas da API](api-routes.md); regras e limites no [guia de cartões da API](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/credit-cards.md).
+Cadastro de cartões com limite, fechamento, vencimento e anuidade; compras à vista ou parceladas; faturas por ciclo; pagamento integral de fatura fechada e previsão no calendário. Compras comprometem o limite no ato, mas só geram despesas realizadas no pagamento da fatura. Contrato HTTP em [Rotas da API](api-routes.md); regras e limites no [guia de cartões da API](../../api/docs/credit-cards.md).
 
 ## F — Simulador de compras (retirado da v2.2.0)
 

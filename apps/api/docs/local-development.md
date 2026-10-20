@@ -11,7 +11,7 @@ O ambiente local usa MongoDB 7 em replica set e Redis 7, com volumes separados d
 
 ## Preparar e iniciar
 
-Na pasta `MyFinances_API`:
+Na pasta `apps/api` do monorepositório:
 
 ```bash
 npm install
@@ -23,11 +23,11 @@ npm run seed:test-transactions
 npm run start:dev
 ```
 
-`setup:local` cria o `.env` da API e, quando o frontend está na pasta irmã `MyFinances_Front`, também o `.env` dele. As chaves de JWT e criptografia são geradas aleatoriamente. Arquivos existentes são preservados: repetir o setup não troca a chave usada para ler os dados financeiros. Os `.env` e os arquivos exportados ficam ignorados pelo Git.
+`setup:local` cria o `.env` da API e também o `.env` do frontend em `apps/web`. As chaves de JWT e criptografia são geradas aleatoriamente. Arquivos existentes são preservados: repetir o setup não troca a chave usada para ler os dados financeiros. Os `.env` e os arquivos exportados ficam ignorados pelo Git.
 
 `db:local` aguarda os serviços ficarem saudáveis. O MongoDB inicializa o replica set automaticamente e só fica saudável depois da eleição do PRIMARY, necessário às transações do Prisma.
 
-Em outro terminal, na pasta `MyFinances_Front`:
+Em outro terminal, na pasta `apps/web`:
 
 ```bash
 npm install

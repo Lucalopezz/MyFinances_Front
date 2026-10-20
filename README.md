@@ -1,43 +1,52 @@
-# MyFinances: deploy único na Vercel
+# MyFinances
 
-Este repositório reúne o [front Next.js](apps/web/README.md) e a [API NestJS](apps/api/README.md). O deploy unificado deve usar **outro projeto Vercel**, criado para esta branch, com a raiz deste repositório e o framework **Services**. Assim o projeto `my-finances-front` que já atende produção permanece intacto. O arquivo `vercel.json` publica o front e liga suas chamadas servidoras à API privada do mesmo deployment por `BACKEND_INTERNAL_URL`, gerada automaticamente pela Vercel. O navegador não recebe a URL interna nem o JWT.
+Monorepositório principal do MyFinances: [interface Next.js](apps/web/README.md) em `apps/web` e [API NestJS](apps/api/README.md) em `apps/api`. O código dos dois serviços, os testes e a documentação evoluem na mesma branch. O antigo repositório `MyFinances_API` permanece apenas como referência histórica; novas mudanças devem ser feitas aqui.
 
-## Estado desta etapa
+## Aplicação e código
 
-- Front, autenticação, transações, importação e demais rotas da API usam o mesmo deployment. Por decisão do proprietário, o Preview atual usa o MongoDB de produção: alterações feitas nele afetam os dados reais.
-- A exportação de transações em PDF, CSV e XLSX funciona na Vercel por download direto: a API gera o arquivo em um diretório temporário exclusivo da requisição e o front repassa o stream autenticado. Não há Redis, worker nem arquivo persistido entre invocações. Em desenvolvimento local, o fluxo anterior com fila continua ativo.
-- Não houve mudança no `prisma/schema.prisma` nem execução de migração no banco. O deploy em si não altera os dados; operações feitas pelos usuários no Preview podem alterá-los.
+- **Aplicação em produção:** [my-finances-front.vercel.app](https://my-finances-front.vercel.app).
+- **Código principal:** [github.com/Lucalopezz/MyFinances](https://github.com/Lucalopezz/MyFinances), branch `main`.
+- **Estado do frontend antes da unificação:** branch [`backup/main-before-monorepo-2026-10-20`](https://github.com/Lucalopezz/MyFinances/tree/backup/main-before-monorepo-2026-10-20).
+- **API original:** [MyFinances_API](https://github.com/Lucalopezz/MyFinances_API), mantida como histórico.
 
-## Variáveis de ambiente
+## Como funciona o deploy
 
-Configure no novo projeto Vercel, para o ambiente de Preview. Um MongoDB separado continua sendo a opção recomendada para testes; o Preview atual foi autorizado a compartilhar o banco de produção:
+O projeto Vercel `my-finances-unificado` usa **Services** com a raiz deste repositório: o `vercel.json` publica o front e a API no mesmo deployment. O front acessa a API privada pelo service binding `BACKEND_INTERNAL_URL`; essa URL e o JWT não são expostos ao navegador.
 
-| Variável | Necessidade | Observação |
-| --- | --- | --- |
-| `DATABASE_URL` | Obrigatória | Atualmente aponta para o MongoDB de produção também no Preview. Um banco separado evita que testes mudem dados reais. |
-| `JWT_SECRET` | Obrigatória | Use um segredo longo e aleatório; ao compartilhar sessões entre deployments, preserve o segredo anterior. |
-| `FINANCIAL_DATA_ENCRYPTION_KEY` | Obrigatória | **Ao usar o banco existente, reutilize exatamente a chave de produção** ou os dados financeiros antigos ficarão ilegíveis. |
-| `JWT_TOKEN_AUDIENCE` | Opcional | Padrão do código: `myfinances`. Configure se o deployment anterior usava outro valor. |
-| `JWT_TOKEN_ISSUER` | Opcional | Padrão do código: `myfinances-api`. Configure se o deployment anterior usava outro valor. |
-| `JWT_TTL` e `JWT_REFRESH_TTL` | Opcionais | Padrões do código: `3600` e `86400` segundos. |
+O GitHub está conectado à Vercel. Cada push na `main` gera um deployment de produção dos dois serviços; pushes em outras branches geram Previews. Para novas funcionalidades, crie uma branch a partir de `main`, altere `apps/web` e/ou `apps/api`, execute os testes afetados e abra um PR para `main`. Também é possível publicar manualmente com `vercel deploy --prod` a partir da raiz, após confirmar o projeto com `vercel project inspect --non-interactive`.
 
-`BACKEND_INTERNAL_URL` é um **service binding**: a Vercel a injeta apenas no front em cada deployment. Não crie essa variável manualmente. `BACKEND_URL` é só o fallback para desenvolvimento local. Nesta etapa da Vercel, `REDIS_URL`, `EXPORT_STORAGE_PATH`, `PORT` e `FRONTEND_URL` não são necessários para as rotas publicadas. `TRANSACTION_EXPORT_BATCH_SIZE` continua opcional para controlar a leitura em lotes. Não use `NEXT_PUBLIC_*` para segredos.
+**Atenção aos Previews:** a configuração atual usa o mesmo MongoDB da produção. Cadastro, edição, remoção e testes de escrita em Preview afetam dados reais. Use um banco separado antes de testar alterações destrutivas ou migrações. O build executa `prisma generate`, mas não executa `prisma db push`; mudanças de schema exigem preparação e backup próprios.
 
-## Publicação
+## Exportações
 
-1. O projeto Vercel separado `my-finances-unificado` já foi criado com **Root Directory** na raiz deste repositório e **Framework Preset** em **Services**. Não mude as configurações do projeto `my-finances-front` que já está em produção.
-2. Em **Settings → Environment Variables** do novo projeto, configure as variáveis para **Preview**. Confira que `DATABASE_URL` aponta para o MongoDB pretendido e que a chave de criptografia corresponde aos dados existentes. Depois de salvar as variáveis, faça um novo deployment: elas não atualizam o Preview anterior.
-3. Confirme o projeto selecionado com `vercel project inspect --non-interactive` na raiz antes de qualquer deploy. Publique um Preview da branch `deploy-unificado-vercel` e teste `/api/health`, login e leitura. Faça testes de gravação apenas se aceitar que eles modificarão o banco configurado. A publicação inicial foi feita pelo CLI; até conectar o Git a este novo projeto, novos pushes não criam Previews automaticamente nele.
-4. Mantenha a branch `main` e o deployment atual intactos. O rollback do código do Preview é o redeploy do commit anterior desta branch; alterações de dados exigem reversão própria ou backup.
+Na Vercel, PDF, CSV e XLSX são gerados na própria requisição autenticada e enviados em stream. Cada arquivo fica em um diretório temporário exclusivo e é removido após o download. Não há Redis, worker ou armazenamento compartilhado nesse fluxo. Em desenvolvimento local, o fluxo anterior com BullMQ e Redis continua disponível. Históricos muito grandes podem atingir o limite de duração da função.
 
-O build da API executa `prisma generate` e `nest build`, mas não chama `prisma db push`. Com Prisma 6 e MongoDB, `db push` não gera histórico de migrações reversíveis; por isso esta integração não sincroniza schema automaticamente. Para qualquer mudança futura no banco, prepare scripts versionados de avanço e reversão, valide ambos em uma cópia descartável e faça backup antes de aplicar em produção.
+## Configuração
 
-Na Vercel, a limpeza periódica de importações fica desligada: funções HTTP não executam timers de manutenção de forma confiável. No Preview com banco ainda compartilhado com produção, isso também impede uma exclusão automática de dados ao iniciar a API.
+As variáveis `DATABASE_URL`, `JWT_SECRET` e `FINANCIAL_DATA_ENCRYPTION_KEY` são obrigatórias no projeto Vercel. Ao usar o banco existente, preserve exatamente a chave de criptografia para manter a leitura dos dados. `JWT_TOKEN_AUDIENCE` e `JWT_TOKEN_ISSUER` devem corresponder aos tokens já emitidos; os padrões do código são `myfinances` e `myfinances-api`. `JWT_TTL` e `JWT_REFRESH_TTL` são opcionais. `TRANSACTION_EXPORT_BATCH_SIZE` controla opcionalmente a leitura em lotes.
 
-## Novas funcionalidades
-
-Use esta branch unificada como base: `apps/web` contém o front e `apps/api` contém o back. Crie uma branch de feature a partir de `deploy-unificado-vercel`, altere as duas pastas necessárias, rode os testes relevantes e abra um PR de volta para `deploy-unificado-vercel`. O repositório `MyFinances_API` original não é sincronizado automaticamente com esta cópia; escolha o repositório unificado como fonte das próximas mudanças para evitar divergência. Enquanto o novo projeto Vercel não estiver ligado ao GitHub, faça o deploy de Preview pelo CLI. Não una esta branch à `main` antiga antes de planejar a troca da produção.
+`BACKEND_INTERNAL_URL` é injetada automaticamente pela Vercel no front. `BACKEND_URL` serve como fallback local. `REDIS_URL`, `EXPORT_STORAGE_PATH`, `PORT` e `FRONTEND_URL` não são necessários no deployment da Vercel. Não use `NEXT_PUBLIC_*` para segredos.
 
 ## Desenvolvimento local
 
-Cada app mantém seu `package-lock.json` e os comandos próprios. Para iniciar como antes, use um terminal em `apps/api` e outro em `apps/web`, com `BACKEND_URL=http://localhost:3001` no front. A API local continua usando MongoDB e Redis. Com o CLI instalado, `vercel dev -L` na raiz executa os serviços e injeta o binding local.
+Cada app mantém seu próprio `package-lock.json`. Para iniciar os dois serviços, use terminais separados:
+
+```bash
+cd apps/api
+npm ci
+npm run setup:local
+npm run db:local
+npx prisma generate
+npx prisma db push
+npm run start:dev
+```
+
+```bash
+cd apps/web
+npm ci
+npm run dev
+```
+
+O script `setup:local` preserva arquivos `.env` existentes e configura o front para a API local. MongoDB e Redis locais são usados no desenvolvimento; consulte o [guia de ambiente local](apps/api/docs/local-development.md) antes de criar dados de exemplo. Para os testes, veja os guias da [API](apps/api/docs/testing.md) e do [front](apps/web/docs/testing.md).
+
+Na Vercel, a limpeza periódica de importações permanece desligada: funções HTTP não executam timers de manutenção de forma confiável.

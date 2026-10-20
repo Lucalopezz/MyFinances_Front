@@ -93,7 +93,7 @@ async function start() {
       timeout: 30000,
     },
   );
-  // O checkout da API fornece seus módulos e dependências, sem modificar seus arquivos.
+  // A pasta apps/api fornece seus módulos e dependências, sem modificar seus arquivos.
   apiRequire("ts-node").register({
     project: join(apiDir, "tsconfig.json"),
     transpileOnly: true,

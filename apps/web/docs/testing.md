@@ -33,16 +33,16 @@ npm run test:e2e -- --project=desktop --grep 'cria, edita'
 
 ## Ambiente E2E
 
-O runner precisa de um checkout da API com dependências de desenvolvimento instaladas e Prisma Client gerado. Por padrão, usa `../MyFinances_API`, sem alterar os arquivos desse repositório. Para preparar o ambiente a partir do frontend:
+O runner usa a API em `apps/api` deste monorepositório, com dependências de desenvolvimento instaladas e Prisma Client gerado. Para preparar o ambiente a partir de `apps/web`:
 
 ```bash
 npm ci
 npx playwright install chromium
-cd ../MyFinances_API
+cd ../api
 npm ci
 npx prisma generate
 npm run db:local
-cd ../MyFinances_Front
+cd ../web
 npm run test:e2e
 ```
 
@@ -52,7 +52,7 @@ MongoDB usa por padrão `mongodb://127.0.0.1:27028/?replicaSet=rs0&directConnect
 
 | Variável | Uso |
 | --- | --- |
-| `E2E_API_DIR` | Caminho para o checkout local da API |
+| `E2E_API_DIR` | Caminho opcional para a API; padrão `../api` |
 | `E2E_FRONTEND_PORT` / `E2E_API_PORT` | Portas dos dois processos exclusivos dos testes |
 | `TEST_DATABASE_URL` | Servidor MongoDB local para criar o banco aleatório |
 | `TEST_REDIS_URL` | Servidor Redis local para criar a fila exclusiva |

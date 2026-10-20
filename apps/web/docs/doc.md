@@ -293,7 +293,7 @@ A rota privada `/cards` carrega os cartões no servidor e apresenta limite total
 
 A tela abre na visão de faturas, priorizando pendências do vencimento mais antigo ao mais distante; faturas pagas aparecem depois, das mais recentes às mais antigas. Itens e lançamentos ficam em detalhes expansíveis. Compras e estornos têm uma visão própria, com estados vazios e acesso às despesas fixas vinculadas. As confirmações usam o rodapé responsivo de diálogos da aplicação.
 
-As Server Actions em `src/actions/cards/cards.ts` usam o cookie HTTP-only e chamadas sem cache. Após mutações, revalidam cartões, transações, calendário, dashboard, orçamentos e comparativos. Uma compra compromete o limite, mas não aparece como despesa realizada até o pagamento integral da fatura; faturas pendentes entram na projeção do calendário. O contrato HTTP está em [Rotas da API](api-routes.md) e as regras de cálculo e implantação no [guia de cartões da API](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/credit-cards.md).
+As Server Actions em `src/actions/cards/cards.ts` usam o cookie HTTP-only e chamadas sem cache. Após mutações, revalidam cartões, transações, calendário, dashboard, orçamentos e comparativos. Uma compra compromete o limite, mas não aparece como despesa realizada até o pagamento integral da fatura; faturas pendentes entram na projeção do calendário. O contrato HTTP está em [Rotas da API](api-routes.md) e as regras de cálculo e implantação no [guia de cartões da API](../../api/docs/credit-cards.md).
 
 ### Despesas Fixas
 
@@ -327,7 +327,7 @@ A política de `src/lib/notification-query.ts` consulta a cada cinco minutos com
 
 Avisos resolvidos não contam como pendências e exibem o motivo no histórico. Pagar resolve; desmarcar reabre o mesmo aviso; virar atraso substitui o lembrete. Nome/valor e mensagens relativas são atualizados sem duplicar nem resetar leitura. Uma falha transitória mantém a lista já carregada; a primeira leitura permanece em carregamento enquanto aguarda disponibilidade.
 
-Não há execução com o app fechado. O retorno recupera despesas atrasadas. Avisos legados sem vínculo estruturado continuam no histórico sem resolução automática. Antes de publicar o frontend, sincronizar o schema/índices e publicar a API, conforme o [guia de notificações](https://github.com/Lucalopezz/MyFinances_API/blob/main/docs/notifications.md).
+Não há execução com o app fechado. O retorno recupera despesas atrasadas. Avisos legados sem vínculo estruturado continuam no histórico sem resolução automática. Antes de publicar contratos que dependam de novos índices, prepare o schema, conforme o [guia de notificações](../../api/docs/notifications.md). Frontend e API são publicados juntos.
 
 ## Convenções de Implementação
 

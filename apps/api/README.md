@@ -1,6 +1,6 @@
 # MyFinances API
 
-API de gerenciamento financeiro pessoal do MyFinances, construída com NestJS, Prisma e MongoDB. Centraliza os dados, as regras financeiras e a autenticação consumidos pelo [frontend](https://github.com/Lucalopezz/MyFinances_Front).
+API de gerenciamento financeiro pessoal do MyFinances, construída com NestJS, Prisma e MongoDB. Centraliza os dados, as regras financeiras e a autenticação consumidos pelo [frontend](../web/README.md). Este é o backend ativo do [monorepositório principal](../../README.md).
 
 Versão de referência: **v2.2.2**. Consulte o [histórico de versões](CHANGELOG.md) para conhecer as mudanças de cada release.
 
@@ -9,7 +9,7 @@ Versão de referência: **v2.2.2**. Consulte o [histórico de versões](CHANGELO
 - **Autenticação e usuário:** cadastro, login com JWT, atualização de perfil e senha.
 - **Transações:** receitas e despesas, edição, remoção, busca com cursor, totais por filtros e saldo acumulado.
 - **Categorias e regras:** catálogo personalizado, arquivamento e sugestões de classificação por descrição.
-- **Importação e exportação:** CSV/OFX com prévia e revisão de duplicatas; exportação assíncrona em PDF/CSV/XLSX.
+- **Importação e exportação:** CSV/OFX com prévia e revisão de duplicatas; PDF/CSV/XLSX por download direto na Vercel e por fila no ambiente local.
 - **Dashboard e comparativos:** resumo mensal, indicadores e análise de receitas, despesas e saldo.
 - **Orçamentos:** limites mensais e acompanhamento de gastos por categoria.
 - **Calendário financeiro:** receitas recorrentes, compromissos previstos e projeção diária de saldo.
@@ -39,7 +39,7 @@ Os guias de domínio, implantação e os registros históricos estão organizado
 - Prisma e MongoDB com replica set.
 - Zod para validação e JWT para autenticação.
 - AES-256-GCM para proteção dos dados financeiros sensíveis.
-- BullMQ e Redis para processamento de exportações.
+- BullMQ e Redis para a fila de exportações no ambiente local; a Vercel usa download direto.
 - PDFKit para relatórios PDF, ExcelJS para planilhas XLSX; Jest para testes.
 
 ## Instalação e execução
@@ -49,8 +49,8 @@ Pré-requisitos: Node.js com npm, MongoDB com replica set e Redis. O replica set
 1. Clone o repositório e instale as dependências:
 
    ```bash
-   git clone https://github.com/Lucalopezz/MyFinances_API.git
-   cd MyFinances_API
+   git clone https://github.com/Lucalopezz/MyFinances.git
+   cd MyFinances/apps/api
    npm install
    ```
 
