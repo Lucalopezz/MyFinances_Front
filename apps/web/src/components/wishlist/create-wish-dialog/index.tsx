@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -20,6 +21,7 @@ type WishDialogProps = {
   loading: boolean;
 };
 
+/** Formulário de meta com campos empilhados no celular e cores que acompanham o tema. */
 export const WishDialog = ({
   open,
   onOpenChange,
@@ -51,33 +53,33 @@ export const WishDialog = ({
       <DialogContent
         className={cn(
           "sm:max-w-[500px]",
-          "bg-[#2C3344] border-none",
-          "text-white",
-          "rounded-lg"
+          "max-h-[calc(100dvh-2rem)] overflow-y-auto border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-gray-800 dark:text-white",
+          "rounded-lg",
         )}
       >
         <DialogHeader>
-          <DialogTitle className="text-white">
-            Adicionar Novo Desejo
-          </DialogTitle>
+          <DialogTitle>Adicionar Novo Desejo</DialogTitle>
+          <DialogDescription className="text-slate-500 dark:text-slate-400">
+            Defina o valor da meta e, se quiser, uma data para alcançá-la.
+          </DialogDescription>
         </DialogHeader>
 
         <form
           onSubmit={handleSubmit(handleFormSubmit)}
           className="grid gap-4 py-4"
         >
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right text-white">
+          <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+            <Label htmlFor="name" className="sm:justify-end">
               Nome
             </Label>
-            <div className="col-span-3">
+            <div className="sm:col-span-3">
               <Input
                 id="name"
                 {...register("name")}
                 placeholder="PlayStation 5"
                 className={cn(
-                  "bg-[#364152] border-none text-white placeholder-gray-400",
-                  errors.name && "border-red-500"
+                  "border-slate-300 bg-white dark:border-slate-600 dark:bg-gray-700",
+                  errors.name && "border-red-500",
                 )}
               />
               {errors.name && (
@@ -87,11 +89,11 @@ export const WishDialog = ({
               )}
             </div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="desiredValue" className="text-right text-white">
+          <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+            <Label htmlFor="desiredValue" className="sm:justify-end">
               Preço
             </Label>
-            <div className="col-span-3">
+            <div className="sm:col-span-3">
               <Input
                 id="desiredValue"
                 type="number"
@@ -101,8 +103,8 @@ export const WishDialog = ({
                 })}
                 placeholder="3999.90"
                 className={cn(
-                  "bg-[#364152] border-none text-white placeholder-gray-400",
-                  errors.desiredValue && "border-red-500"
+                  "border-slate-300 bg-white dark:border-slate-600 dark:bg-gray-700",
+                  errors.desiredValue && "border-red-500",
                 )}
               />
               {errors.desiredValue && (
@@ -112,20 +114,20 @@ export const WishDialog = ({
               )}
             </div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="targetDate" className="text-right text-white">
+          <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+            <Label htmlFor="targetDate" className="sm:justify-end">
               Data Alvo
             </Label>
-            <div className="col-span-3">
+            <div className="sm:col-span-3">
               <Input
                 id="targetDate"
                 type="date"
                 {...register("targetDate", {
-                  setValueAs: (v) => v ? parseDateOnly(v) : null,
+                  setValueAs: (v) => (v ? parseDateOnly(v) : null),
                 })}
                 className={cn(
-                  "bg-[#364152] border-none text-white",
-                  errors.targetDate && "border-red-500"
+                  "border-slate-300 bg-white dark:border-slate-600 dark:bg-gray-700",
+                  errors.targetDate && "border-red-500",
                 )}
               />
               {errors.targetDate && (
@@ -140,8 +142,8 @@ export const WishDialog = ({
             onCancel={() => onOpenChange(false)}
             isLoading={loading}
             submitLabel="Salvar"
-            className="mt-4 gap-2"
-            cancelClassName="bg-[#364152] border-none text-white hover:bg-[#4A5567]"
+            className="mt-4 flex-wrap gap-2"
+            cancelClassName="border-slate-300 bg-white dark:border-slate-600 dark:bg-gray-700"
             submitClassName="bg-blue-600 hover:bg-blue-700 text-white"
           />
         </form>
