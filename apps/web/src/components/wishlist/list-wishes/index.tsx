@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Target } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { addWishMovement, completeWish } from "@/actions/wishlist/wishlist";
@@ -17,6 +18,7 @@ import { Label } from "@/components/ui/label";
 
 type Operation = "DEPOSIT" | "WITHDRAWAL" | "COMPLETE";
 
+/** Apresenta as metas em painéis temáticos e mantém os comandos de reserva junto da meta. */
 export function WishList({ wishListItems, onChanged }: {
   wishListItems: WishListInterface[];
   onChanged: () => Promise<void>;
@@ -78,11 +80,11 @@ export function WishList({ wishListItems, onChanged }: {
 
   return <>
     {completedId && <p role="status" className="mb-4 rounded border border-green-600 p-3">Compra registrada. <Link className="underline" href={`/transactions/${completedId}`}>Ver transação</Link></p>}
-    {wishListItems.length === 0 && <p className="rounded border p-6 text-center text-muted-foreground">Nenhuma meta neste filtro.</p>}
+    {wishListItems.length === 0 && <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center dark:border-slate-600 dark:bg-gray-800"><Target aria-hidden="true" className="mx-auto mb-3 size-10 text-blue-500" /><p className="font-medium text-slate-900 dark:text-white">Nenhuma meta neste filtro.</p><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Acompanhe suas metas ativas ou adicione um novo desejo.</p></div>}
     <div className="grid gap-4 lg:grid-cols-2">
-      {wishListItems.map((item) => <article key={item.id} className="rounded-lg border bg-card p-4 shadow-sm">
+      {wishListItems.map((item) => <article key={item.id} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-gray-800 sm:p-6">
         <div className="flex items-start justify-between gap-3">
-          <div><h2 className="text-lg font-semibold">{item.name}</h2><p className="text-sm text-muted-foreground">Valor desejado: {formatCurrency(item.desiredValue)}</p></div>
+          <div className="min-w-0"><h2 className="break-words text-lg font-semibold">{item.name}</h2><p className="text-sm text-slate-500 dark:text-slate-400">Valor desejado: {formatCurrency(item.desiredValue)}</p></div>
           {item.status === "ACTIVE" && <RowActions editHref={`/wishlist/edit/${item.id}`} deleteId={item.id} deleteAction={async (id) => { await deleteWish(id); await onChanged(); }} />}
         </div>
         {item.status === "ACTIVE" && <>
@@ -90,26 +92,26 @@ export function WishList({ wishListItems, onChanged }: {
             <p>Reservado<br /><strong>{formatCurrency(item.reservedAmount)}</strong></p>
             <p>Restante<br /><strong>{formatCurrency(item.remainingAmount)}</strong></p>
           </div>
-          <div className="mt-3 h-2 rounded bg-muted" role="progressbar" aria-label={`Progresso de ${item.name}`} aria-valuenow={item.progressPercent} aria-valuemin={0} aria-valuemax={100}>
-            <div className="h-2 rounded bg-green-600" style={{ width: `${item.progressPercent}%` }} />
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700" role="progressbar" aria-label={`Progresso de ${item.name}`} aria-valuenow={item.progressPercent} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-2 rounded-full bg-blue-600 dark:bg-blue-500" style={{ width: `${item.progressPercent}%` }} />
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">{item.progressPercent}% da meta · Prazo: {item.targetDate ? formatShortDate(item.targetDate) : "sem prazo"}</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{item.progressPercent}% da meta · Prazo: {item.targetDate ? formatShortDate(item.targetDate) : "sem prazo"}</p>
         </>}
         {item.status === "ACTIVE" && <p className="mt-2 text-sm">{item.deadlineState === "OVERDUE" ? "Prazo vencido: revise a data da meta." : item.monthlySuggestion !== null ? `Sugestão: ${formatCurrency(item.monthlySuggestion)} por mês` : item.deadlineState === "REACHED" ? "Meta atingida. A compra continua opcional." : "Sem prazo: sem sugestão mensal."}</p>}
         {item.reservationMigrationState === "PENDING" && <p className="mt-2 text-xs text-blue-700 dark:text-blue-300">Referência antiga: {formatCurrency(item.legacySavedAmount)}. Nenhum aporte foi criado automaticamente.</p>}
         {item.status === "COMPLETED" && <p className="mt-2 text-sm">Compra concluída em {formatShortDate(item.completedAt ?? undefined)} · <Link className="underline" href={`/transactions/${item.purchaseTransactionId}`}>Ver transação</Link></p>}
         {item.status === "ACTIVE" && <div className="mt-4 flex flex-wrap gap-2">
-          <Button type="button" size="sm" onClick={() => open(item, "DEPOSIT")}>Aportar</Button>
-          <Button type="button" size="sm" variant="outline" disabled={item.reservedAmount <= 0} onClick={() => open(item, "WITHDRAWAL")}>Retirar</Button>
-          <Button type="button" size="sm" variant="outline" onClick={() => open(item, "COMPLETE")}>Concluir compra</Button>
+          <Button type="button" size="sm" className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => open(item, "DEPOSIT")}>Aportar</Button>
+          <Button type="button" size="sm" variant="outline" className="border-slate-300 bg-white dark:border-slate-600 dark:bg-gray-700" disabled={item.reservedAmount <= 0} onClick={() => open(item, "WITHDRAWAL")}>Retirar</Button>
+          <Button type="button" size="sm" variant="outline" className="border-slate-300 bg-white dark:border-slate-600 dark:bg-gray-700" onClick={() => open(item, "COMPLETE")}>Concluir compra</Button>
         </div>}
         <details className="mt-4 text-sm"><summary className="cursor-pointer">Histórico de reservas ({item.movements.length})</summary>
-          {item.movements.length === 0 ? <p className="mt-2 text-muted-foreground">Nenhum movimento registrado.</p> : <ul className="mt-2 space-y-2">{item.movements.map((movement) => <li key={movement.id} className="border-t pt-2">{formatShortDate(movement.date)} · {movement.kind === "DEPOSIT" ? "Aporte" : movement.kind === "WITHDRAWAL" ? "Retirada" : movement.kind === "CONSUMPTION" ? "Usado na compra" : "Sobra liberada"} · {formatCurrency(movement.value)}{movement.note ? ` · ${movement.note}` : ""}</li>)}</ul>}
+          {item.movements.length === 0 ? <p className="mt-2 text-slate-500 dark:text-slate-400">Nenhum movimento registrado.</p> : <ul className="mt-2 space-y-2">{item.movements.map((movement) => <li key={movement.id} className="border-t pt-2">{formatShortDate(movement.date)} · {movement.kind === "DEPOSIT" ? "Aporte" : movement.kind === "WITHDRAWAL" ? "Retirada" : movement.kind === "CONSUMPTION" ? "Usado na compra" : "Sobra liberada"} · {formatCurrency(movement.value)}{movement.note ? ` · ${movement.note}` : ""}</li>)}</ul>}
         </details>
       </article>)}
     </div>
     <Dialog open={selected !== null} onOpenChange={(open) => { if (!open && !busy) setSelected(null); }}>
-      <DialogContent>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-gray-800 dark:text-white">
         <DialogHeader><DialogTitle>{operation === "DEPOSIT" ? "Aportar na meta" : operation === "WITHDRAWAL" ? "Retirar da meta" : "Concluir compra"}</DialogTitle>
           <DialogDescription>{operation === "COMPLETE" ? "A compra cria uma despesa. A reserva cobre até o valor pago e a sobra é liberada." : "A reserva usa dinheiro já registrado; não cria receita nem despesa."}</DialogDescription></DialogHeader>
         <form className="space-y-4" onSubmit={submit}>
