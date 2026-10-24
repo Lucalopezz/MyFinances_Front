@@ -73,3 +73,19 @@ test("navegação financeira funciona no desktop e no menu móvel", async ({
       ),
     ).toBe(true);
 });
+
+test("atalho de perfil abre configurações pelo cabeçalho", async ({
+  page,
+  signedIn,
+}) => {
+  void signedIn;
+  await page.goto("/dashboard");
+  // O mesmo cabeçalho aparece no desktop e no celular; o atalho não depende
+  // de abrir a navegação lateral nem de alterar a sessão para trocar de página.
+  await page
+    .getByRole("banner")
+    .getByRole("link", { name: "Configurações do usuário" })
+    .click();
+  await expect(page).toHaveURL(/\/config$/);
+  await expect(page.getByRole("heading", { name: "Configurações" })).toBeVisible();
+});
