@@ -317,6 +317,8 @@ sem expor o token no browser.
 
 ### Configurações
 
+O ícone de usuário no cabeçalho privado é um link para `/config`, com nome acessível “Configurações do usuário” e foco visível para navegação pelo teclado.
+
 Permite atualizar dados do usuário e senha.
 
 ### Notificações
