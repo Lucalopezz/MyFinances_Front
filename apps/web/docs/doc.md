@@ -323,7 +323,7 @@ Permite atualizar dados do usuário e senha.
 
 ### Notificações
 
-O cabeçalho privado sincroniza avisos antes de listar, em qualquer página autenticada. `POST /notifications/sync` atualiza recorrências e gera lembretes/alertas de atraso durante a requisição. `GET /notifications` somente lista o histórico. As Server Actions de `src/actions/notification` preservam o JWT no cookie HTTP-only; o POST tem prazo de 15 segundos e a query permite uma repetição segura por usar recibos únicos na API.
+O cabeçalho privado consulta avisos em qualquer página autenticada usando um único `GET /notifications`. A API atualiza recorrências e gera lembretes/alertas de atraso antes de devolver o histórico, sem cron, worker ou chamada prévia de sincronização. `POST /notifications/sync` permanece compatível para clientes antigos. As Server Actions de `src/actions/notification` preservam o JWT no cookie HTTP-only; o GET usa o transporte compartilhado com prazo de 15 segundos por tentativa e repetição limitada. A query também permite uma repetição segura porque a geração usa recibos únicos na API. A resposta HTTP e a action não usam cache compartilhado.
 
 A política de `src/lib/notification-query.ts` consulta a cada cinco minutos com a aba visível, ao recuperar foco/rede, e ao abrir o sininho. `useGetNotifications` habilita a query apenas com sessão autenticada e API disponível; recuperação de disponibilidade reativa a consulta stale. Cabeçalho/configurações compartilham a mesma chave de cache. Mutações de despesas e pagamentos pelo calendário invalidam essa chave para atualizar a lista imediatamente.
 

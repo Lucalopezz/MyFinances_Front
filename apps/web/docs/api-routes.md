@@ -702,7 +702,9 @@ Novos avisos vinculados a despesas incluem os campos opcionais `sourceExpenseId`
 
 ### `GET /notifications`
 
-Lista as notificações já salvas do usuário, incluindo o histórico resolvido. Esta leitura não dispara sincronização.
+Atualiza recorrências e gera lembretes/alertas de atraso antes de listar as notificações do usuário, incluindo o histórico resolvido. A geração ocorre na própria requisição autenticada, sem cron, fila ou worker e sem exigir `POST /notifications/sync` prévio. Usa somente o usuário do token; parâmetros `userId` e `force` não alteram esse comportamento.
+
+A mesma política do endpoint de sincronização limita as rodadas a cinco minutos por usuário, exceto na virada do dia financeiro. Recibos únicos impedem avisos duplicados em leituras concorrentes ou repetidas. A resposta usa `Cache-Control: private, no-store`. Falhas na geração retornam erro e não confirmam a rodada; a próxima consulta pode tentar novamente.
 
 Entrada: não possui body.
 
