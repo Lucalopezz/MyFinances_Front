@@ -130,6 +130,57 @@ const execFileAsync = promisify(execFile);
         .expect(200)
         .expect(({ body }) => expect(body).toHaveLength(1));
     });
+    it('gera avisos na própria leitura autenticada sem uma chamada prévia de sincronização', async () => {
+      const upcoming = await createExpense(1);
+      const overdue = await createExpense(-12);
+      await createExpense(1, other);
+      await request(app.getHttpServer()).get('/notifications').expect(401);
+      expect(await db.notification.count()).toBe(0);
+
+      const response = await request(app.getHttpServer())
+        .get('/notifications')
+        .query({ userId: other, force: true })
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(response.body).toHaveLength(2);
+      expect(response.headers['cache-control']).toBe('private, no-store');
+      expect(response.body).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            sourceExpenseId: upcoming.id,
+            event: 'UPCOMING',
+            userId: owner,
+          }),
+          expect.objectContaining({
+            sourceExpenseId: overdue.id,
+            event: 'OVERDUE',
+            userId: owner,
+          }),
+        ]),
+      );
+      expect(await db.notification.count({ where: { userId: other } })).toBe(0);
+      expect(await db.notificationDelivery.count()).toBe(2);
+    });
+    it('leituras concorrentes deduplicam avisos e respeitam o intervalo sem aceitar force do cliente', async () => {
+      await createExpense();
+      const responses = await Promise.all(
+        Array.from({ length: 3 }, () =>
+          request(app.getHttpServer())
+            .get('/notifications')
+            .set('Authorization', `Bearer ${token}`)
+            .expect(200),
+        ),
+      );
+      expect(responses.map(({ body }) => body.length)).toEqual([1, 1, 1]);
+      expect(await db.notificationDelivery.count()).toBe(1);
+      await createExpense();
+      await request(app.getHttpServer())
+        .get('/notifications?force=true')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200)
+        .expect(({ body }) => expect(body).toHaveLength(1));
+    });
     it('três chamadas simultâneas criam um único aviso e só uma processa', async () => {
       await createExpense();
       const results = await Promise.all([
@@ -354,14 +405,19 @@ const execFileAsync = promisify(execFile);
           };
           return callback(tx);
         })) as never);
-      await expect(synchronizer.evaluate(owner)).rejects.toThrow(
-        'falha simulada',
-      );
+      await request(app.getHttpServer())
+        .get('/notifications')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(500);
       injected.mockRestore();
       expect(await db.notification.count()).toBe(0);
       expect(await db.notificationSyncState.count()).toBe(0);
       expect(await db.notificationDelivery.count()).toBe(0);
-      expect((await synchronizer.evaluate(owner)).created).toBe(1);
+      await request(app.getHttpServer())
+        .get('/notifications')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200)
+        .expect(({ body }) => expect(body).toHaveLength(1));
     });
     it('a rota atualiza o ciclo pago antes de avaliar as notificações', async () => {
       const expense = await createExpense(-1);
