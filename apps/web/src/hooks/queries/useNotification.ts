@@ -4,7 +4,6 @@ import {
   getNotifications,
   markAllNotificationsAsRead,
   markNotificationAsRead,
-  syncNotifications,
 } from "@/actions/notification/notifications";
 import { queryKeys } from "@/hooks/queries/query-keys";
 import { notificationQueryOptions } from "@/lib/notification-query";
@@ -34,7 +33,7 @@ export function useGetNotifications() {
   // O cabeçalho monta em qualquer página privada. Após recuperar a API,
   // habilitar novamente a query stale solicita uma nova sincronização.
   return useQuery<NotificationInterface[], Error>({
-    ...notificationQueryOptions(syncNotifications, getNotifications),
+    ...notificationQueryOptions(getNotifications),
     enabled: status === "authenticated" && connection.status === "ready",
   });
 }

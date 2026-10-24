@@ -11,39 +11,9 @@ import { revalidateTag } from "next/cache";
 import { createJsonHeaders, getServerBackendUrl } from "@/lib/backend";
 import { getServerToken } from "@/lib/serverAuth";
 import type { NotificationInterface } from "@/models/notification.model";
-import { createApiError, createRequestError } from "@/lib/api-error";
+import { createApiError } from "@/lib/api-error";
 
-/** Aguarda o processamento na API; o JWT permanece no servidor e não existe worker no front. */
-export async function syncNotifications(): Promise<{
-  processed: boolean;
-  created: number;
-  resolved: number;
-  checkedAt: string;
-}> {
-  const token = await getServerToken();
-  if (!token) throw new Error("Sua sessão expirou. Entre novamente.");
-  const context = "POST /notifications/sync";
-  const fallback = "Não foi possível atualizar as notificações.";
-  // A rodada é idempotente no banco. O prazo evita prender a consulta do sininho
-  // em um cold start; uma tentativa posterior pode recuperar a resposta perdida.
-  try {
-    const response = await backendFetch(
-      `${getServerBackendUrl()}/notifications/sync`,
-      {
-        method: "POST",
-        headers: createJsonHeaders(token),
-        cache: "no-store",
-        signal: AbortSignal.timeout(15_000),
-      },
-    );
-    if (!response.ok)
-      throw await createApiError(response, { context, fallback });
-    return await response.json();
-  } catch (error) {
-    throw createRequestError(error, { context, fallback });
-  }
-}
-
+/** A API gera e lista avisos na mesma requisição autenticada, sem worker nem POST prévio. */
 export async function getNotifications(): Promise<NotificationInterface[]> {
   const token = await getServerToken();
   const backendUrl = getServerBackendUrl();

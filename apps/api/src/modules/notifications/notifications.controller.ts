@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Post,
   Patch,
@@ -61,8 +62,13 @@ export class NotificationsController {
     return this.notificationService.markAllAsRead(userId);
   }
 
+  /** A própria consulta recupera vencimentos, mesmo sem worker ou POST prévio. */
   @Get()
+  @Header('Cache-Control', 'private, no-store')
   async getNotifications(@User('sub') userId: string) {
+    // Aguarda a rodada para incluir os avisos recém-gerados nesta resposta.
+    // O estado por usuário limita a frequência e os recibos tornam repetições seguras.
+    await this.syncService.synchronize(userId);
     return this.notificationService.getUserNotifications(userId);
   }
 

@@ -4,7 +4,8 @@ O processamento ocorre durante requisições autenticadas, sem cron, fila ou wor
 
 ## Fluxo e regras
 
-- `POST /notifications/sync` usa exclusivamente o usuário do token, atualiza ciclos pagos e avalia suas despesas. Não aceita `userId` nem `force` do cliente.
+- `GET /notifications` atualiza ciclos pagos, avalia despesas e lista o histórico na mesma requisição. Usa exclusivamente o usuário do token e devolve `Cache-Control: private, no-store`. Não aceita `userId` nem `force` do cliente.
+- `POST /notifications/sync` permanece compatível para clientes antigos e usa o mesmo processamento, sem exigir um serviço separado.
 - A sincronização usa `NotificationSyncState` para processar no máximo uma vez a cada cinco minutos por usuário. A virada do dia financeiro em `America/Sao_Paulo` ignora esse intervalo. Criar, editar, pagar/desmarcar ou excluir despesas força uma avaliação na API.
 - Vencimentos são datas civis `YYYY-MM-DD`, preservando a convenção UTC do calendário. A janela inclui hoje e os próximos três dias inteiros, independentemente do horário armazenado.
 - Uma despesa não paga gera `UPCOMING`/`REMINDER` nessa janela ou `OVERDUE`/`ALERT` após o vencimento. Atrasados não têm limite de idade; um atraso gera um único evento por vencimento, sem repetição diária.
@@ -16,9 +17,9 @@ O processamento ocorre durante requisições autenticadas, sem cron, fila ou wor
 
 `NotificationDelivery` possui índice único por usuário/despesa/vencimento/evento. O recibo é separado para não exigir um índice único sobre campos opcionais de notificações legadas no MongoDB. A escrita do estado por usuário serializa rodadas concorrentes; avisos, recibos e timestamp são confirmados na mesma transação. As despesas avaliadas são tocadas nessa transação para detectar edição/pagamento concorrente. Conflitos `P2002`/`P2034` permitem até quatro tentativas. Pagamentos e avanço de recorrências repetem somente conflitos transacionais com rollback garantido. Consultas concorrentes não avançam o mesmo ciclo duas vezes.
 
-Uma falha na rota de sincronização é devolvida ao frontend e não confirma o timestamp da rodada. A avaliação auxiliar após uma mutação registra a falha sem transformar um pagamento já confirmado em erro financeiro. A próxima avaliação pode recuperar as pendências; consultas normais continuam sujeitas ao intervalo da última rodada concluída.
+Uma falha na geração, tanto no GET quanto no POST, é devolvida ao frontend e não confirma o timestamp da rodada. A avaliação auxiliar após uma mutação registra a falha sem transformar um pagamento já confirmado em erro financeiro. A próxima avaliação pode recuperar as pendências; consultas normais continuam sujeitas ao intervalo da última rodada concluída.
 
-O frontend monta a consulta no cabeçalho privado, sincroniza antes de listar e compartilha o cache com configurações. Consulta a cada cinco minutos somente com a aba visível, ao recuperar foco/conexão/disponibilidade e ao abrir o sininho. Após mutações em despesas e pagamentos pelo calendário, invalida o cache de notificações. Falhas transitórias preservam os avisos já carregados.
+O frontend monta a consulta no cabeçalho privado e compartilha o cache com configurações. Faz um único GET autenticado por atualização; a API conclui a geração antes de retornar o feed. O transporte de leitura aplica prazo e repetição limitada em falhas transitórias, seguros pelos recibos únicos. Consulta a cada cinco minutos somente com a aba visível, ao recuperar foco/conexão/disponibilidade e ao abrir o sininho. Após mutações em despesas e pagamentos pelo calendário, invalida o cache de notificações. Falhas transitórias preservam os avisos já carregados.
 
 ## Compatibilidade e implantação
 
@@ -36,5 +37,5 @@ A implementação não executa sincronização de schema nem altera dados de pro
 ## Validação
 
 - `npm test -- --runInBand --runTestsByPath tests/unit/modules/notifications/domain/notification-rules.spec.ts tests/unit/modules/notifications/notifications.service.spec.ts tests/unit/modules/fixed-expenses/services/fixed-expense-payment.service.spec.ts` cobre dias civis, janela completa, fuso, intervalo e resolução transacional no pagamento.
-- `npm run test:notifications:integration` carrega `NOTIFICATIONS_TEST_DATABASE_URL` do `.env`, apontando para o MongoDB local de desenvolvimento. Cria e remove somente um banco aleatório; nunca usa `DATABASE_URL`. Cobre autenticação, três chamadas simultâneas, índice único real, recuperação de atraso, pagamento concorrente, desmarcação, edição, exclusão, legado, rollback e atualização de ciclo.
+- `npm run test:notifications:integration` carrega `NOTIFICATIONS_TEST_DATABASE_URL` do `.env`, apontando para o MongoDB local de desenvolvimento. Cria e remove somente um banco aleatório; nunca usa `DATABASE_URL`. Cobre autenticação, geração durante o GET sem POST prévio, isolamento do usuário e controle de cache, três leituras simultâneas, índice único real, recuperação de atraso, pagamento concorrente, desmarcação, edição, exclusão, legado, rollback e atualização de ciclo.
 - No frontend, `npm run test:notifications` valida a política real do Query Core com relógio controlado, pausa em segundo plano, foco/rede, habilitação por sessão/disponibilidade, cache compartilhado, resolução e transporte server-side autenticado.
